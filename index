@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบตรวจสอบคะแนน</title>
+  <style>
+    /* เอา margin/padding ออก */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    /* iframe เต็ม viewport ทั้งความกว้างและสูง */
+    iframe {
+      width: 100%;
+      height: 100vh; /* 100% ของความสูงหน้าจอ */
+      border: none;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <iframe 
+    src="https://script.google.com/macros/s/AKfycby59Onou_USZNX04Dy-WBhomFYq-ExOnfC3j4N0U0YdKYOoJpv88S9eEkSZ58NNdii1/exec"
+    title="ระบบตรวจสอบคะแนน"
+  ></iframe>
+</body>
+</html>
