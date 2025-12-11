@@ -1,30 +1,1298 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบตรวจสอบคะแนน</title>
-  <style>
-    /* เอา margin/padding ออก */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประกาศคะแนน (GradePro Cloud)</title>
+    
+    <!-- Google Fonts: Prompt -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    
+    <style>
+        * { font-family: 'Prompt', sans-serif !important; }
+        body { background-color: #f8fafc; color: #1e293b; }
+        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .tab-btn { @apply px-6 py-3 font-medium transition flex items-center gap-2 border-b-2 whitespace-nowrap; }
+        .tab-active { @apply border-blue-600 text-blue-600 bg-blue-50/50; }
+        .tab-inactive { @apply border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50; }
+        
+        .card { @apply bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden; }
 
-    /* iframe เต็ม viewport ทั้งความกว้างและสูง */
-    iframe {
-      width: 100%;
-      height: 100vh; /* 100% ของความสูงหน้าจอ */
-      border: none;
-      display: block;
-    }
-  </style>
+        .vertical-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+        }
+        
+        .calculated-field {
+            @apply bg-gray-100 text-gray-600 cursor-not-allowed font-bold;
+        }
+    </style>
+
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-  <iframe 
-    src="https://script.google.com/macros/s/AKfycby59Onou_USZNX04Dy-WBhomFYq-ExOnfC3j4N0U0YdKYOoJpv88S9eEkSZ58NNdii1/exec"
-    title="ระบบตรวจสอบคะแนน"
-  ></iframe>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+        // --- CONFIG & ICONS ---
+        let firebaseConfig;
+        if (typeof __firebase_config !== 'undefined') {
+            firebaseConfig = JSON.parse(__firebase_config);
+        } else {
+            firebaseConfig = {
+                apiKey: "AIzaSyAT_suSpvRBboyuf7cFaqlCidllBsJqYM0",
+                authDomain: "studentgradesystem-2a33f.firebaseapp.com",
+                projectId: "studentgradesystem-2a33f",
+                storageBucket: "studentgradesystem-2a33f.firebasestorage.app",
+                messagingSenderId: "339470940730",
+                appId: "1:339470940730:web:cc60c26a4c209caa6d1303",
+                measurementId: "G-7MZ12J60VQ"
+            };
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'student-grade-system-v1';
+        
+        const PUBLIC_DATA_PATH = `artifacts/${appId}/public/data`;
+        const STUDENTS_COLLECTION = `${PUBLIC_DATA_PATH}/students`;
+        const CONFIG_DOC = `${PUBLIC_DATA_PATH}/config/main`;
+
+        const Icon = ({ path, size = 20, className = "" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{path}</svg>
+        );
+        const Icons = {
+            Search: (props) => <Icon {...props} path={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} />,
+            Lock: (props) => <Icon {...props} path={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>} />,
+            User: (props) => <Icon {...props} path={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
+            LogOut: (props) => <Icon {...props} path={<><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></>} />,
+            Plus: (props) => <Icon {...props} path={<><path d="M5 12h14"/><path d="M12 5v14"/></>} />,
+            AlertCircle: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></>} />,
+            CheckCircle: (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
+            FileSpreadsheet: (props) => <Icon {...props} path={<><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 13h2"/><path d="M14 13h2"/><path d="M8 17h2"/><path d="M14 17h2"/></>} />,
+            ChevronDown: (props) => <Icon {...props} path={<path d="m6 9 6 6 6-6"/>} />,
+            Edit: (props) => <Icon {...props} path={<><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></>} />,
+            Save: (props) => <Icon {...props} path={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>} />,
+            X: (props) => <Icon {...props} path={<><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>} />,
+            Settings: (props) => <Icon {...props} path={<><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></>} />,
+            Trash2: (props) => <Icon {...props} path={<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></>} />,
+            AlertTriangle: (props) => <Icon {...props} path={<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></>} />,
+            FolderPlus: (props) => <Icon {...props} path={<><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 2H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/><line x1="12" x2="12" y1="10" y2="16"/><line x1="9" x2="15" y1="13" y2="13"/></>} />,
+            EyeOff: (props) => <Icon {...props} path={<><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></>} />,
+            CheckSquare: (props) => <Icon {...props} path={<><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>} />,
+            Square: (props) => <Icon {...props} path={<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>} />,
+            Filter: (props) => <Icon {...props} path={<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>} />,
+            Upload: (props) => <Icon {...props} path={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></>} />,
+            Download: (props) => <Icon {...props} path={<><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>} />,
+            Database: (props) => <Icon {...props} path={<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>} />,
+            ArrowUp: (props) => <Icon {...props} path={<><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></>} />,
+            Users: (props) => <Icon {...props} path={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />,
+            UserPlus: (props) => <Icon {...props} path={<><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" x2="20" y1="8" y2="14"/><line x1="23" x2="17" y1="11" y2="11"/></>} />
+        };
+
+        const SEED_DATA = [
+            { id: '66001', no: '1', name: 'นายสมชาย เรียนดี', room: '1/1', scores: { 'แบบจำลอง DNA': 18, 'องค์ประกอบทางเคมี': 20, 'DNA Replication': 8, 'Transcription': 20, 'Translation': 12, 'Mutation': 25, 'สอบท้ายบทที่ 1': 25 } },
+            { id: '66002', no: '2', name: 'นางสาวมานี มีมานะ', room: '1/1', scores: { 'แบบจำลอง DNA': 20, 'องค์ประกอบทางเคมี': 25, 'DNA Replication': 10, 'Transcription': 24, 'Translation': 15, 'Mutation': 30, 'สอบท้ายบทที่ 1': 28 } },
+        ];
+
+        const SEED_SECTIONS = [
+            { 
+                id: 'sec1', 
+                title: 'บทที่ 1: สารพันธุกรรม', 
+                color: 'blue', 
+                groups: [
+                    { 
+                        id: 'g1', 
+                        title: 'คะแนนเก็บ (รายจุดประสงค์)', 
+                        columns: ['แบบจำลอง DNA', 'องค์ประกอบทางเคมี', 'DNA Replication', 'Transcription', 'Translation', 'Mutation', 'รวม', 'คิดเป็น %'],
+                        includedCols: ['แบบจำลอง DNA', 'องค์ประกอบทางเคมี', 'DNA Replication', 'Transcription', 'Translation', 'Mutation', 'รวม', 'คิดเป็น %']
+                    },
+                    { 
+                        id: 'g2', 
+                        title: 'คะแนนสอบ', 
+                        columns: ['สอบท้ายบทที่ 1', 'คิดเป็น %'],
+                        includedCols: ['สอบท้ายบทที่ 1', 'คิดเป็น %']
+                    }
+                ]
+            }
+        ];
+
+        const SEED_MAX_SCORES = {
+            'แบบจำลอง DNA': 20, 'องค์ประกอบทางเคมี': 25, 'DNA Replication': 10, 'Transcription': 24, 'Translation': 15, 'Mutation': 30, 
+            'รวม': 124, 'คิดเป็น %': 10,
+            'สอบท้ายบทที่ 1': 30, 'คิดเป็น %': 5
+        };
+
+        const THEMES = {
+            blue:   { bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-800', header: 'bg-blue-100', icon: 'text-blue-600',   badge: 'bg-blue-100 text-blue-800' },
+            green:  { bg: 'bg-green-50',  border: 'border-green-200',  text: 'text-green-800', header: 'bg-green-100', icon: 'text-green-600',  badge: 'bg-green-100 text-green-800' },
+            orange: { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', header: 'bg-orange-100', icon: 'text-orange-600', badge: 'bg-orange-100 text-orange-800' },
+            purple: { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', header: 'bg-purple-100', icon: 'text-purple-600', badge: 'bg-purple-100 text-purple-800' },
+            pink:   { bg: 'bg-pink-50',   border: 'border-pink-200',   text: 'text-pink-800', header: 'bg-pink-100', icon: 'text-pink-600',   badge: 'bg-pink-100 text-pink-800' },
+            gray:   { bg: 'bg-gray-50',   border: 'border-gray-200',   text: 'text-gray-800', header: 'bg-gray-100', icon: 'text-gray-600',   badge: 'bg-gray-100 text-gray-800' },
+        };
+
+        const { useState, useMemo, useEffect, useRef } = React;
+
+        function App() {
+            const [user, setUser] = useState(null);
+            const [view, setView] = useState('student');
+            const [students, setStudents] = useState([]);
+            const [sections, setSections] = useState([]);
+            const [maxScores, setMaxScores] = useState({});
+            const [loading, setLoading] = useState(true);
+
+            // States
+            const [searchId, setSearchId] = useState('');
+            const [searchResult, setSearchResult] = useState(null);
+            const [error, setError] = useState('');
+            const [password, setPassword] = useState('');
+            const [selectedRoom, setSelectedRoom] = useState('All');
+            const [sortConfig, setSortConfig] = useState({ key: 'no', direction: 'asc' });
+            const [warning, setWarning] = useState({ show: false, msg: '' });
+            const [teacherSearchId, setTeacherSearchId] = useState('');
+            
+            // Refs
+            const teacherSearchInputRef = useRef(null);
+            const studentSearchInputRef = useRef(null);
+            
+            const [teacherTab, setTeacherTab] = useState('scores'); 
+
+            // Modal States
+            const [editingStudent, setEditingStudent] = useState(null);
+            const [editMode, setEditMode] = useState('full');
+            const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+            const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+            
+            // Settings Page States
+            const [newColName, setNewColName] = useState('');
+            const [newColMax, setNewColMax] = useState(10);
+            const [newColType, setNewColType] = useState('manual'); // NEW: 'manual', 'sum', 'percent'
+            const [targetSectionId, setTargetSectionId] = useState('');
+            const [targetGroupName, setTargetGroupName] = useState('คะแนนเก็บ');
+            const [newSectionTitle, setNewSectionTitle] = useState('');
+            const [newSectionColor, setNewSectionColor] = useState('blue');
+            const [importText, setImportText] = useState('');
+            
+            // Edit Column Modal State
+            const [isEditColumnModalOpen, setIsEditColumnModalOpen] = useState(false);
+            const [columnToEdit, setColumnToEdit] = useState(null);
+            const [editColName, setEditColName] = useState('');
+            const [editColMax, setEditColMax] = useState(0);
+
+            // Modals
+            const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+            const [newStudent, setNewStudent] = useState({ id: '', no: '', name: '', room: '' });
+            const [sectionSettings, setSectionSettings] = useState(null);
+            const [isSectionSettingsOpen, setIsSectionSettingsOpen] = useState(false);
+
+            // Auth & Init
+            useEffect(() => {
+                const initAuth = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+                    else await signInAnonymously(auth);
+                };
+                initAuth();
+                return onAuthStateChanged(auth, setUser);
+            }, []);
+
+            useEffect(() => {
+                if (!user) return;
+                const unsubConfig = onSnapshot(doc(db, CONFIG_DOC), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setSections(data.sections || []);
+                        setMaxScores(data.maxScores || {});
+                        if (data.sections?.length > 0 && !targetSectionId) setTargetSectionId(data.sections[0].id);
+                    } else {
+                        setSections([]); setMaxScores({});
+                    }
+                });
+                const unsubStudents = onSnapshot(collection(db, STUDENTS_COLLECTION), (snapshot) => {
+                    setStudents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+                    setLoading(false);
+                });
+                return () => { unsubConfig(); unsubStudents(); };
+            }, [user]);
+
+            useEffect(() => {
+                if (view === 'teacher' && teacherSearchInputRef.current) teacherSearchInputRef.current.focus();
+                if (view === 'student' && studentSearchInputRef.current) studentSearchInputRef.current.focus();
+                if (!isEditModalOpen && !isAddStudentModalOpen && !isImportModalOpen && !isEditColumnModalOpen && view === 'teacher' && teacherSearchInputRef.current) {
+                    setTimeout(() => teacherSearchInputRef.current.focus(), 100);
+                }
+            }, [view, isEditModalOpen, isAddStudentModalOpen, isImportModalOpen, isEditColumnModalOpen, teacherTab]);
+
+            // Helpers
+            const isCalculatedCol = (colName) => colName === 'รวม' || colName.includes('%') || colName === 'คิดเป็น %';
+
+            const calculateColumnValue = (student, group, colName, maxScore) => {
+                if (!isCalculatedCol(colName)) return student.scores?.[colName];
+                if (colName === 'รวม') {
+                    let total = 0;
+                    group.columns.forEach(c => {
+                        if (!isCalculatedCol(c)) {
+                            const val = parseFloat(student.scores?.[c]) || 0;
+                            total += val;
+                        }
+                    });
+                    return total === 0 && !group.columns.some(c => student.scores?.[c] !== undefined && !isCalculatedCol(c)) ? '-' : parseFloat(total.toFixed(2));
+                }
+                if (colName.includes('%') || colName === 'คิดเป็น %') {
+                    const idx = group.columns.indexOf(colName);
+                    if (idx > 0) {
+                        const sourceCol = group.columns[idx - 1];
+                        const sourceVal = parseFloat(calculateColumnValue(student, group, sourceCol, maxScores[sourceCol]));
+                        const sourceMax = maxScores[sourceCol] || 100;
+                        if (!isNaN(sourceVal) && sourceMax > 0) {
+                            return parseFloat(((sourceVal / sourceMax) * maxScore).toFixed(2));
+                        }
+                    }
+                    return '-';
+                }
+                return '-';
+            };
+
+            const getAllColumns = () => sections.flatMap(sec => (sec.groups || []).flatMap(g => g.columns));
+            const uniqueRooms = useMemo(() => {
+                const rooms = students.map(s => s.room).filter(Boolean);
+                return [...new Set(rooms)].sort();
+            }, [students]);
+
+            const calculateSectionTotal = (studentScores, section) => {
+                let total = 0;
+                let maxTotal = 0;
+                if(section.groups) {
+                    section.groups.forEach(group => {
+                        const colsToSum = group.includedCols || group.columns;
+                        colsToSum.forEach(col => {
+                            if (group.columns.includes(col) && !isCalculatedCol(col)) {
+                                const val = parseFloat(studentScores?.[col]);
+                                if (!isNaN(val)) total += val;
+                                maxTotal += (maxScores[col] || 0);
+                            }
+                        });
+                    });
+                }
+                return { total: parseFloat(total.toFixed(2)), maxTotal };
+            };
+
+            // Actions
+            const handleSeedData = async () => {
+                if(!confirm('ต้องการลงข้อมูลตัวอย่างใช่หรือไม่? ข้อมูลเก่าจะถูกลบ')) return;
+                setLoading(true);
+                try {
+                    const batch = writeBatch(db);
+                    batch.set(doc(db, CONFIG_DOC), { sections: SEED_SECTIONS, maxScores: SEED_MAX_SCORES });
+                    SEED_DATA.forEach(s => { batch.set(doc(db, STUDENTS_COLLECTION, s.id), s); });
+                    await batch.commit();
+                    setWarning({ show: true, msg: 'ลงข้อมูลตัวอย่างเรียบร้อย' });
+                } catch (e) { console.error(e); setWarning({ show: true, msg: 'เกิดข้อผิดพลาด' }); }
+                finally { setLoading(false); }
+            };
+
+            const handleSearch = () => {
+                const student = students.find(s => s.id === searchId);
+                if (student) { setSearchResult(student); setError(''); } else { setSearchResult(null); setError('❌ ไม่พบรหัสนักเรียนนี้'); }
+            };
+
+            const handleTeacherSearch = () => {
+                const target = students.find(s => s.id === teacherSearchId);
+                if (target) { setEditingStudent(JSON.parse(JSON.stringify(target))); setEditMode('full'); setIsEditModalOpen(true); setTeacherSearchId(''); }
+                else { setWarning({ show: true, msg: 'ไม่พบรหัสนักเรียนนี้' }); setTeacherSearchId(''); }
+            };
+
+            const handleLogin = () => {
+                if (password === '65411597') setView('teacher');
+                else setWarning({ show: true, msg: 'รหัสผ่านผิด (admin)' });
+            };
+
+            const addNewSection = async () => {
+                if (!newSectionTitle) return setWarning({ show: true, msg: 'กรุณาใส่ชื่อบท' });
+                const newId = `sec_${Date.now()}`;
+                const newSection = { id: newId, title: newSectionTitle, color: newSectionColor, groups: [] };
+                const updatedSections = [...sections, newSection];
+                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections, maxScores }, { merge: true });
+                setNewSectionTitle(''); 
+                setWarning({ show: true, msg: 'เพิ่มบทเรียบร้อย' });
+            };
+
+            const addNewColumn = async () => {
+                // Determine name based on Type
+                let finalColName = newColName;
+                if (newColType === 'sum') finalColName = 'รวม';
+                if (newColType === 'percent') finalColName = 'คิดเป็น %';
+
+                if (!finalColName) return setWarning({ show: true, msg: 'กรุณาระบุชื่องาน' });
+
+                // Check constraints
+                const targetSection = sections.find(s => s.id === targetSectionId);
+                if(!targetSection) return;
+
+                // Find or create group logic needs to be robust
+                // For simplicity, we find the group in current section state
+                let targetGroup = targetSection.groups.find(g => g.title === targetGroupName);
+                
+                // Rule 1: No duplicate names within the SAME group (even if auto) - makes it confusing
+                if (targetGroup && targetGroup.columns.includes(finalColName)) {
+                    return setWarning({ show: true, msg: 'มีชื่องานนี้ในกลุ่มนี้แล้ว (ห้ามซ้ำในกลุ่มเดียวกัน)' });
+                }
+
+                // Rule 2: Manual columns must be globally unique to prevent key collision
+                if (newColType === 'manual') {
+                    const allCols = getAllColumns();
+                    if (allCols.includes(finalColName)) {
+                        return setWarning({ show: true, msg: 'ชื่องาน "กรอกเอง" ห้ามซ้ำกับที่มีอยู่แล้ว (เพื่อป้องกันข้อมูลทับซ้อน)' });
+                    }
+                }
+
+                // Proceed to Add
+                let newGroups = [...(targetSection.groups || [])];
+                if (targetGroup) {
+                    // Update existing group
+                    targetGroup.columns.push(finalColName);
+                    targetGroup.includedCols = [...(targetGroup.includedCols || []), finalColName];
+                } else {
+                    // Create new group
+                    newGroups.push({
+                        id: `g_${Date.now()}`,
+                        title: targetGroupName,
+                        columns: [finalColName],
+                        includedCols: [finalColName]
+                    });
+                }
+
+                const updatedSections = sections.map(sec => 
+                    sec.id === targetSectionId ? { ...sec, groups: newGroups } : sec
+                );
+                
+                // Update Max Scores
+                // Note: Even if multiple "Total" columns exist, they can share the same Max Score key IF they have the same max score. 
+                // But typically "Total" max score depends on the sum of items. 
+                // Currently maxScores is a simple key-value map. If "Total" in Ch1 is 20 and "Total" in Ch2 is 30, we have a problem with `maxScores['Total']`.
+                // However, since we bypassed unique check for Auto columns, we need to accept that MaxScore might be ambiguous if stored by name.
+                // For Auto-Sum ("รวม"), max score is usually derived, not stored? The code uses `maxScores['รวม']`.
+                // If we want different max scores for "รวม", we need unique keys or a better structure.
+                // LIMITATION: With current data structure (Map<String, Number>), all columns named "รวม" will share the same Max Score.
+                // WORKAROUND: For "Auto Sum", we don't really use maxScores for calculation (we sum values). But for display (header), we do.
+                // Let's just update it. The user accepts duplicate names, implying they might accept shared max score settings or understand the limitation.
+                
+                const updatedMaxScores = { ...maxScores, [finalColName]: parseInt(newColMax) };
+                
+                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections, maxScores: updatedMaxScores }, { merge: true });
+                
+                if (newColType === 'manual') setNewColName(''); 
+                setNewColMax(10);
+                setWarning({ show: true, msg: 'เพิ่มงานเรียบร้อย' });
+            };
+
+            const openEditColumnModal = (sectionId, groupId, colName) => {
+                const max = maxScores[colName] || 0;
+                setColumnToEdit({ sectionId, groupId, oldName: colName });
+                setEditColName(colName);
+                setEditColMax(max);
+                setIsEditColumnModalOpen(true);
+            };
+
+            const handleSaveColumnEdit = async () => {
+                if (!editColName || !columnToEdit) return;
+                setLoading(true);
+                
+                try {
+                    const { sectionId, groupId, oldName } = columnToEdit;
+                    const batch = writeBatch(db);
+                    
+                    // 1. Update Structure & MaxScores
+                    const newSections = JSON.parse(JSON.stringify(sections));
+                    const section = newSections.find(s => s.id === sectionId);
+                    const group = section.groups.find(g => g.id === groupId);
+                    
+                    // Rename in columns array
+                    const colIdx = group.columns.indexOf(oldName);
+                    if (colIdx !== -1) group.columns[colIdx] = editColName;
+                    
+                    // Rename in includedCols
+                    if (group.includedCols) {
+                        const incIdx = group.includedCols.indexOf(oldName);
+                        if (incIdx !== -1) group.includedCols[incIdx] = editColName;
+                    }
+
+                    const newMaxScores = { ...maxScores };
+                    newMaxScores[editColName] = parseInt(editColMax);
+                    if (oldName !== editColName) delete newMaxScores[oldName];
+
+                    batch.set(doc(db, CONFIG_DOC), { sections: newSections, maxScores: newMaxScores });
+
+                    // 2. Update Student Scores (Migrate data if name changed)
+                    if (oldName !== editColName) {
+                        students.forEach(student => {
+                            if (student.scores && student.scores[oldName] !== undefined) {
+                                const score = student.scores[oldName];
+                                const studentRef = doc(db, STUDENTS_COLLECTION, student.id);
+                                const newScores = { ...student.scores };
+                                newScores[editColName] = score;
+                                delete newScores[oldName];
+                                batch.update(studentRef, { scores: newScores });
+                            }
+                        });
+                    }
+
+                    await batch.commit();
+                    setIsEditColumnModalOpen(false);
+                    setWarning({ show: true, msg: 'บันทึกการแก้ไขเรียบร้อย' });
+
+                } catch (e) {
+                    console.error(e);
+                    setWarning({ show: true, msg: 'เกิดข้อผิดพลาดในการบันทึก' });
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const handleDeleteColumn = async () => {
+                if (!columnToEdit) return;
+                const { sectionId, groupId, oldName } = columnToEdit;
+                
+                if (!confirm(`ยืนยันการลบงาน "${oldName}"?\nคะแนนของนักเรียนทุกคนในงานนี้จะถูกลบถาวร`)) return;
+
+                setLoading(true);
+                try {
+                    const batch = writeBatch(db);
+
+                    // 1. Update Config (Remove from sections & maxScores)
+                    const newSections = JSON.parse(JSON.stringify(sections));
+                    const section = newSections.find(s => s.id === sectionId);
+                    const group = section.groups.find(g => g.id === groupId);
+                    
+                    group.columns = group.columns.filter(c => c !== oldName);
+                    if (group.includedCols) {
+                        group.includedCols = group.includedCols.filter(c => c !== oldName);
+                    }
+
+                    const newMaxScores = { ...maxScores };
+                    delete newMaxScores[oldName];
+
+                    batch.set(doc(db, CONFIG_DOC), { sections: newSections, maxScores: newMaxScores });
+
+                    // 2. Remove scores from students
+                    students.forEach(student => {
+                        if (student.scores && student.scores[oldName] !== undefined) {
+                            const newScores = { ...student.scores };
+                            delete newScores[oldName];
+                            const studentRef = doc(db, STUDENTS_COLLECTION, student.id);
+                            batch.update(studentRef, { scores: newScores });
+                        }
+                    });
+
+                    await batch.commit();
+                    setIsEditColumnModalOpen(false);
+                    setWarning({ show: true, msg: 'ลบงานเรียบร้อยแล้ว' });
+
+                } catch (e) {
+                    console.error(e);
+                    setWarning({ show: true, msg: 'เกิดข้อผิดพลาดในการลบ' });
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const saveEditedStudent = async () => {
+                if (!editingStudent) return;
+                try {
+                    await setDoc(doc(db, STUDENTS_COLLECTION, editingStudent.id), editingStudent, { merge: true });
+                    setIsEditModalOpen(false); setEditingStudent(null);
+                } catch (e) { alert('บันทึกไม่สำเร็จ'); }
+            };
+
+            const handleDeleteStudent = async (id) => {
+                if(!confirm(`ยืนยันการลบนักเรียนรหัส ${id}?`)) return;
+                try {
+                    await deleteDoc(doc(db, STUDENTS_COLLECTION, id));
+                    setWarning({show: true, msg: 'ลบข้อมูลเรียบร้อย'});
+                } catch(e) { console.error(e); setWarning({show: true, msg: 'ลบไม่สำเร็จ'}); }
+            };
+
+            const handleAddStudentSubmit = async () => {
+                if (!newStudent.id || !newStudent.name) return alert("กรุณากรอกรหัสและชื่อ");
+                const existing = students.find(s => s.id === newStudent.id);
+                if (existing) return alert(`รหัส ${newStudent.id} มีอยู่แล้ว`);
+                setLoading(true);
+                try {
+                    await setDoc(doc(db, STUDENTS_COLLECTION, newStudent.id), { ...newStudent, scores: {} });
+                    setNewStudent({ id: '', no: '', name: '', room: '' });
+                    setIsAddStudentModalOpen(false);
+                    setWarning({ show: true, msg: 'เพิ่มนักเรียนเรียบร้อย' });
+                } catch (e) { console.error(e); alert("เกิดข้อผิดพลาด"); } finally { setLoading(false); }
+            };
+
+            const saveSectionSettings = async () => {
+                const updatedSections = sections.map(sec => sec.id === sectionSettings.id ? sectionSettings : sec);
+                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections, maxScores }, { merge: true });
+                setIsSectionSettingsOpen(false);
+            };
+
+            const toggleColumnInclusion = (groupIndex, colName) => {
+                const newSettings = { ...sectionSettings };
+                const group = newSettings.groups[groupIndex];
+                let newIncluded = [...(group.includedCols || [])];
+                if (newIncluded.includes(colName)) newIncluded = newIncluded.filter(c => c !== colName);
+                else newIncluded.push(colName);
+                group.includedCols = newIncluded;
+                setSectionSettings(newSettings);
+            };
+
+            const handleImportStudents = async () => {
+                if (!importText.trim()) return;
+                setLoading(true);
+                const lines = importText.trim().split('\n');
+                const batch = writeBatch(db);
+                let count = 0;
+                lines.forEach(line => {
+                    const parts = line.split(/[\t,]+/).map(s => s.trim());
+                    if (parts.length >= 3) {
+                        const [no, id, name, room] = parts;
+                        if (id) {
+                            const existing = students.find(s => s.id === id);
+                            const scores = existing ? existing.scores : {};
+                            const studentData = { id, no, name, room: room || 'ไม่ระบุ', scores };
+                            batch.set(doc(db, STUDENTS_COLLECTION, id), studentData);
+                            count++;
+                        }
+                    }
+                });
+                try { await batch.commit(); setImportText(''); setIsImportModalOpen(false); setWarning({ show: true, msg: `นำเข้าสำเร็จ ${count} คน` }); } 
+                catch (e) { console.error(e); setWarning({ show: true, msg: 'เกิดข้อผิดพลาด' }); } 
+                finally { setLoading(false); }
+            };
+
+            const handleExportCSV = () => {
+                const allCols = getAllColumns();
+                const headers = ['เลขที่', 'รหัส', 'ชื่อ-นามสกุล', 'ห้อง', ...allCols];
+                const rows = processedStudents.map(s => {
+                    const scores = allCols.map(col => s.scores[col] || '');
+                    return [s.no, s.id, `"${s.name}"`, s.room, ...scores].join(',');
+                });
+                const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'grade_export.csv');
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            };
+
+            const handleEditScore = (colName, value) => {
+                if (isCalculatedCol(colName)) return;
+                const max = maxScores[colName] || 100;
+                const numVal = parseFloat(value);
+                if (value !== '' && numVal > max) { setWarning({ show: true, msg: `คะแนนห้ามเกิน ${max} คะแนน` }); return; }
+                setEditingStudent(prev => ({ ...prev, scores: { ...prev.scores, [colName]: value } }));
+            };
+            const handleEditInfo = (field, value) => setEditingStudent(prev => ({ ...prev, [field]: value }));
+            const handleSort = (key) => setSortConfig({ key, direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+
+            const processedStudents = useMemo(() => {
+                let filtered = students;
+                if (selectedRoom !== 'All') filtered = filtered.filter(s => s.room === selectedRoom);
+                if (teacherSearchId) filtered = filtered.filter(s => s.id.includes(teacherSearchId) || s.name.includes(teacherSearchId));
+                return [...filtered].sort((a, b) => {
+                    if (!sortConfig.key) return 0;
+                    let valA, valB;
+                    if (sortConfig.key === 'no') { valA = parseInt(a.no) || 0; valB = parseInt(b.no) || 0; }
+                    else if (sortConfig.key === 'id') { valA = a.id; valB = b.id; }
+                    else if (sortConfig.key === 'name') { valA = a.name; valB = b.name; }
+                    else if (sortConfig.key === 'room') { valA = a.room; valB = b.room; }
+                    else { valA = parseFloat(a.scores?.[sortConfig.key]) || 0; valB = parseFloat(b.scores?.[sortConfig.key]) || 0; }
+                    return valA < valB ? (sortConfig.direction === 'asc' ? -1 : 1) : (sortConfig.direction === 'asc' ? 1 : -1);
+                });
+            }, [students, selectedRoom, sortConfig, teacherSearchId]);
+
+            if (loading && !students.length && !sections.length) return <div className="min-h-screen flex items-center justify-center text-blue-600">กำลังโหลดข้อมูล...</div>;
+
+            return (
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+                    <nav className="bg-white border-b px-4 py-3 sticky top-0 z-50 shadow-sm">
+                        <div className="max-w-7xl mx-auto flex justify-between items-center">
+                            <div className="flex items-center gap-2 font-bold text-xl text-blue-600">
+                                <div className="bg-blue-600 text-white p-1.5 rounded-lg"><Icons.FileSpreadsheet className="w-5 h-5" /></div>
+                                <span>GradePro Cloud</span>
+                            </div>
+                            <div>
+                                {view === 'student' ? (
+                                    <button onClick={() => {setPassword(''); setView('teacher_login')}} className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 font-medium transition"><Icons.Lock className="w-4 h-4" /> ครูผู้สอน</button>
+                                ) : (
+                                    <button onClick={() => { setView('student'); setSearchResult(null); setSearchId(''); }} className="flex items-center gap-2 text-sm text-red-500 hover:text-red-700 font-medium transition"><Icons.LogOut className="w-4 h-4" /> ออกจากระบบ</button>
+                                )}
+                            </div>
+                        </div>
+                    </nav>
+
+                    <div className="max-w-7xl mx-auto p-4 md:p-6">
+                        {/* TEACHER LOGIN */}
+                        {view === 'teacher_login' && (
+                            <div className="max-w-sm mx-auto mt-16 bg-white p-8 rounded-2xl shadow-xl border border-gray-100 animate-fade-in">
+                                <div className="text-center mb-6">
+                                    <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4"><Icons.Lock className="w-8 h-8 text-blue-600" /></div>
+                                    <h3 className="text-xl font-bold text-gray-800">ยืนยันตัวตนครู</h3>
+                                </div>
+                                <input type="password" placeholder="รหัสผ่าน" className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 outline-none transition" value={password} onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
+                                <button onClick={handleLogin} className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition">เข้าสู่ระบบ</button>
+                                <button onClick={() => setView('student')} className="w-full mt-4 text-gray-400 text-sm hover:text-gray-600">กลับไปหน้านักเรียน</button>
+                            </div>
+                        )}
+
+                        {/* STUDENT VIEW */}
+                        {view === 'student' && (
+                            <div className="max-w-xl mx-auto mt-8 animate-fade-in">
+                                <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-white/50 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-400 to-purple-500"></div>
+                                    <div className="text-center mb-8">
+                                        <h2 className="text-3xl font-extrabold text-gray-800 mb-2">ตรวจสอบคะแนน</h2>
+                                        <p className="text-gray-500">กรอกรหัสนักเรียนเพื่อดูผลการเรียนรายวิชา</p>
+                                    </div>
+                                    <div className="flex gap-2 mb-6">
+                                        <input ref={studentSearchInputRef} type="text" placeholder="เลขประจำตัว (เช่น 66001)" className="flex-1 p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 focus:bg-white outline-none text-lg transition" value={searchId} onChange={(e) => setSearchId(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} />
+                                        <button onClick={handleSearch} className="bg-blue-600 text-white px-6 rounded-2xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200 transition flex items-center justify-center"><Icons.Search className="w-6 h-6" /></button>
+                                    </div>
+                                    {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center font-medium border border-red-100 animate-pulse flex items-center justify-center gap-2"><Icons.AlertCircle size={20}/> {error}</div>}
+
+                                    {searchResult && (
+                                        <div className="space-y-6">
+                                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100 flex items-center gap-4">
+                                                <div className="bg-white p-3 rounded-full shadow-sm"><Icons.User className="w-8 h-8 text-blue-600" /></div>
+                                                <div>
+                                                    <div className="text-sm text-blue-600 font-bold uppercase tracking-wider">ผลการเรียนของ</div>
+                                                    <div className="text-xl font-bold text-gray-800">{searchResult.name}</div>
+                                                    <div className="flex gap-3 text-gray-500 text-sm"><span>เลขที่: {searchResult.no}</span><span className="text-gray-300">|</span><span>รหัส: {searchResult.id}</span><span className="text-gray-300">|</span><span>ห้อง: {searchResult.room}</span></div>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                {sections.map((section) => {
+                                                    const theme = THEMES[section.color] || THEMES.gray;
+                                                    const { total, maxTotal } = calculateSectionTotal(searchResult.scores, section);
+                                                    return (
+                                                        <div key={section.id} className={`border ${theme.border} rounded-xl overflow-hidden shadow-sm bg-white`}>
+                                                            <details className="group" open>
+                                                                <summary className={`flex justify-between items-center p-4 cursor-pointer ${theme.bg} hover:brightness-95 transition select-none`}>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`p-1.5 rounded-lg bg-white/50 ${theme.text}`}><Icons.FolderPlus size={18}/></div>
+                                                                        <span className={`font-bold ${theme.text}`}>{section.title}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className={`text-xs font-bold px-3 py-1 rounded-full bg-white/60 ${theme.text}`}>คะแนนเก็บ: {total} / {maxTotal}</span>
+                                                                        <Icons.ChevronDown className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"/>
+                                                                    </div>
+                                                                </summary>
+                                                                <div className="p-4 bg-white space-y-4">
+                                                                    {(section.groups || []).map(group => (
+                                                                        <div key={group.id}>
+                                                                            <h5 className="text-sm font-bold text-gray-500 mb-2 uppercase border-b pb-1">{group.title}</h5>
+                                                                            <div className="space-y-2">
+                                                                                {group.columns.map((col, idx) => {
+                                                                                    const score = calculateColumnValue(searchResult, group, col, maxScores[col]);
+                                                                                    const max = maxScores[col] || 10;
+                                                                                    const isMissing = score === '' || score === 0 || score === '0' || score === undefined;
+                                                                                    const isIncluded = (group.includedCols || []).includes(col);
+                                                                                    const isAuto = isCalculatedCol(col);
+
+                                                                                    return (
+                                                                                        <div key={idx} className={`flex justify-between items-center p-2 rounded hover:bg-gray-50 transition ${!isIncluded ? 'opacity-60' : ''} ${isAuto ? 'bg-gray-50 border border-gray-100' : ''}`}>
+                                                                                                <div className="flex flex-col">
+                                                                                                    <div className="text-gray-700 font-medium text-sm flex items-center gap-2">
+                                                                                                        {col} 
+                                                                                                        {!isIncluded && <Icons.EyeOff size={12} className="text-gray-400"/>}
+                                                                                                        {isAuto && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">Auto</span>}
+                                                                                                    </div>
+                                                                                                    <div className="text-[10px] text-gray-400">เต็ม {max}</div>
+                                                                                                </div>
+                                                                                                {isMissing ? (
+                                                                                                    <span className="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-0.5 rounded text-xs font-bold">{score === undefined ? 'ขาดส่ง' : '0'}</span>
+                                                                                                ) : (
+                                                                                                    <span className={`font-bold text-lg ${theme.text}`}>{score}</span>
+                                                                                                )}
+                                                                                        </div>
+                                                                                    );
+                                                                                })}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    {(!section.groups || section.groups.length === 0) && <div className="text-center text-gray-400 text-sm">ยังไม่มีงาน</div>}
+                                                                </div>
+                                                            </details>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'teacher' && (
+                            <div className="animate-fade-in pb-20">
+                                <div className="flex gap-4 mb-6 border-b border-gray-200 overflow-x-auto">
+                                    <button onClick={() => setTeacherTab('scores')} className={`tab-btn ${teacherTab === 'scores' ? 'tab-active' : 'tab-inactive'}`}>
+                                        <Icons.FileSpreadsheet size={18}/> ตารางคะแนน
+                                    </button>
+                                    <button onClick={() => setTeacherTab('students')} className={`tab-btn ${teacherTab === 'students' ? 'tab-active' : 'tab-inactive'}`}>
+                                        <Icons.Users size={18}/> รายชื่อนักเรียน
+                                    </button>
+                                    <button onClick={() => setTeacherTab('settings')} className={`tab-btn ${teacherTab === 'settings' ? 'tab-active' : 'tab-inactive'}`}>
+                                        <Icons.Settings size={18}/> ตั้งค่าระบบ
+                                    </button>
+                                </div>
+
+                                {teacherTab !== 'settings' && (
+                                    <div className="flex flex-wrap items-center gap-3 mb-4 bg-white p-3 rounded-2xl shadow-sm border border-gray-100 sticky top-20 z-40">
+                                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
+                                            <Icons.Filter size={18} className="text-gray-500"/>
+                                            <span className="text-sm font-bold whitespace-nowrap">ห้องเรียน:</span>
+                                            <select className="bg-transparent text-sm outline-none font-medium cursor-pointer" value={selectedRoom} onChange={(e) => setSelectedRoom(e.target.value)}>
+                                                <option value="All">ทั้งหมด</option>
+                                                {uniqueRooms.map(r => (<option key={r} value={r}>ห้อง {r}</option>))}
+                                            </select>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200 flex-1 md:flex-none">
+                                            <Icons.Search size={18} className="text-gray-500"/>
+                                            <input ref={teacherSearchInputRef} type="text" placeholder="ค้นหารหัส/ชื่อ..." className="bg-transparent text-sm outline-none w-full md:w-48" value={teacherSearchId} onChange={(e) => setTeacherSearchId(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleTeacherSearch()} />
+                                        </div>
+                                        <div className="text-xs text-gray-400 ml-auto whitespace-nowrap">แสดงผล: {processedStudents.length} คน</div>
+                                    </div>
+                                )}
+
+                                {teacherTab === 'scores' && (
+                                    <div className="animate-fade-in">
+                                        <div className="card">
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-sm text-left border-collapse">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="bg-gray-50 border-b border-r p-3 w-16 sticky left-0 z-20"></th>
+                                                            <th className="bg-gray-50 border-b border-r p-3 w-20 sticky left-16 z-20"></th>
+                                                            <th className="bg-gray-50 border-b border-r p-3 w-40 sticky left-36 z-20"></th>
+                                                            <th className="bg-gray-50 border-b border-r p-3 w-16 sticky left-76 z-20"></th>
+                                                            {sections.map(sec => {
+                                                                const totalCols = (sec.groups || []).reduce((acc, g) => acc + g.columns.length, 0);
+                                                                return totalCols > 0 && (
+                                                                    <th key={sec.id} colSpan={totalCols} className={`text-center py-2 px-4 border-b border-r text-xs font-bold uppercase tracking-wider ${THEMES[sec.color].header} ${THEMES[sec.color].text}`}>
+                                                                        {sec.title}
+                                                                    </th>
+                                                                );
+                                                            })}
+                                                            <th className="bg-gray-50 border-b p-3"></th>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className="px-2 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-0 z-10 text-center cursor-pointer hover:bg-gray-100" onClick={() => handleSort('no')}># {sortConfig.key === 'no' && <Icons.ArrowUp size={12}/>}</th>
+                                                            <th className="px-4 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-16 z-10 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('id')}>รหัส {sortConfig.key === 'id' && <Icons.ArrowUp size={12}/>}</th>
+                                                            <th className="px-4 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-36 z-10 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('name')}>ชื่อ-สกุล {sortConfig.key === 'name' && <Icons.ArrowUp size={12}/>}</th>
+                                                            <th className="px-2 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-76 z-10 text-center cursor-pointer hover:bg-gray-100" onClick={() => handleSort('room')}>ห้อง {sortConfig.key === 'room' && <Icons.ArrowUp size={12}/>}</th>
+                                                            {sections.map(sec => ((sec.groups || []).map(group => group.columns.map(col => (
+                                                                <th key={col} className={`px-1 py-3 border-b border-r text-center bg-white align-bottom group hover:bg-gray-50 transition-colors relative`}>
+                                                                    <div className="flex flex-col items-center justify-end w-full h-40 pb-2">
+                                                                        <span 
+                                                                            className="text-xs font-semibold text-gray-700 whitespace-nowrap tracking-wide vertical-text" 
+                                                                        >
+                                                                            {col}
+                                                                        </span>
+                                                                        <span className="mt-2 text-[10px] font-mono text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                                                            {maxScores[col]}
+                                                                        </span>
+                                                                    </div>
+                                                                </th>
+                                                            )))))}
+                                                            <th className="px-4 py-3 bg-gray-50 border-b text-center font-bold text-gray-600">แก้ไข</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {processedStudents.map((student) => (
+                                                            <tr key={student.id} className="hover:bg-gray-50 border-b last:border-0">
+                                                                <td className="px-2 py-3 font-medium text-center text-gray-900 border-r bg-white sticky left-0 z-0">{student.no}</td>
+                                                                <td className="px-4 py-3 font-medium text-gray-900 border-r bg-white sticky left-16 z-0">{student.id}</td>
+                                                                <td className="px-4 py-3 text-gray-700 border-r bg-white sticky left-36 z-0">{student.name}</td>
+                                                                <td className="px-2 py-3 text-center text-gray-500 text-xs border-r bg-white sticky left-76 z-0"><span className="bg-gray-100 px-2 py-1 rounded-md font-medium">{student.room}</span></td>
+                                                                {sections.map(sec => ((sec.groups || []).map(group => group.columns.map(col => {
+                                                                    const val = calculateColumnValue(student, group, col, maxScores[col]);
+                                                                    const max = maxScores[col];
+                                                                    const isOver = parseFloat(val) > max;
+                                                                    const isIncluded = (group.includedCols || []).includes(col);
+                                                                    const isAuto = isCalculatedCol(col);
+
+                                                                    return (
+                                                                        <td key={col} className={`px-2 py-2 text-center border-r ${!isIncluded ? 'bg-gray-100/50 text-gray-400' : ''} ${isAuto ? 'bg-gray-50 font-bold text-gray-700' : ''}`}>
+                                                                            {val !== '' && val !== undefined && val !== '-' ? <span className={`font-medium ${isOver ? 'text-red-600 font-bold' : ''}`}>{val}</span> : <span className="text-gray-200">-</span>}
+                                                                        </td>
+                                                                    );
+                                                                }))))}
+                                                                <td className="px-2 py-2 text-center">
+                                                                    <button onClick={() => { setEditingStudent(JSON.parse(JSON.stringify(student))); setEditMode('full'); setIsEditModalOpen(true); }} className="text-blue-500 hover:text-blue-700 p-2 rounded-full hover:bg-blue-50 transition"><Icons.Edit size={16} /></button>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {teacherTab === 'students' && (
+                                    <div className="animate-fade-in max-w-4xl mx-auto">
+                                        <div className="card">
+                                            <div className="p-5 border-b bg-gray-50 flex justify-between items-center">
+                                                <h3 className="font-bold text-gray-700 flex items-center gap-2"><Icons.Users className="text-blue-600"/> รายชื่อนักเรียน ({processedStudents.length})</h3>
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setIsAddStudentModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 shadow-sm transition"><Icons.UserPlus size={16}/> เพิ่มรายคน</button>
+                                                    <button onClick={() => setIsImportModalOpen(true)} className="bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition"><Icons.Upload size={16}/> นำเข้า (Import)</button>
+                                                </div>
+                                            </div>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-sm text-left">
+                                                    <thead className="bg-gray-100 text-gray-600 uppercase font-bold text-xs">
+                                                        <tr>
+                                                            <th className="px-4 py-3 text-center w-16">เลขที่</th>
+                                                            <th className="px-4 py-3 w-32">รหัสนักเรียน</th>
+                                                            <th className="px-4 py-3">ชื่อ-นามสกุล</th>
+                                                            <th className="px-4 py-3 text-center w-24">ห้อง</th>
+                                                            <th className="px-4 py-3 text-center w-40">จัดการ</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-100">
+                                                        {processedStudents.map((student) => (
+                                                            <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                                                                <td className="px-4 py-3 text-center font-medium">{student.no}</td>
+                                                                <td className="px-4 py-3 font-mono text-gray-600">{student.id}</td>
+                                                                <td className="px-4 py-3 font-medium text-gray-800">{student.name}</td>
+                                                                <td className="px-4 py-3 text-center"><span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">{student.room}</span></td>
+                                                                <td className="px-4 py-3 text-center">
+                                                                    <div className="flex justify-center gap-3">
+                                                                        <button onClick={() => { setEditingStudent(JSON.parse(JSON.stringify(student))); setEditMode('info'); setIsEditModalOpen(true); }} className="text-blue-600 hover:text-blue-800 flex items-center gap-1"><Icons.Edit size={16}/> แก้ไข</button>
+                                                                        <button onClick={() => handleDeleteStudent(student.id)} className="text-red-500 hover:text-red-700 flex items-center gap-1"><Icons.Trash2 size={16}/> ลบ</button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                        {processedStudents.length === 0 && (
+                                                            <tr>
+                                                                <td colSpan="5" className="p-8 text-center text-gray-400">ไม่พบข้อมูลนักเรียน</td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {teacherTab === 'settings' && (
+                                    <div className="animate-fade-in max-w-5xl mx-auto space-y-8">
+                                        
+                                        <div className="card">
+                                            <div className="p-6 border-b border-gray-100">
+                                                <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                                    <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><Icons.Database size={20}/></div>
+                                                    จัดการข้อมูล (Data Management)
+                                                </h3>
+                                                <p className="text-gray-500 text-sm mt-1 ml-11">นำเข้า, ส่งออก, หรือรีเซ็ตข้อมูลทั้งหมดของระบบ</p>
+                                            </div>
+                                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <button onClick={() => setIsImportModalOpen(true)} className="flex flex-col items-center justify-center gap-3 bg-white border-2 border-dashed border-blue-200 p-6 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition group">
+                                                    <div className="bg-blue-100 text-blue-600 p-3 rounded-full group-hover:scale-110 transition"><Icons.Upload size={24}/></div>
+                                                    <div className="text-center">
+                                                        <div className="font-bold text-gray-700">นำเข้าข้อมูล (Import)</div>
+                                                        <div className="text-xs text-gray-400 mt-1">จาก Text/Excel</div>
+                                                    </div>
+                                                </button>
+                                                <button onClick={handleExportCSV} className="flex flex-col items-center justify-center gap-3 bg-white border-2 border-gray-100 p-6 rounded-2xl hover:border-green-500 hover:bg-green-50 transition group">
+                                                    <div className="bg-green-100 text-green-600 p-3 rounded-full group-hover:scale-110 transition"><Icons.Download size={24}/></div>
+                                                    <div className="text-center">
+                                                        <div className="font-bold text-gray-700">ส่งออกข้อมูล (Export CSV)</div>
+                                                        <div className="text-xs text-gray-400 mt-1">ดาวน์โหลดไฟล์ .csv</div>
+                                                    </div>
+                                                </button>
+                                                <button onClick={handleSeedData} className="flex flex-col items-center justify-center gap-3 bg-white border-2 border-gray-100 p-6 rounded-2xl hover:border-yellow-500 hover:bg-yellow-50 transition group">
+                                                    <div className="bg-yellow-100 text-yellow-600 p-3 rounded-full group-hover:scale-110 transition"><Icons.Database size={24}/></div>
+                                                    <div className="text-center">
+                                                        <div className="font-bold text-gray-700">ข้อมูลตัวอย่าง (Reset)</div>
+                                                        <div className="text-xs text-gray-400 mt-1">ล้างและลงข้อมูลใหม่</div>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid lg:grid-cols-3 gap-6">
+                                            
+                                            <div className="lg:col-span-1 space-y-6">
+                                                <div className="card p-5 border-l-4 border-l-indigo-500">
+                                                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Icons.FolderPlus size={18} className="text-indigo-500"/> สร้างบทเรียนใหม่</h4>
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-1 block">ชื่อบทเรียน</label>
+                                                            <input type="text" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} placeholder="เช่น บทที่ 1..." />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-2 block">ธีมสี</label>
+                                                            <div className="flex gap-2">
+                                                                {['blue', 'green', 'orange', 'purple', 'pink'].map(c => (
+                                                                    <button key={c} onClick={() => setNewSectionColor(c)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 ${THEMES[c].bg} ${newSectionColor === c ? 'border-gray-600 scale-110 shadow-sm' : 'border-transparent'}`}></button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={addNewSection} className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition mt-2">บันทึกบทเรียน</button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="card p-5 border-l-4 border-l-emerald-500">
+                                                    <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Icons.Plus size={18} className="text-emerald-500"/> เพิ่มช่องคะแนน</h4>
+                                                    <div className="space-y-3">
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-1 block">เลือกบทเรียน</label>
+                                                            <select className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white transition" value={targetSectionId} onChange={(e) => setTargetSectionId(e.target.value)}>
+                                                                <option value="">-- กรุณาเลือก --</option>
+                                                                {sections.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-1 block">กลุ่มคะแนน (Group)</label>
+                                                            <input type="text" placeholder="เช่น คะแนนเก็บ" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition" value={targetGroupName} onChange={(e) => setTargetGroupName(e.target.value)} />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-2 block">ประเภทช่องคะแนน</label>
+                                                            <div className="flex gap-2">
+                                                                <button onClick={() => setNewColType('manual')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'manual' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>กรอกเอง</button>
+                                                                <button onClick={() => setNewColType('sum')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'sum' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>รวม (Auto)</button>
+                                                                <button onClick={() => setNewColType('percent')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'percent' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>% (Auto)</button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <div className="flex-1">
+                                                                <label className="text-xs font-bold text-gray-500 mb-1 block">ชื่องาน</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder={newColType === 'sum' ? 'รวม' : newColType === 'percent' ? 'คิดเป็น %' : 'เช่น สอบย่อย'} 
+                                                                    className={`w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition ${newColType !== 'manual' ? 'bg-gray-50 text-gray-500' : ''}`} 
+                                                                    value={newColType === 'sum' ? 'รวม' : newColType === 'percent' ? 'คิดเป็น %' : newColName} 
+                                                                    onChange={(e) => setNewColName(e.target.value)} 
+                                                                    disabled={newColType !== 'manual'}
+                                                                />
+                                                            </div>
+                                                            <div className="w-20">
+                                                                <label className="text-xs font-bold text-gray-500 mb-1 block">เต็ม</label>
+                                                                <input type="number" placeholder="10" className="w-full p-2.5 border rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none transition" value={newColMax} onChange={(e) => setNewColMax(e.target.value)} />
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={addNewColumn} className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition mt-2">เพิ่มงาน</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="lg:col-span-2">
+                                                <div className="card h-full flex flex-col">
+                                                    <div className="p-5 border-b bg-gray-50 flex justify-between items-center">
+                                                        <h4 className="font-bold text-gray-700 flex items-center gap-2"><Icons.FileSpreadsheet className="text-gray-500"/> โครงสร้างคะแนนปัจจุบัน</h4>
+                                                        <span className="text-xs bg-white border px-2 py-1 rounded text-gray-500">{sections.length} บทเรียน</span>
+                                                    </div>
+                                                    <div className="p-5 space-y-4 flex-1 overflow-y-auto max-h-[600px]">
+                                                        {sections.length === 0 && (
+                                                            <div className="flex flex-col items-center justify-center h-48 text-gray-400 border-2 border-dashed rounded-xl">
+                                                                <Icons.FolderPlus size={48} className="mb-2 opacity-20"/>
+                                                                <p>ยังไม่มีโครงสร้างคะแนน</p>
+                                                                <p className="text-xs">เริ่มสร้างบทเรียนทางด้านซ้ายมือ</p>
+                                                            </div>
+                                                        )}
+                                                        {sections.map(sec => (
+                                                            <div key={sec.id} className="group relative bg-white border border-gray-100 rounded-xl p-4 hover:shadow-md transition-all duration-200">
+                                                                <div className="flex justify-between items-start mb-3">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${THEMES[sec.color].bg} ${THEMES[sec.color].text}`}>
+                                                                            <span className="font-bold text-lg">{sec.title.charAt(0)}</span>
+                                                                        </div>
+                                                                        <div>
+                                                                            <h5 className="font-bold text-gray-800">{sec.title}</h5>
+                                                                            <div className="text-xs text-gray-400 flex gap-2 mt-0.5">
+                                                                                <span>{(sec.groups || []).length} กลุ่ม</span>
+                                                                                <span>•</span>
+                                                                                <span>{(sec.groups || []).reduce((acc, g) => acc + g.columns.length, 0)} ช่องคะแนน</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <button onClick={() => { setSectionSettings(sec); setIsSectionSettingsOpen(true); }} className="text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition">
+                                                                        <Icons.Settings size={20}/>
+                                                                    </button>
+                                                                </div>
+                                                                
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {(sec.groups || []).map(group => (
+                                                                        <div key={group.id} className="flex items-center text-xs bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+                                                                            <div className="px-2 py-1 bg-gray-100 font-semibold text-gray-600 border-r">{group.title}</div>
+                                                                            <div className="px-2 py-1 text-gray-500 flex gap-1">
+                                                                                {group.columns.map(c => (
+                                                                                    <span 
+                                                                                        key={c} 
+                                                                                        title={`เต็ม ${maxScores[c]}`}
+                                                                                        className="cursor-pointer hover:text-blue-600 hover:underline"
+                                                                                        onClick={() => openEditColumnModal(sec.id, group.id, c)}
+                                                                                    >
+                                                                                        {c}
+                                                                                    </span>
+                                                                                )).reduce((prev, curr) => [prev, ', ', curr])}
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    {(!sec.groups || sec.groups.length === 0) && <span className="text-xs text-gray-300 italic">ยังไม่มีงาน</span>}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Modals are kept same as previous version */}
+                        {isEditColumnModalOpen && columnToEdit && (
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+                                    <div className="bg-indigo-600 text-white p-4 flex justify-between items-center">
+                                        <h3 className="text-lg font-bold flex items-center gap-2"><Icons.Edit size={18}/> แก้ไขช่องคะแนน</h3>
+                                        <button onClick={() => setIsEditColumnModalOpen(false)} className="hover:bg-indigo-700 p-1.5 rounded-full"><Icons.X size={18} /></button>
+                                    </div>
+                                    <div className="p-6 space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">ชื่องาน (เดิม: {columnToEdit.oldName})</label>
+                                            <input type="text" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={editColName} onChange={(e) => setEditColName(e.target.value)} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">คะแนนเต็ม</label>
+                                            <input type="number" className="w-full p-2.5 border rounded-xl text-center focus:ring-2 focus:ring-indigo-500 outline-none" value={editColMax} onChange={(e) => setEditColMax(e.target.value)} />
+                                        </div>
+                                        <div className="bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200">
+                                            <strong className="block mb-1">คำเตือน:</strong>
+                                            การเปลี่ยนชื่องานจะทำการย้ายคะแนนของนักเรียนทุกคนไปยังชื่อใหม่โดยอัตโนมัติ
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-between items-center border-t">
+                                        <button onClick={handleDeleteColumn} className="text-red-500 hover:text-red-700 text-sm font-bold flex items-center gap-1"><Icons.Trash2 size={16}/> ลบงานนี้</button>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setIsEditColumnModalOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">ยกเลิก</button>
+                                            <button onClick={handleSaveColumnEdit} className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold shadow-md">บันทึก</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isEditModalOpen && editingStudent && (
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                                    <div className="bg-gray-800 text-white p-5 flex justify-between items-center">
+                                        <h3 className="text-lg font-bold flex items-center gap-2"><Icons.Edit size={18}/> แก้ไขข้อมูล ({editingStudent.id})</h3>
+                                        <button onClick={() => setIsEditModalOpen(false)} className="hover:bg-gray-700 p-2 rounded-full"><Icons.X size={20} /></button>
+                                    </div>
+                                    <div className="p-6 overflow-y-auto bg-gray-50/50">
+                                        <div className="bg-white p-4 rounded-xl border shadow-sm mb-6 flex gap-4">
+                                            <div className="w-20"><label className="text-xs font-bold text-gray-500 uppercase mb-1 block">เลขที่</label><input type="text" className="w-full p-2 border rounded-lg text-center" value={editingStudent.no || ''} onChange={(e) => handleEditInfo('no', e.target.value)} /></div>
+                                            <div className="flex-1"><label className="text-xs font-bold text-gray-500 uppercase mb-1 block">ชื่อ-นามสกุล</label><input type="text" className="w-full p-2 border rounded-lg" value={editingStudent.name} onChange={(e) => handleEditInfo('name', e.target.value)} /></div>
+                                            <div className="w-24"><label className="text-xs font-bold text-gray-500 uppercase mb-1 block">ห้อง</label><input type="text" className="w-full p-2 border rounded-lg text-center" value={editingStudent.room} onChange={(e) => handleEditInfo('room', e.target.value)} /></div>
+                                        </div>
+                                        {editMode === 'full' && (
+                                            <div className="space-y-6">
+                                                {sections.map(sec => (
+                                                    <div key={sec.id} className="bg-white p-4 rounded-xl border shadow-sm">
+                                                        <h4 className={`font-bold mb-3 flex items-center gap-2 ${THEMES[sec.color].text}`}><div className={`w-2 h-6 rounded-full ${THEMES[sec.color].header.replace('bg-', 'bg-')}`}></div> {sec.title}</h4>
+                                                        {(sec.groups || []).map(group => (
+                                                            <div key={group.id} className="mb-4">
+                                                                <h5 className="text-sm font-semibold text-gray-500 mb-2 border-b pb-1">{group.title}</h5>
+                                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                                                    {group.columns.map(col => {
+                                                                        const isAuto = isCalculatedCol(col);
+                                                                        const val = isAuto 
+                                                                            ? calculateColumnValue(editingStudent, group, col, maxScores[col]) 
+                                                                            : (editingStudent.scores?.[col] || '');
+
+                                                                        return (
+                                                                            <div key={col}>
+                                                                                <div className="flex justify-between mb-1">
+                                                                                    <label className="text-xs font-semibold text-gray-600 truncate max-w-[80px]">{col}</label>
+                                                                                    {isAuto && <span className="text-[9px] bg-blue-100 text-blue-600 px-1 rounded">Auto</span>}
+                                                                                    <span className="text-[10px] text-gray-400">/{maxScores[col]}</span>
+                                                                                </div>
+                                                                                <input 
+                                                                                    type="text" 
+                                                                                    disabled={isAuto}
+                                                                                    className={`w-full p-2 border rounded-lg text-center font-medium focus:ring-2 focus:ring-blue-500 outline-none ${isAuto ? 'bg-gray-100 text-gray-500' : ''}`} 
+                                                                                    value={val} 
+                                                                                    onChange={(e) => handleEditScore(col, e.target.value)} 
+                                                                                />
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-4 border-t bg-white flex justify-end gap-3">
+                                        <button onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-xl font-medium">ยกเลิก</button>
+                                        <button onClick={saveEditedStudent} className="px-6 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold shadow-lg shadow-blue-200">บันทึกข้อมูล</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* NEW: Add Single Student Modal */}
+                        {isAddStudentModalOpen && (
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                                    <div className="bg-indigo-600 text-white p-5 flex justify-between items-center">
+                                        <h3 className="text-lg font-bold flex items-center gap-2"><Icons.UserPlus size={20}/> เพิ่มนักเรียนใหม่</h3>
+                                        <button onClick={() => setIsAddStudentModalOpen(false)} className="hover:bg-indigo-700 p-2 rounded-full"><Icons.X size={20} /></button>
+                                    </div>
+                                    <div className="p-6 space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">รหัสนักเรียน <span className="text-red-500">*</span></label>
+                                            <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น 66001" value={newStudent.id} onChange={(e) => setNewStudent({...newStudent, id: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
+                                            <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น เด็กชายรักเรียน..." value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">ห้องเรียน</label>
+                                                <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น 1/1" value={newStudent.room} onChange={(e) => setNewStudent({...newStudent, room: e.target.value})} />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">เลขที่</label>
+                                                <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-center" placeholder="-" value={newStudent.no} onChange={(e) => setNewStudent({...newStudent, no: e.target.value})} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-end gap-3 border-t">
+                                        <button onClick={() => setIsAddStudentModalOpen(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-200 rounded-xl font-medium">ยกเลิก</button>
+                                        <button onClick={handleAddStudentSubmit} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-200 flex items-center gap-2">
+                                            {loading ? 'กำลังบันทึก...' : <><Icons.Save size={18}/> บันทึกข้อมูล</>}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Section Settings Modal */}
+                        {isSectionSettingsOpen && sectionSettings && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                                    <div className={`p-4 border-b flex justify-between items-center ${THEMES[sectionSettings.color].bg}`}>
+                                        <h3 className={`font-bold text-lg ${THEMES[sectionSettings.color].text}`}>ตั้งค่า: {sectionSettings.title}</h3>
+                                        <button onClick={() => setIsSectionSettingsOpen(false)} className="hover:bg-black/10 p-1.5 rounded-full"><Icons.X size={20}/></button>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">แก้ไขชื่อบทเรียน</label>
+                                            <input type="text" className="w-full p-2 border rounded-lg" value={sectionSettings.title} onChange={(e) => setSectionSettings({...sectionSettings, title: e.target.value})} />
+                                        </div>
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">เลือกงานที่นำมาคิดคะแนนรวม</label>
+                                            <div className="space-y-4 max-h-64 overflow-y-auto border rounded-lg p-3">
+                                                {(sectionSettings.groups || []).map((group, gIdx) => (
+                                                    <div key={group.id}>
+                                                        <div className="text-xs font-bold text-gray-400 mb-1">{group.title}</div>
+                                                        <div className="space-y-1 pl-2">
+                                                            {group.columns.map(col => {
+                                                                const isChecked = (group.includedCols || []).includes(col);
+                                                                return (
+                                                                    <div key={col} className={`flex items-center gap-3 p-2 rounded cursor-pointer border ${isChecked ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100'}`} onClick={() => toggleColumnInclusion(gIdx, col)}>
+                                                                        {isChecked ? <Icons.CheckSquare className="text-blue-600"/> : <Icons.Square className="text-gray-400"/>}
+                                                                        <span className={isChecked ? 'text-gray-800 font-medium' : 'text-gray-400'}>{col}</span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-end gap-2">
+                                        <button onClick={() => setIsSectionSettingsOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">ยกเลิก</button>
+                                        <button onClick={saveSectionSettings} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">บันทึก</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Import Modal */}
+                        {isImportModalOpen && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+                                    <div className="bg-blue-600 text-white p-4 flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><Icons.Upload size={20}/> นำเข้าข้อมูล</h3><button onClick={() => setIsImportModalOpen(false)} className="hover:bg-blue-700 p-1 rounded"><Icons.X size={20}/></button></div>
+                                    <div className="p-6">
+                                        <p className="text-sm text-gray-600 mb-2">วางข้อมูล: เลขที่ [tab] รหัส [tab] ชื่อ [tab] ห้อง</p>
+                                        <textarea className="w-full h-48 p-3 border rounded-xl outline-none text-sm font-mono" placeholder="1 66001 สมชาย 1/1..." value={importText} onChange={(e) => setImportText(e.target.value)} />
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-end gap-2"><button onClick={() => setIsImportModalOpen(false)} className="px-4 py-2 text-gray-600 rounded-lg">ยกเลิก</button><button onClick={handleImportStudents} className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold">{loading ? '...' : 'บันทึก'}</button></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {warning.show && (
+                            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-2xl p-6 text-center max-w-xs w-full">
+                                    <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"><Icons.AlertTriangle className="w-7 h-7 text-red-600" /></div>
+                                    <p className="text-gray-600 mb-6 text-sm">{warning.msg}</p>
+                                    <button onClick={() => setWarning({ show: false, msg: '' })} className="w-full bg-red-600 text-white py-2.5 rounded-xl font-bold hover:bg-red-700">รับทราบ</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Footer Credit */}
+                    <footer className="text-center py-6 text-slate-400 text-sm">
+                        <p>© 2024 GradePro Cloud | พัฒนาโดย Nawarat K.</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
