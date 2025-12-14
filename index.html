@@ -54,7 +54,7 @@
         }
         
         .calculated-field {
-            @apply bg-gray-100 text-gray-500 cursor-not-allowed font-bold;
+            @apply bg-gray-100 text-gray-600 cursor-not-allowed font-bold;
         }
 
         #reader, #direct-reader { width: 100%; border-radius: 1rem; overflow: hidden; background: #000; }
@@ -72,9 +72,8 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, writeBatch, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-        // --- CONFIG & ICONS ---
         let firebaseConfig;
         if (typeof __firebase_config !== 'undefined') {
             firebaseConfig = JSON.parse(__firebase_config);
@@ -93,7 +92,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'student-grade-system-v2'; // Bump version to avoid conflict
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'student-grade-system-v1';
         
         const PUBLIC_DATA_PATH = `artifacts/${appId}/public/data`;
         const STUDENTS_COLLECTION = `${PUBLIC_DATA_PATH}/students`;
@@ -102,7 +101,6 @@
         const Icon = ({ path, size = 20, className = "" }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{path}</svg>
         );
-        // Using existing icons for brevity
         const Icons = {
             Search: (props) => <Icon {...props} path={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} />,
             Lock: (props) => <Icon {...props} path={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>} />,
@@ -136,9 +134,11 @@
             Camera: (props) => <Icon {...props} path={<><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></>} />
         };
 
-        // --- UPDATED DATA STRUCTURE (Object-based columns with IDs) ---
-        // Scores are mapped by ID: { 'c_1': 10, 'c_2': 20 }
-        
+        const SEED_DATA = [
+            { id: '66001', no: '1', name: 'นายสมชาย เรียนดี', room: '1/1', scores: { 'แบบจำลอง DNA': 18, 'องค์ประกอบทางเคมี': 20, 'DNA Replication': 8, 'Transcription': 20, 'Translation': 12, 'Mutation': 25, 'สอบท้ายบทที่ 1': 25 } },
+            { id: '66002', no: '2', name: 'นางสาวมานี มีมานะ', room: '1/1', scores: { 'แบบจำลอง DNA': 20, 'องค์ประกอบทางเคมี': 25, 'DNA Replication': 10, 'Transcription': 24, 'Translation': 15, 'Mutation': 30, 'สอบท้ายบทที่ 1': 28 } },
+        ];
+
         const SEED_SECTIONS = [
             { 
                 id: 'sec1', 
@@ -147,40 +147,25 @@
                 groups: [
                     { 
                         id: 'g1', 
-                        title: 'คะแนนเก็บ', 
-                        columns: [
-                           { id: 'c_101', name: 'แบบจำลอง DNA', max: 20, type: 'manual' },
-                           { id: 'c_102', name: 'องค์ประกอบทางเคมี', max: 25, type: 'manual' },
-                           { id: 'c_103', name: 'DNA Replication', max: 10, type: 'manual' },
-                           { id: 'c_104', name: 'Transcription', max: 24, type: 'manual' },
-                           { id: 'c_105', name: 'Translation', max: 15, type: 'manual' },
-                           { id: 'c_106', name: 'Mutation', max: 30, type: 'manual' },
-                           { id: 'c_107', name: 'รวม', max: 124, type: 'sum' },
-                           { id: 'c_108', name: 'คิดเป็น %', max: 10, type: 'percent' }
-                        ]
+                        title: 'คะแนนเก็บ (รายจุดประสงค์)', 
+                        columns: ['แบบจำลอง DNA', 'องค์ประกอบทางเคมี', 'DNA Replication', 'Transcription', 'Translation', 'Mutation', 'รวม', 'คิดเป็น %'],
+                        includedCols: ['แบบจำลอง DNA', 'องค์ประกอบทางเคมี', 'DNA Replication', 'Transcription', 'Translation', 'Mutation', 'รวม', 'คิดเป็น %']
                     },
                     { 
                         id: 'g2', 
                         title: 'คะแนนสอบ', 
-                        columns: [
-                            { id: 'c_109', name: 'สอบท้ายบทที่ 1', max: 30, type: 'manual' },
-                            { id: 'c_110', name: 'คิดเป็น %', max: 5, type: 'percent' }
-                        ]
+                        columns: ['สอบท้ายบทที่ 1', 'คิดเป็น %'],
+                        includedCols: ['สอบท้ายบทที่ 1', 'คิดเป็น %']
                     }
                 ]
             }
         ];
 
-        const SEED_DATA = [
-            { 
-                id: '66001', no: '1', name: 'นายสมชาย เรียนดี', room: '1/1', 
-                scores: { 'c_101': 18, 'c_102': 20, 'c_103': 8, 'c_104': 20, 'c_105': 12, 'c_106': 25, 'c_109': 25 } 
-            },
-            { 
-                id: '66002', no: '2', name: 'นางสาวมานี มีมานะ', room: '1/1', 
-                scores: { 'c_101': 20, 'c_102': 25, 'c_103': 10, 'c_104': 24, 'c_105': 15, 'c_106': 30, 'c_109': 28 } 
-            },
-        ];
+        const SEED_MAX_SCORES = {
+            'แบบจำลอง DNA': 20, 'องค์ประกอบทางเคมี': 25, 'DNA Replication': 10, 'Transcription': 24, 'Translation': 15, 'Mutation': 30, 
+            'รวม': 124, 'คิดเป็น %': 10,
+            'สอบท้ายบทที่ 1': 30, 'คิดเป็น %': 5
+        };
 
         const THEMES = {
             blue:   { bg: 'bg-blue-50',   border: 'border-blue-200',   text: 'text-blue-800', header: 'bg-blue-100', icon: 'text-blue-600',   badge: 'bg-blue-100 text-blue-800' },
@@ -226,9 +211,7 @@
                     (errorMessage) => { }
                 ).catch(err => setScanStatus("ไม่สามารถเปิดกล้องได้: " + err));
 
-                return () => {
-                    scanner.stop().then(ignore => {}).catch(err => {});
-                };
+                return () => { scanner.stop().then(ignore => {}).catch(err => {}); };
             }, [sessionId]);
 
             const handleSend = (text) => {
@@ -276,7 +259,10 @@
                         <button type="submit" className="bg-blue-600 text-white px-4 py-3 rounded-lg font-bold">ส่ง</button>
                     </form>
                     <button onClick={onClose} className="mt-6 bg-red-600 text-white px-8 py-2 rounded-full font-bold shadow-lg text-sm">ปิดสแกนเนอร์</button>
-                    <p className="text-gray-500 text-xs mt-4">Session: {sessionId.substring(0,6)}...</p>
+                    <div className="mt-4 flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <p className="text-gray-500 text-xs">Session: {sessionId.substring(0,6)}...</p>
+                    </div>
                 </div>
             );
         }
@@ -289,6 +275,7 @@
                 scanner.start({ facingMode: "environment" }, config, 
                     (text) => {
                         const cleanText = text.trim();
+                        // Smart Check: Is this a scan session QR?
                         if (cleanText.includes("scan_session=")) {
                              const urlParams = new URLSearchParams(cleanText.split('?')[1]);
                              const session = urlParams.get('scan_session');
@@ -318,10 +305,12 @@
         }
 
         function App() {
+            // ... (Core Logic Same as Before) ... 
             const [user, setUser] = useState(null);
             const [view, setView] = useState('student');
             const [students, setStudents] = useState([]);
             const [sections, setSections] = useState([]);
+            const [maxScores, setMaxScores] = useState({});
             const [loading, setLoading] = useState(true);
 
             // States
@@ -338,7 +327,6 @@
             // Refs
             const teacherSearchInputRef = useRef(null);
             const studentSearchInputRef = useRef(null);
-            
             const [teacherTab, setTeacherTab] = useState('scores'); 
 
             // Modal States
@@ -346,8 +334,6 @@
             const [editMode, setEditMode] = useState('full');
             const [isEditModalOpen, setIsEditModalOpen] = useState(false);
             const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-            
-            // Settings Page States
             const [newColName, setNewColName] = useState('');
             const [newColMax, setNewColMax] = useState(10);
             const [newColType, setNewColType] = useState('manual');
@@ -356,22 +342,16 @@
             const [newSectionTitle, setNewSectionTitle] = useState('');
             const [newSectionColor, setNewSectionColor] = useState('blue');
             const [importText, setImportText] = useState('');
-            
-            // Edit Column Modal State
             const [isEditColumnModalOpen, setIsEditColumnModalOpen] = useState(false);
-            const [columnToEdit, setColumnToEdit] = useState(null); // { sectionId, groupId, col }
+            const [columnToEdit, setColumnToEdit] = useState(null);
             const [editColName, setEditColName] = useState('');
             const [editColMax, setEditColMax] = useState(0);
-
-            // Modals
             const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
             const [newStudent, setNewStudent] = useState({ id: '', no: '', name: '', room: '' });
             const [sectionSettings, setSectionSettings] = useState(null);
             const [isSectionSettingsOpen, setIsSectionSettingsOpen] = useState(false);
             const [isScannerModalOpen, setIsScannerModalOpen] = useState(false); 
             const [isMobileScannerActive, setIsMobileScannerActive] = useState(false);
-            
-            // NEW: Direct Scanner State
             const [showDirectScanner, setShowDirectScanner] = useState(false);
             const [scanTarget, setScanTarget] = useState('student'); 
 
@@ -383,7 +363,6 @@
                     setIsMobileScannerActive(true);
                     setScannerSessionId(scanSession); 
                 }
-
                 const initAuth = async () => {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
                     else await signInAnonymously(auth);
@@ -398,11 +377,9 @@
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         setSections(data.sections || []);
+                        setMaxScores(data.maxScores || {});
                         if (data.sections?.length > 0 && !targetSectionId) setTargetSectionId(data.sections[0].id);
-                    } else {
-                        // Init default if empty
-                        setSections([]);
-                    }
+                    } else { setSections([]); setMaxScores({}); }
                 });
                 const unsubStudents = onSnapshot(collection(db, STUDENTS_COLLECTION), (snapshot) => {
                     setStudents(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -414,16 +391,14 @@
             // Scanner Listener (PC Side)
             useEffect(() => {
                 if (!scannerSessionId || isMobileScannerActive) return; 
-
                 const sessionDoc = doc(db, 'artifacts', appId, 'public', 'data', 'scanner_sessions', scannerSessionId);
                 setDoc(sessionDoc, { created: Date.now() }, { merge: true });
-
                 const unsub = onSnapshot(sessionDoc, (doc) => {
                     const data = doc.data();
                     if (data && data.lastScanned) {
                         const scannedId = data.lastScanned.trim();
                         setTeacherSearchId(scannedId);
-                        handleTeacherSearch(scannedId);
+                        handleTeacherSearch(scannedId); // Auto Open
                     }
                 });
                 return () => unsub();
@@ -438,64 +413,69 @@
                 }
             }, [view, isEditModalOpen, isAddStudentModalOpen, isImportModalOpen, isEditColumnModalOpen, isScannerModalOpen, showDirectScanner, teacherTab]);
 
-            // --- Calculation Helpers using Object Columns ---
-            const calculateColumnValue = (student, group, col) => {
-                if (col.type === 'manual') return student.scores?.[col.id];
-                
-                if (col.type === 'sum') {
+            // ... (Helpers and Actions same as before) ...
+            const isCalculatedCol = (colName) => colName === 'รวม' || colName.includes('%') || colName === 'คิดเป็น %';
+            const calculateColumnValue = (student, group, colName, maxScore) => {
+                if (!isCalculatedCol(colName)) return student.scores?.[colName];
+                if (colName === 'รวม') {
                     let total = 0;
                     if(group && group.columns) {
                         group.columns.forEach(c => {
-                            if (c.type === 'manual') {
-                                const val = parseFloat(student.scores?.[c.id]) || 0;
+                            if (!isCalculatedCol(c)) {
+                                const val = parseFloat(student.scores?.[c]) || 0;
                                 total += val;
                             }
                         });
-                        // Only show dash if no data at all
-                        const hasAnyScore = group.columns.some(c => c.type === 'manual' && student.scores?.[c.id] !== undefined);
-                        return (!hasAnyScore && total === 0) ? '-' : parseFloat(total.toFixed(2));
+                        return total === 0 && !group.columns.some(c => student.scores?.[c] !== undefined && !isCalculatedCol(c)) ? '-' : parseFloat(total.toFixed(2));
                     }
                     return '-';
                 }
-                
-                if (col.type === 'percent') {
-                    // Find index of this col
-                    const idx = group.columns.findIndex(c => c.id === col.id);
+                if (colName.includes('%') || colName === 'คิดเป็น %') {
+                    const idx = group.columns.indexOf(colName);
                     if (idx > 0) {
-                        const sourceCol = group.columns[idx - 1]; // Previous col is source
-                        const sourceVal = parseFloat(calculateColumnValue(student, group, sourceCol));
-                        // Source Max could be manual max or auto max
-                        let sourceMax = sourceCol.max || 100;
-                        
-                        // If source is sum, we must calc sum max dynamically? 
-                        // Or we just rely on user setting the max correctly for the Sum column.
-                        // In this app, user sets max for 'Sum' manually in config.
-                        
-                        if (!isNaN(sourceVal) && sourceMax > 0) {
-                            return parseFloat(((sourceVal / sourceMax) * col.max).toFixed(2));
-                        }
+                        const sourceCol = group.columns[idx - 1];
+                        const sourceVal = parseFloat(calculateColumnValue(student, group, sourceCol, maxScores[sourceCol]));
+                        const sourceMax = maxScores[sourceCol] || 100;
+                        if (!isNaN(sourceVal) && sourceMax > 0) return parseFloat(((sourceVal / sourceMax) * maxScore).toFixed(2));
                     }
                     return '-';
                 }
                 return '-';
             };
-
             const getAllColumns = () => sections.flatMap(sec => (sec.groups || []).flatMap(g => g.columns));
             const uniqueRooms = useMemo(() => {
                 const rooms = students.map(s => s.room).filter(Boolean);
                 return [...new Set(rooms)].sort();
             }, [students]);
-
-            // --- Actions ---
+            const calculateSectionTotal = (studentScores, section) => {
+                let total = 0;
+                let maxTotal = 0;
+                if(section.groups) {
+                    section.groups.forEach(group => {
+                        const colsToSum = group.includedCols || group.columns;
+                        colsToSum.forEach(col => {
+                            if (group.columns.includes(col) && !isCalculatedCol(col)) {
+                                const val = parseFloat(studentScores?.[col]);
+                                if (!isNaN(val)) total += val;
+                                maxTotal += (maxScores[col] || 0);
+                            }
+                        });
+                    });
+                }
+                return { total: parseFloat(total.toFixed(2)), maxTotal };
+            };
+            
             const handleGenerateScanner = () => {
                 const newSessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
                 setScannerSessionId(newSessionId);
                 setIsScannerModalOpen(true);
             };
-
+            
+            // SMART DIRECT SCAN HANDLER
             const handleDirectScan = (text) => {
-                const cleanText = text.trim();
                 setShowDirectScanner(false);
+                const cleanText = text.trim();
+                
                 if (scanTarget === 'student') {
                     setSearchId(cleanText);
                     handleSearch(cleanText);
@@ -509,6 +489,7 @@
                 setShowDirectScanner(false);
                 setScannerSessionId(sessionId);
                 setIsMobileScannerActive(true);
+                // Also update URL to be persistent (optional)
                 const newUrl = window.location.pathname + '?scan_session=' + sessionId;
                 window.history.pushState({path: newUrl}, '', newUrl);
             };
@@ -517,20 +498,14 @@
             const startScanTeacher = () => { setScanTarget('teacher'); setShowDirectScanner(true); };
 
             const handleSeedData = async () => {
-                if(!confirm('⚠️ การลงข้อมูลตัวอย่างจะล้างข้อมูลเดิมทั้งหมด ยืนยัน?')) return;
+                if(!confirm('ต้องการลงข้อมูลตัวอย่างใช่หรือไม่? ข้อมูลเก่าจะถูกลบ')) return;
                 setLoading(true);
                 try {
                     const batch = writeBatch(db);
-                    // Reset Config
-                    batch.set(doc(db, CONFIG_DOC), { sections: SEED_SECTIONS }); // maxScores removed
-                    
-                    // Delete all students first (clean slate) - simplified for demo, loop delete might be needed for large sets
-                    // But here we just overwrite known IDs. For real app, delete collection is harder.
-                    // We will just set seed data.
+                    batch.set(doc(db, CONFIG_DOC), { sections: SEED_SECTIONS, maxScores: SEED_MAX_SCORES });
                     SEED_DATA.forEach(s => { batch.set(doc(db, STUDENTS_COLLECTION, s.id), s); });
-                    
                     await batch.commit();
-                    setWarning({ show: true, msg: 'รีเซ็ตข้อมูลเรียบร้อย' });
+                    setWarning({ show: true, msg: 'ลงข้อมูลตัวอย่างเรียบร้อย' });
                 } catch (e) { console.error(e); setWarning({ show: true, msg: 'เกิดข้อผิดพลาด' }); }
                 finally { setLoading(false); }
             };
@@ -550,7 +525,8 @@
                     setIsEditModalOpen(true); 
                     setTeacherSearchId(''); 
                     playBeep();
-                } else if (idToSearch) { 
+                }
+                else if (idToSearch) { 
                     setWarning({ show: true, msg: `ไม่พบรหัสนักเรียน: ${idToSearch}` }); 
                     setTeacherSearchId(''); 
                 }
@@ -562,57 +538,42 @@
                 const newId = `sec_${Date.now()}`;
                 const newSection = { id: newId, title: newSectionTitle, color: newSectionColor, groups: [] };
                 const updatedSections = [...sections, newSection];
-                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections }, { merge: true });
+                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections, maxScores }, { merge: true });
                 setNewSectionTitle(''); setWarning({ show: true, msg: 'เพิ่มบทเรียบร้อย' });
             };
             const addNewColumn = async () => {
                 let finalColName = newColName;
                 if (newColType === 'sum') finalColName = 'รวม';
                 if (newColType === 'percent') finalColName = 'คิดเป็น %';
-
                 if (!finalColName) return setWarning({ show: true, msg: 'กรุณาระบุชื่องาน' });
 
                 const targetSection = sections.find(s => s.id === targetSectionId);
                 if(!targetSection) return;
-
                 let targetGroup = targetSection.groups.find(g => g.title === targetGroupName);
-                let newGroups = [...(targetSection.groups || [])];
-                
-                // Create New Column Object
-                const newColObj = {
-                    id: `c_${Date.now()}`,
-                    name: finalColName,
-                    max: parseInt(newColMax),
-                    type: newColType
-                };
-
-                if (targetGroup) {
-                    targetGroup.columns.push(newColObj);
-                    // includedCols is deprecated in new structure, using full object array
-                } else {
-                    newGroups.push({
-                        id: `g_${Date.now()}`,
-                        title: targetGroupName,
-                        columns: [newColObj]
-                    });
+                if (targetGroup && targetGroup.columns.includes(finalColName)) return setWarning({ show: true, msg: 'มีชื่องานนี้ในกลุ่มนี้แล้ว (ห้ามซ้ำในกลุ่มเดียวกัน)' });
+                if (newColType === 'manual') {
+                    const allCols = getAllColumns();
+                    if (allCols.includes(finalColName)) return setWarning({ show: true, msg: 'ชื่องาน "กรอกเอง" ห้ามซ้ำกับที่มีอยู่แล้ว' });
                 }
 
-                const updatedSections = sections.map(sec => 
-                    sec.id === targetSectionId ? { ...sec, groups: newGroups } : sec
-                );
-                
-                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections }, { merge: true });
-                
-                if (newColType === 'manual') setNewColName(''); 
-                setNewColMax(10);
-                setWarning({ show: true, msg: 'เพิ่มงานเรียบร้อย' });
+                let newGroups = [...(targetSection.groups || [])];
+                if (targetGroup) {
+                    targetGroup.columns.push(finalColName);
+                    targetGroup.includedCols = [...(targetGroup.includedCols || []), finalColName];
+                } else {
+                    newGroups.push({ id: `g_${Date.now()}`, title: targetGroupName, columns: [finalColName], includedCols: [finalColName] });
+                }
+                const updatedSections = sections.map(sec => sec.id === targetSectionId ? { ...sec, groups: newGroups } : sec);
+                const updatedMaxScores = { ...maxScores, [finalColName]: parseInt(newColMax) };
+                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections, maxScores: updatedMaxScores }, { merge: true });
+                if (newColType === 'manual') setNewColName(''); setNewColMax(10); setWarning({ show: true, msg: 'เพิ่มงานเรียบร้อย' });
             };
 
-            const openEditColumnModal = (sectionId, groupId, col) => {
-                if (col.type !== 'manual' && col.type !== 'sum' && col.type !== 'percent') return; // Allow editing all types? Yes.
-                setColumnToEdit({ sectionId, groupId, col });
-                setEditColName(col.name);
-                setEditColMax(col.max);
+            const openEditColumnModal = (sectionId, groupId, colName) => {
+                const max = maxScores[colName] || 0;
+                setColumnToEdit({ sectionId, groupId, oldName: colName });
+                setEditColName(colName);
+                setEditColMax(max);
                 setIsEditColumnModalOpen(true);
             };
 
@@ -620,52 +581,66 @@
                 if (!editColName || !columnToEdit) return;
                 setLoading(true);
                 try {
-                    const { sectionId, groupId, col } = columnToEdit;
+                    const { sectionId, groupId, oldName } = columnToEdit;
+                    const batch = writeBatch(db);
                     const newSections = JSON.parse(JSON.stringify(sections));
                     const section = newSections.find(s => s.id === sectionId);
                     const group = section.groups.find(g => g.id === groupId);
-                    const targetCol = group.columns.find(c => c.id === col.id);
-                    
-                    if (targetCol) {
-                        targetCol.name = editColName;
-                        targetCol.max = parseInt(editColMax);
+                    const colIdx = group.columns.indexOf(oldName);
+                    if (colIdx !== -1) group.columns[colIdx] = editColName;
+                    if (group.includedCols) {
+                        const incIdx = group.includedCols.indexOf(oldName);
+                        if (incIdx !== -1) group.includedCols[incIdx] = editColName;
                     }
-                    
-                    await setDoc(doc(db, CONFIG_DOC), { sections: newSections }, { merge: true });
+                    const newMaxScores = { ...maxScores };
+                    newMaxScores[editColName] = parseInt(editColMax);
+                    if (oldName !== editColName) delete newMaxScores[oldName];
+                    batch.set(doc(db, CONFIG_DOC), { sections: newSections, maxScores: newMaxScores });
+                    if (oldName !== editColName) {
+                        students.forEach(student => {
+                            if (student.scores && student.scores[oldName] !== undefined) {
+                                const score = student.scores[oldName];
+                                const studentRef = doc(db, STUDENTS_COLLECTION, student.id);
+                                const newScores = { ...student.scores };
+                                newScores[editColName] = score;
+                                delete newScores[oldName];
+                                batch.update(studentRef, { scores: newScores });
+                            }
+                        });
+                    }
+                    await batch.commit();
                     setIsEditColumnModalOpen(false);
-                    setWarning({ show: true, msg: 'บันทึกเรียบร้อย' });
-                } catch (e) { console.error(e); } finally { setLoading(false); }
+                    setWarning({ show: true, msg: 'บันทึกการแก้ไขเรียบร้อย' });
+                } catch (e) { console.error(e); setWarning({ show: true, msg: 'เกิดข้อผิดพลาดในการบันทึก' }); } finally { setLoading(false); }
             };
             
             const handleDeleteColumn = async () => {
                 if (!columnToEdit) return;
-                if (!confirm(`ยืนยันการลบ "${columnToEdit.col.name}"?`)) return;
+                const { sectionId, groupId, oldName } = columnToEdit;
+                if (!confirm(`ยืนยันการลบงาน "${oldName}"?\nคะแนนของนักเรียนทุกคนในงานนี้จะถูกลบถาวร`)) return;
                 setLoading(true);
                 try {
-                    const { sectionId, groupId, col } = columnToEdit;
                     const batch = writeBatch(db);
-
                     const newSections = JSON.parse(JSON.stringify(sections));
                     const section = newSections.find(s => s.id === sectionId);
                     const group = section.groups.find(g => g.id === groupId);
-                    group.columns = group.columns.filter(c => c.id !== col.id); // Filter by ID
-                    
-                    batch.set(doc(db, CONFIG_DOC), { sections: newSections });
-
-                    // Remove scores from students using ID key
+                    group.columns = group.columns.filter(c => c !== oldName);
+                    if (group.includedCols) group.includedCols = group.includedCols.filter(c => c !== oldName);
+                    const newMaxScores = { ...maxScores };
+                    delete newMaxScores[oldName];
+                    batch.set(doc(db, CONFIG_DOC), { sections: newSections, maxScores: newMaxScores });
                     students.forEach(student => {
-                        if (student.scores && student.scores[col.id] !== undefined) {
+                        if (student.scores && student.scores[oldName] !== undefined) {
                             const newScores = { ...student.scores };
-                            delete newScores[col.id];
+                            delete newScores[oldName];
                             const studentRef = doc(db, STUDENTS_COLLECTION, student.id);
                             batch.update(studentRef, { scores: newScores });
                         }
                     });
-
                     await batch.commit();
                     setIsEditColumnModalOpen(false);
-                    setWarning({ show: true, msg: 'ลบงานเรียบร้อย' });
-                } catch (e) { console.error(e); } finally { setLoading(false); }
+                    setWarning({ show: true, msg: 'ลบงานเรียบร้อยแล้ว' });
+                } catch (e) { console.error(e); setWarning({ show: true, msg: 'เกิดข้อผิดพลาดในการลบ' }); } finally { setLoading(false); }
             };
 
             const saveEditedStudent = async () => {
@@ -682,13 +657,17 @@
             };
             const saveSectionSettings = async () => {
                 const updatedSections = sections.map(sec => sec.id === sectionSettings.id ? sectionSettings : sec);
-                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections }, { merge: true }); // No maxScores global
+                await setDoc(doc(db, CONFIG_DOC), { sections: updatedSections, maxScores }, { merge: true });
                 setIsSectionSettingsOpen(false);
             };
-            
-            // Toggle inclusion is tricky with object columns, simplifying for now to just show all or none in list
-            // Skipping detailed toggle implementation for this refactor to keep it simple, assumes all added are visible
-
+            const toggleColumnInclusion = (groupIndex, colName) => {
+                const newSettings = { ...sectionSettings };
+                const group = newSettings.groups[groupIndex];
+                let newIncluded = [...(group.includedCols || [])];
+                if (newIncluded.includes(colName)) newIncluded = newIncluded.filter(c => c !== colName); else newIncluded.push(colName);
+                group.includedCols = newIncluded;
+                setSectionSettings(newSettings);
+            };
             const handleImportStudents = async () => {
                 if (!importText.trim()) return;
                 setLoading(true);
@@ -712,12 +691,11 @@
                 catch (e) { console.error(e); setWarning({ show: true, msg: 'เกิดข้อผิดพลาด' }); } 
                 finally { setLoading(false); }
             };
-
             const handleExportCSV = () => {
-                const allCols = getAllColumns(); // Now objects
-                const headers = ['เลขที่', 'รหัส', 'ชื่อ-นามสกุล', 'ห้อง', ...allCols.map(c => c.name)];
+                const allCols = getAllColumns();
+                const headers = ['เลขที่', 'รหัส', 'ชื่อ-นามสกุล', 'ห้อง', ...allCols];
                 const rows = processedStudents.map(s => {
-                    const scores = allCols.map(c => s.scores[c.id] || '');
+                    const scores = allCols.map(col => s.scores[col] || '');
                     return [s.no, s.id, `"${s.name}"`, s.room, ...scores].join(',');
                 });
                 const csvContent = "\uFEFF" + [headers.join(','), ...rows].join('\n');
@@ -726,13 +704,12 @@
                 const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'grade_export.csv');
                 document.body.appendChild(link); link.click(); document.body.removeChild(link);
             };
-
-            const handleEditScore = (col, value) => {
-                if (col.type !== 'manual') return;
-                const max = col.max;
+            const handleEditScore = (colName, value) => {
+                if (isCalculatedCol(colName)) return;
+                const max = maxScores[colName] || 100;
                 const numVal = parseFloat(value);
                 if (value !== '' && numVal > max) { setWarning({ show: true, msg: `คะแนนห้ามเกิน ${max} คะแนน` }); return; }
-                setEditingStudent(prev => ({ ...prev, scores: { ...prev.scores, [col.id]: value } }));
+                setEditingStudent(prev => ({ ...prev, scores: { ...prev.scores, [colName]: value } }));
             };
             const handleEditInfo = (field, value) => setEditingStudent(prev => ({ ...prev, [field]: value }));
             const handleSort = (key) => setSortConfig({ key, direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc' });
@@ -741,7 +718,6 @@
                 let filtered = students;
                 if (selectedRoom !== 'All') filtered = filtered.filter(s => s.room === selectedRoom);
                 if (teacherSearchId) filtered = filtered.filter(s => s.id.includes(teacherSearchId) || s.name.includes(teacherSearchId));
-                
                 return [...filtered].sort((a, b) => {
                     if (!sortConfig.key) return 0;
                     let valA, valB;
@@ -749,7 +725,7 @@
                     else if (sortConfig.key === 'id') { valA = a.id; valB = b.id; }
                     else if (sortConfig.key === 'name') { valA = a.name; valB = b.name; }
                     else if (sortConfig.key === 'room') { valA = a.room; valB = b.room; }
-                    // Sort by score not implemented for object cols yet, defaulting to ID sort
+                    else { valA = parseFloat(a.scores?.[sortConfig.key]) || 0; valB = parseFloat(b.scores?.[sortConfig.key]) || 0; }
                     return valA < valB ? (sortConfig.direction === 'asc' ? -1 : 1) : (sortConfig.direction === 'asc' ? 1 : -1);
                 });
             }, [students, selectedRoom, sortConfig, teacherSearchId]);
@@ -785,7 +761,7 @@
                     </nav>
 
                     <div className="max-w-7xl mx-auto p-4 md:p-6">
-                        {/* TEACHER LOGIN */}
+                        {/* TEACHER LOGIN, STUDENT VIEW, ETC REMAIN UNCHANGED */}
                         {view === 'teacher_login' && (
                             <div className="max-w-sm mx-auto mt-16 bg-white p-8 rounded-2xl shadow-xl border border-gray-100 animate-fade-in">
                                 <div className="text-center mb-6">
@@ -798,7 +774,6 @@
                             </div>
                         )}
 
-                        {/* STUDENT VIEW */}
                         {view === 'student' && (
                             <div className="max-w-xl mx-auto mt-8 animate-fade-in">
                                 <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-white/50 relative overflow-hidden">
@@ -832,7 +807,7 @@
                                             <div className="space-y-4">
                                                 {sections.map((section) => {
                                                     const theme = THEMES[section.color] || THEMES.gray;
-                                                    
+                                                    const { total, maxTotal } = calculateSectionTotal(searchResult.scores, section);
                                                     return (
                                                         <div key={section.id} className={`border ${theme.border} rounded-xl overflow-hidden shadow-sm bg-white`}>
                                                             <details className="group" open>
@@ -842,6 +817,7 @@
                                                                         <span className={`font-bold ${theme.text}`}>{section.title}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-3">
+                                                                        <span className={`text-xs font-bold px-3 py-1 rounded-full bg-white/60 ${theme.text}`}>คะแนนเก็บ: {total} / {maxTotal}</span>
                                                                         <Icons.ChevronDown className="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform"/>
                                                                     </div>
                                                                 </summary>
@@ -851,16 +827,19 @@
                                                                             <h5 className="text-sm font-bold text-gray-500 mb-2 uppercase border-b pb-1">{group.title}</h5>
                                                                             <div className="space-y-2">
                                                                                 {group.columns.map((col, idx) => {
-                                                                                    const score = calculateColumnValue(searchResult, group, col);
-                                                                                    const max = col.max || 10;
+                                                                                    const score = calculateColumnValue(searchResult, group, col, maxScores[col]);
+                                                                                    const max = maxScores[col] || 10;
                                                                                     const isMissing = score === '' || score === 0 || score === '0' || score === undefined;
-                                                                                    
+                                                                                    const isIncluded = (group.includedCols || []).includes(col);
+                                                                                    const isAuto = isCalculatedCol(col);
+
                                                                                     return (
-                                                                                        <div key={idx} className={`flex justify-between items-center p-2 rounded hover:bg-gray-50 transition ${col.type !== 'manual' ? 'bg-gray-50 border border-gray-100' : ''}`}>
+                                                                                        <div key={idx} className={`flex justify-between items-center p-2 rounded hover:bg-gray-50 transition ${!isIncluded ? 'opacity-60' : ''} ${isAuto ? 'bg-gray-50 border border-gray-100' : ''}`}>
                                                                                                 <div className="flex flex-col">
                                                                                                     <div className="text-gray-700 font-medium text-sm flex items-center gap-2">
-                                                                                                        {col.name} 
-                                                                                                        {col.type !== 'manual' && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">Auto</span>}
+                                                                                                        {col} 
+                                                                                                        {!isIncluded && <Icons.EyeOff size={12} className="text-gray-400"/>}
+                                                                                                        {isAuto && <span className="text-[10px] bg-blue-100 text-blue-600 px-1 rounded">Auto</span>}
                                                                                                     </div>
                                                                                                     <div className="text-[10px] text-gray-400">เต็ม {max}</div>
                                                                                                 </div>
@@ -875,6 +854,7 @@
                                                                             </div>
                                                                         </div>
                                                                     ))}
+                                                                    {(!section.groups || section.groups.length === 0) && <div className="text-center text-gray-400 text-sm">ยังไม่มีงาน</div>}
                                                                 </div>
                                                             </details>
                                                         </div>
@@ -889,7 +869,6 @@
 
                         {view === 'teacher' && (
                             <div className="animate-fade-in pb-20">
-                                {/* Navigation and Top Bar same as before */}
                                 <div className="flex gap-4 mb-6 border-b border-gray-200 overflow-x-auto">
                                     <button onClick={() => setTeacherTab('scores')} className={`tab-btn ${teacherTab === 'scores' ? 'tab-active' : 'tab-inactive'}`}>
                                         <Icons.FileSpreadsheet size={18}/> ตารางคะแนน
@@ -946,20 +925,20 @@
                                                             <th className="bg-gray-50 border-b p-3"></th>
                                                         </tr>
                                                         <tr>
-                                                            <th className="px-2 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-0 z-10 text-center cursor-pointer hover:bg-gray-100" onClick={() => handleSort('no')}>#</th>
-                                                            <th className="px-4 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-16 z-10 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('id')}>รหัส</th>
-                                                            <th className="px-4 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-36 z-10 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('name')}>ชื่อ-สกุล</th>
-                                                            <th className="px-2 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-76 z-10 text-center cursor-pointer hover:bg-gray-100" onClick={() => handleSort('room')}>ห้อง</th>
+                                                            <th className="px-2 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-0 z-10 text-center cursor-pointer hover:bg-gray-100" onClick={() => handleSort('no')}># {sortConfig.key === 'no' && <Icons.ArrowUp size={12}/>}</th>
+                                                            <th className="px-4 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-16 z-10 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('id')}>รหัส {sortConfig.key === 'id' && <Icons.ArrowUp size={12}/>}</th>
+                                                            <th className="px-4 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-36 z-10 cursor-pointer hover:bg-gray-100" onClick={() => handleSort('name')}>ชื่อ-สกุล {sortConfig.key === 'name' && <Icons.ArrowUp size={12}/>}</th>
+                                                            <th className="px-2 py-3 bg-gray-50 border-b border-r font-bold text-gray-600 sticky left-76 z-10 text-center cursor-pointer hover:bg-gray-100" onClick={() => handleSort('room')}>ห้อง {sortConfig.key === 'room' && <Icons.ArrowUp size={12}/>}</th>
                                                             {sections.map(sec => ((sec.groups || []).map(group => group.columns.map(col => (
-                                                                <th key={col.id} className={`px-1 py-3 border-b border-r text-center bg-white align-bottom group hover:bg-gray-50 transition-colors relative`}>
+                                                                <th key={col} className={`px-1 py-3 border-b border-r text-center bg-white align-bottom group hover:bg-gray-50 transition-colors relative`}>
                                                                     <div className="flex flex-col items-center justify-end w-full h-40 pb-2">
                                                                         <span 
                                                                             className="text-xs font-semibold text-gray-700 whitespace-nowrap tracking-wide vertical-text" 
                                                                         >
-                                                                            {col.name}
+                                                                            {col}
                                                                         </span>
                                                                         <span className="mt-2 text-[10px] font-mono text-gray-400 bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
-                                                                            {col.max}
+                                                                            {maxScores[col]}
                                                                         </span>
                                                                     </div>
                                                                 </th>
@@ -975,13 +954,14 @@
                                                                 <td className="px-4 py-3 text-gray-700 border-r bg-white sticky left-36 z-0">{student.name}</td>
                                                                 <td className="px-2 py-3 text-center text-gray-500 text-xs border-r bg-white sticky left-76 z-0"><span className="bg-gray-100 px-2 py-1 rounded-md font-medium">{student.room}</span></td>
                                                                 {sections.map(sec => ((sec.groups || []).map(group => group.columns.map(col => {
-                                                                    const val = calculateColumnValue(student, group, col);
-                                                                    const max = col.max;
+                                                                    const val = calculateColumnValue(student, group, col, maxScores[col]);
+                                                                    const max = maxScores[col];
                                                                     const isOver = parseFloat(val) > max;
-                                                                    const isAuto = col.type !== 'manual';
+                                                                    const isIncluded = (group.includedCols || []).includes(col);
+                                                                    const isAuto = isCalculatedCol(col);
 
                                                                     return (
-                                                                        <td key={col.id} className={`px-2 py-2 text-center border-r ${isAuto ? 'bg-gray-100/50 text-gray-400' : ''}`}>
+                                                                        <td key={col} className={`px-2 py-2 text-center border-r ${!isIncluded ? 'bg-gray-100/50 text-gray-400' : ''} ${isAuto ? 'bg-gray-50 font-bold text-gray-700' : ''}`}>
                                                                             {val !== '' && val !== undefined && val !== '-' ? <span className={`font-medium ${isOver ? 'text-red-600 font-bold' : ''}`}>{val}</span> : <span className="text-gray-200">-</span>}
                                                                         </td>
                                                                     );
@@ -997,8 +977,7 @@
                                         </div>
                                     </div>
                                 )}
-                                
-                                {/* ... Tab 2 & 3 & Modals (Updated Logic) ... */}
+                                {/* ... (Tab 2 & 3 content unchanged, only showing relevant parts for update) ... */}
                                 {teacherTab === 'students' && (
                                     <div className="animate-fade-in max-w-4xl mx-auto">
                                         <div className="card">
@@ -1081,13 +1060,24 @@
                                                 </button>
                                             </div>
                                         </div>
-
+                                        {/* Structure Config Section (Same as before) */}
                                         <div className="grid lg:grid-cols-3 gap-6">
                                             <div className="lg:col-span-1 space-y-6">
                                                 <div className="card p-5 border-l-4 border-l-indigo-500">
                                                     <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Icons.FolderPlus size={18} className="text-indigo-500"/> สร้างบทเรียนใหม่</h4>
                                                     <div className="space-y-3">
-                                                        <input type="text" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} placeholder="เช่น บทที่ 1..." />
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-1 block">ชื่อบทเรียน</label>
+                                                            <input type="text" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition" value={newSectionTitle} onChange={(e) => setNewSectionTitle(e.target.value)} placeholder="เช่น บทที่ 1..." />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-2 block">ธีมสี</label>
+                                                            <div className="flex gap-2">
+                                                                {['blue', 'green', 'orange', 'purple', 'pink'].map(c => (
+                                                                    <button key={c} onClick={() => setNewSectionColor(c)} className={`w-8 h-8 rounded-full border-2 transition transform hover:scale-110 ${THEMES[c].bg} ${newSectionColor === c ? 'border-gray-600 scale-110 shadow-sm' : 'border-transparent'}`}></button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                         <button onClick={addNewSection} className="w-full bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition mt-2">บันทึกบทเรียน</button>
                                                     </div>
                                                 </div>
@@ -1095,19 +1085,41 @@
                                                 <div className="card p-5 border-l-4 border-l-emerald-500">
                                                     <h4 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><Icons.Plus size={18} className="text-emerald-500"/> เพิ่มช่องคะแนน</h4>
                                                     <div className="space-y-3">
-                                                        <select className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white transition" value={targetSectionId} onChange={(e) => setTargetSectionId(e.target.value)}>
-                                                            <option value="">-- เลือกบทเรียน --</option>
-                                                            {sections.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
-                                                        </select>
-                                                        <input type="text" placeholder="กลุ่ม (เช่น คะแนนเก็บ)" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition" value={targetGroupName} onChange={(e) => setTargetGroupName(e.target.value)} />
-                                                        <div className="flex gap-2">
-                                                            <button onClick={() => setNewColType('manual')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'manual' ? 'bg-emerald-600 text-white' : 'bg-white text-gray-600'}`}>กรอกเอง</button>
-                                                            <button onClick={() => setNewColType('sum')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'sum' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600'}`}>รวม</button>
-                                                            <button onClick={() => setNewColType('percent')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'percent' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600'}`}>%</button>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-1 block">เลือกบทเรียน</label>
+                                                            <select className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white transition" value={targetSectionId} onChange={(e) => setTargetSectionId(e.target.value)}>
+                                                                <option value="">-- กรุณาเลือก --</option>
+                                                                {sections.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-1 block">กลุ่มคะแนน (Group)</label>
+                                                            <input type="text" placeholder="เช่น คะแนนเก็บ" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition" value={targetGroupName} onChange={(e) => setTargetGroupName(e.target.value)} />
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs font-bold text-gray-500 mb-2 block">ประเภทช่องคะแนน</label>
+                                                            <div className="flex gap-2">
+                                                                <button onClick={() => setNewColType('manual')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'manual' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>กรอกเอง</button>
+                                                                <button onClick={() => setNewColType('sum')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'sum' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>รวม (Auto)</button>
+                                                                <button onClick={() => setNewColType('percent')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${newColType === 'percent' ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>% (Auto)</button>
+                                                            </div>
                                                         </div>
                                                         <div className="flex gap-2">
-                                                            <input type="text" placeholder="ชื่องาน" className="flex-1 p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition" value={newColName} onChange={(e) => setNewColName(e.target.value)} disabled={newColType !== 'manual'} />
-                                                            <input type="number" placeholder="เต็ม" className="w-20 p-2.5 border rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none transition" value={newColMax} onChange={(e) => setNewColMax(e.target.value)} />
+                                                            <div className="flex-1">
+                                                                <label className="text-xs font-bold text-gray-500 mb-1 block">ชื่องาน</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    placeholder={newColType === 'sum' ? 'รวม' : newColType === 'percent' ? 'คิดเป็น %' : 'เช่น สอบย่อย'} 
+                                                                    className={`w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition ${newColType !== 'manual' ? 'bg-gray-50 text-gray-500' : ''}`} 
+                                                                    value={newColType === 'sum' ? 'รวม' : newColType === 'percent' ? 'คิดเป็น %' : newColName} 
+                                                                    onChange={(e) => setNewColName(e.target.value)} 
+                                                                    disabled={newColType !== 'manual'}
+                                                                />
+                                                            </div>
+                                                            <div className="w-20">
+                                                                <label className="text-xs font-bold text-gray-500 mb-1 block">เต็ม</label>
+                                                                <input type="number" placeholder="10" className="w-full p-2.5 border rounded-xl text-center focus:ring-2 focus:ring-emerald-500 outline-none transition" value={newColMax} onChange={(e) => setNewColMax(e.target.value)} />
+                                                            </div>
                                                         </div>
                                                         <button onClick={addNewColumn} className="w-full bg-emerald-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition mt-2">เพิ่มงาน</button>
                                                     </div>
@@ -1121,6 +1133,13 @@
                                                         <span className="text-xs bg-white border px-2 py-1 rounded text-gray-500">{sections.length} บทเรียน</span>
                                                     </div>
                                                     <div className="p-5 space-y-4 flex-1 overflow-y-auto max-h-[600px]">
+                                                        {sections.length === 0 && (
+                                                            <div className="flex flex-col items-center justify-center h-48 text-gray-400 border-2 border-dashed rounded-xl">
+                                                                <Icons.FolderPlus size={48} className="mb-2 opacity-20"/>
+                                                                <p>ยังไม่มีโครงสร้างคะแนน</p>
+                                                                <p className="text-xs">เริ่มสร้างบทเรียนทางด้านซ้ายมือ</p>
+                                                            </div>
+                                                        )}
                                                         {sections.map(sec => (
                                                             <div key={sec.id} className="group relative bg-white border border-gray-100 rounded-xl p-4 hover:shadow-md transition-all duration-200">
                                                                 <div className="flex justify-between items-start mb-3">
@@ -1128,8 +1147,18 @@
                                                                         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${THEMES[sec.color].bg} ${THEMES[sec.color].text}`}>
                                                                             <span className="font-bold text-lg">{sec.title.charAt(0)}</span>
                                                                         </div>
-                                                                        <h5 className="font-bold text-gray-800">{sec.title}</h5>
+                                                                        <div>
+                                                                            <h5 className="font-bold text-gray-800">{sec.title}</h5>
+                                                                            <div className="text-xs text-gray-400 flex gap-2 mt-0.5">
+                                                                                <span>{(sec.groups || []).length} กลุ่ม</span>
+                                                                                <span>•</span>
+                                                                                <span>{(sec.groups || []).reduce((acc, g) => acc + g.columns.length, 0)} ช่องคะแนน</span>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
+                                                                    <button onClick={() => { setSectionSettings(sec); setIsSectionSettingsOpen(true); }} className="text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-lg transition">
+                                                                        <Icons.Settings size={20}/>
+                                                                    </button>
                                                                 </div>
                                                                 
                                                                 <div className="flex flex-wrap gap-2">
@@ -1137,19 +1166,20 @@
                                                                         <div key={group.id} className="flex items-center text-xs bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
                                                                             <div className="px-2 py-1 bg-gray-100 font-semibold text-gray-600 border-r">{group.title}</div>
                                                                             <div className="px-2 py-1 text-gray-500 flex gap-1">
-                                                                                {group.columns.map(c => (
+                                                                                {group.columns.length > 0 ? group.columns.map(c => (
                                                                                     <span 
-                                                                                        key={c.id} 
-                                                                                        title={`เต็ม ${c.max}`}
+                                                                                        key={c} 
+                                                                                        title={`เต็ม ${maxScores[c]}`}
                                                                                         className="cursor-pointer hover:text-blue-600 hover:underline"
                                                                                         onClick={() => openEditColumnModal(sec.id, group.id, c)}
                                                                                     >
-                                                                                        {c.name}
+                                                                                        {c}
                                                                                     </span>
-                                                                                )).reduce((prev, curr) => [prev, ', ', curr])}
+                                                                                )).reduce((prev, curr) => [prev, ', ', curr]) : <span className="italic text-gray-300">-</span>}
                                                                             </div>
                                                                         </div>
                                                                     ))}
+                                                                    {(!sec.groups || sec.groups.length === 0) && <span className="text-xs text-gray-300 italic">ยังไม่มีงาน</span>}
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -1161,8 +1191,22 @@
                                 )}
                             </div>
                         )}
-
-                        {/* Modals are kept similar but updated to use object columns */}
+                        {/* Modals - (QR Scanner Modal) */}
+                        {isScannerModalOpen && (
+                            <div className="fixed inset-0 bg-black/90 z-[200] flex flex-col items-center justify-center p-4 animate-fade-in">
+                                <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm w-full">
+                                    <h3 className="text-xl font-bold text-gray-800 mb-4">สแกนด้วยมือถือ</h3>
+                                    <div className="bg-gray-100 p-4 rounded-xl mb-4 flex justify-center">
+                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href.split('?')[0] + '?scan_session=' + scannerSessionId)}`} alt="Scan QR" className="w-48 h-48" />
+                                    </div>
+                                    <p className="text-gray-600 text-sm mb-6">1. เปิดแอปกล้อง (Camera) หรือ Line บนมือถือ<br/>2. สแกน QR Code นี้เพื่อเชื่อมต่อ<br/><span class="text-xs text-blue-500 font-bold">*อย่าใช้ปุ่มสแกนในแอปนี้สแกน QR นี้นะครับ</span></p>
+                                    <div className="flex justify-center">
+                                        <button onClick={() => setIsScannerModalOpen(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-full font-bold transition">ปิดหน้าต่าง</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {/* ... (Other modals are same) ... */}
                         {isEditColumnModalOpen && columnToEdit && (
                             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
                                 <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
@@ -1172,12 +1216,16 @@
                                     </div>
                                     <div className="p-6 space-y-4">
                                         <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-1">ชื่องาน</label>
-                                            <input type="text" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={editColName} onChange={(e) => setEditColName(e.target.value)} disabled={columnToEdit.col.type !== 'manual'} />
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">ชื่องาน (เดิม: {columnToEdit.oldName})</label>
+                                            <input type="text" className="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" value={editColName} onChange={(e) => setEditColName(e.target.value)} />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-1">คะแนนเต็ม</label>
                                             <input type="number" className="w-full p-2.5 border rounded-xl text-center focus:ring-2 focus:ring-indigo-500 outline-none" value={editColMax} onChange={(e) => setEditColMax(e.target.value)} />
+                                        </div>
+                                        <div className="bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200">
+                                            <strong className="block mb-1">คำเตือน:</strong>
+                                            การเปลี่ยนชื่องานจะทำการย้ายคะแนนของนักเรียนทุกคนไปยังชื่อใหม่โดยอัตโนมัติ
                                         </div>
                                     </div>
                                     <div className="p-4 bg-gray-50 flex justify-between items-center border-t">
@@ -1199,12 +1247,11 @@
                                         <button onClick={() => setIsEditModalOpen(false)} className="hover:bg-gray-700 p-2 rounded-full"><Icons.X size={20} /></button>
                                     </div>
                                     <div className="p-6 overflow-y-auto bg-gray-50/50">
-                                        {/* Student Info Inputs */}
                                         <div className="bg-white p-4 rounded-xl border shadow-sm mb-6 flex gap-4">
                                             <div className="w-20"><label className="text-xs font-bold text-gray-500 uppercase mb-1 block">เลขที่</label><input type="text" className="w-full p-2 border rounded-lg text-center" value={editingStudent.no || ''} onChange={(e) => handleEditInfo('no', e.target.value)} /></div>
                                             <div className="flex-1"><label className="text-xs font-bold text-gray-500 uppercase mb-1 block">ชื่อ-นามสกุล</label><input type="text" className="w-full p-2 border rounded-lg" value={editingStudent.name} onChange={(e) => handleEditInfo('name', e.target.value)} /></div>
+                                            <div className="w-24"><label className="text-xs font-bold text-gray-500 uppercase mb-1 block">ห้อง</label><input type="text" className="w-full p-2 border rounded-lg text-center" value={editingStudent.room} onChange={(e) => handleEditInfo('room', e.target.value)} /></div>
                                         </div>
-                                        {/* Scores Inputs */}
                                         {editMode === 'full' && (
                                             <div className="space-y-6">
                                                 {sections.map(sec => (
@@ -1215,20 +1262,21 @@
                                                                 <h5 className="text-sm font-semibold text-gray-500 mb-2 border-b pb-1">{group.title}</h5>
                                                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                                                     {group.columns.map(col => {
-                                                                        const isAuto = col.type !== 'manual';
+                                                                        const isAuto = isCalculatedCol(col);
                                                                         const val = isAuto 
-                                                                            ? calculateColumnValue(editingStudent, group, col)
-                                                                            : (editingStudent.scores?.[col.id] || '');
+                                                                            ? calculateColumnValue(editingStudent, group, col, maxScores[col]) 
+                                                                            : (editingStudent.scores?.[col] || '');
 
                                                                         return (
-                                                                            <div key={col.id}>
+                                                                            <div key={col}>
                                                                                 <div className="flex justify-between mb-1">
-                                                                                    <label className="text-xs font-semibold text-gray-600 truncate max-w-[80px]">{col.name}</label>
+                                                                                    <label className="text-xs font-semibold text-gray-600 truncate max-w-[80px]">{col}</label>
                                                                                     {isAuto && <span className="text-[9px] bg-blue-100 text-blue-600 px-1 rounded">Auto</span>}
-                                                                                    <span className="text-[10px] text-gray-400">/{col.max}</span>
+                                                                                    <span className="text-[10px] text-gray-400">/{maxScores[col]}</span>
                                                                                 </div>
                                                                                 <input 
                                                                                     type="text" 
+                                                                                    autoFocus={!isAuto && editMode === 'full' && group === sec.groups[0] && col === group.columns[0]}
                                                                                     disabled={isAuto}
                                                                                     className={`w-full p-2 border rounded-lg text-center font-medium focus:ring-2 focus:ring-blue-500 outline-none ${isAuto ? 'bg-gray-100 text-gray-500' : ''}`} 
                                                                                     value={val} 
@@ -1253,23 +1301,110 @@
                             </div>
                         )}
 
-                        {/* Scanner QR Modal (PC Side) */}
-                        {isScannerModalOpen && (
-                            <div className="fixed inset-0 bg-black/90 z-[200] flex flex-col items-center justify-center p-4 animate-fade-in">
-                                <div className="bg-white p-6 rounded-2xl shadow-2xl text-center max-w-sm w-full">
-                                    <h3 className="text-xl font-bold text-gray-800 mb-4">สแกนด้วยมือถือ</h3>
-                                    <div className="bg-gray-100 p-4 rounded-xl mb-4 flex justify-center">
-                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href.split('?')[0] + '?scan_session=' + scannerSessionId)}`} alt="Scan QR" className="w-48 h-48" />
+                        {/* NEW: Add Single Student Modal */}
+                        {isAddStudentModalOpen && (
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                                    <div className="bg-indigo-600 text-white p-5 flex justify-between items-center">
+                                        <h3 className="text-lg font-bold flex items-center gap-2"><Icons.UserPlus size={20}/> เพิ่มนักเรียนใหม่</h3>
+                                        <button onClick={() => setIsAddStudentModalOpen(false)} className="hover:bg-indigo-700 p-2 rounded-full"><Icons.X size={20} /></button>
                                     </div>
-                                    <p className="text-gray-600 text-sm mb-6">1. เปิดแอปกล้อง (Camera) หรือ Line บนมือถือ<br/>2. สแกน QR Code นี้เพื่อเชื่อมต่อ<br/><span class="text-xs text-blue-500 font-bold">*อย่าใช้ปุ่มสแกนในแอปนี้สแกน QR นี้นะครับ</span></p>
-                                    <div className="flex justify-center">
-                                        <button onClick={() => setIsScannerModalOpen(false)} className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-full font-bold transition">ปิดหน้าต่าง</button>
+                                    <div className="p-6 space-y-4">
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">รหัสนักเรียน <span className="text-red-500">*</span></label>
+                                            <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น 66001" value={newStudent.id} onChange={(e) => setNewStudent({...newStudent, id: e.target.value})} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold text-gray-700 mb-1">ชื่อ-นามสกุล <span className="text-red-500">*</span></label>
+                                            <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น เด็กชายรักเรียน..." value={newStudent.name} onChange={(e) => setNewStudent({...newStudent, name: e.target.value})} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">ห้องเรียน</label>
+                                                <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="เช่น 1/1" value={newStudent.room} onChange={(e) => setNewStudent({...newStudent, room: e.target.value})} />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-bold text-gray-700 mb-1">เลขที่</label>
+                                                <input type="text" className="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-center" placeholder="-" value={newStudent.no} onChange={(e) => setNewStudent({...newStudent, no: e.target.value})} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-end gap-3 border-t">
+                                        <button onClick={() => setIsAddStudentModalOpen(false)} className="px-5 py-2.5 text-gray-600 hover:bg-gray-200 rounded-xl font-medium">ยกเลิก</button>
+                                        <button onClick={handleAddStudentSubmit} className="px-6 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold shadow-lg shadow-indigo-200 flex items-center gap-2">
+                                            {loading ? 'กำลังบันทึก...' : <><Icons.Save size={18}/> บันทึกข้อมูล</>}
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         )}
-                        
-                        {/* Other Modals (isAddStudentModalOpen, isImportModalOpen, isSectionSettingsOpen, warning) are kept same as previous versions */}
+
+                        {/* Section Settings Modal */}
+                        {isSectionSettingsOpen && sectionSettings && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                                    <div className={`p-4 border-b flex justify-between items-center ${THEMES[sectionSettings.color].bg}`}>
+                                        <h3 className={`font-bold text-lg ${THEMES[sectionSettings.color].text}`}>ตั้งค่า: {sectionSettings.title}</h3>
+                                        <button onClick={() => setIsSectionSettingsOpen(false)} className="hover:bg-black/10 p-1.5 rounded-full"><Icons.X size={20}/></button>
+                                    </div>
+                                    <div className="p-6">
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">แก้ไขชื่อบทเรียน</label>
+                                            <input type="text" className="w-full p-2 border rounded-lg" value={sectionSettings.title} onChange={(e) => setSectionSettings({...sectionSettings, title: e.target.value})} />
+                                        </div>
+                                        <div className="mb-4">
+                                            <label className="block text-sm font-bold text-gray-700 mb-2">เลือกงานที่นำมาคิดคะแนนรวม</label>
+                                            <div className="space-y-4 max-h-64 overflow-y-auto border rounded-lg p-3">
+                                                {(sectionSettings.groups || []).map((group, gIdx) => (
+                                                    <div key={group.id}>
+                                                        <div className="text-xs font-bold text-gray-400 mb-1">{group.title}</div>
+                                                        <div className="space-y-1 pl-2">
+                                                            {group.columns.map(col => {
+                                                                const isChecked = (group.includedCols || []).includes(col);
+                                                                return (
+                                                                    <div key={col} className={`flex items-center gap-3 p-2 rounded cursor-pointer border ${isChecked ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-100'}`} onClick={() => toggleColumnInclusion(gIdx, col)}>
+                                                                        {isChecked ? <Icons.CheckSquare className="text-blue-600"/> : <Icons.Square className="text-gray-400"/>}
+                                                                        <span className={isChecked ? 'text-gray-800 font-medium' : 'text-gray-400'}>{col}</span>
+                                                                    </div>
+                                                                )
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-end gap-2">
+                                        <button onClick={() => setIsSectionSettingsOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">ยกเลิก</button>
+                                        <button onClick={saveSectionSettings} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold">บันทึก</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Import Modal */}
+                        {isImportModalOpen && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden">
+                                    <div className="bg-blue-600 text-white p-4 flex justify-between items-center"><h3 className="font-bold text-lg flex items-center gap-2"><Icons.Upload size={20}/> นำเข้าข้อมูล</h3><button onClick={() => setIsImportModalOpen(false)} className="hover:bg-blue-700 p-1 rounded"><Icons.X size={20}/></button></div>
+                                    <div className="p-6">
+                                        <p className="text-sm text-gray-600 mb-2">วางข้อมูล: เลขที่ [tab] รหัส [tab] ชื่อ [tab] ห้อง</p>
+                                        <textarea className="w-full h-48 p-3 border rounded-xl outline-none text-sm font-mono" placeholder="1 66001 สมชาย 1/1..." value={importText} onChange={(e) => setImportText(e.target.value)} />
+                                    </div>
+                                    <div className="p-4 bg-gray-50 flex justify-end gap-2"><button onClick={() => setIsImportModalOpen(false)} className="px-4 py-2 text-gray-600 rounded-lg">ยกเลิก</button><button onClick={handleImportStudents} className="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold">{loading ? '...' : 'บันทึก'}</button></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {warning.show && (
+                            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[110] animate-fade-in p-4">
+                                <div className="bg-white rounded-2xl shadow-2xl p-6 text-center max-w-xs w-full">
+                                    <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"><Icons.AlertTriangle className="w-7 h-7 text-red-600" /></div>
+                                    <p className="text-gray-600 mb-6 text-sm">{warning.msg}</p>
+                                    <button onClick={() => setWarning({ show: false, msg: '' })} className="w-full bg-red-600 text-white py-2.5 rounded-xl font-bold hover:bg-red-700">รับทราบ</button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                     
                     {/* Footer Credit */}
