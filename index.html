@@ -568,7 +568,7 @@
             };
 
             const executeAdminAction = () => {
-                if (confirmPasswordInput !== 'admin') {
+                if (confirmPasswordInput !== '65411597') {
                     alert('รหัสผ่านไม่ถูกต้อง');
                     return;
                 }
@@ -868,19 +868,15 @@
                                 <div className="print-footer">
                                     <div className="signature-block">
                                         <div className="signature-line"></div>
-                                        <p>ลงชื่อครูผู้สอน</p>
-                                        <p>(...........................................................)</p>
+                                        <p>ลงชื่อนักศึกษาฝึกวิชาชีพครู</p>
+                                        <p>( นายนวรัตน์  เครือก๋า )</p>
                                     </div>
                                     <div className="signature-block">
                                         <div className="signature-line"></div>
-                                        <p>หัวหน้ากลุ่มสาระฯ</p>
-                                        <p>(...........................................................)</p>
+                                        <p>ครูพี่เลี้ยง</p>
+                                        <p>( นางสาวพรวดี  ใจเที่ยงธรรม )</p>
                                     </div>
-                                    <div className="signature-block">
-                                        <div className="signature-line"></div>
-                                        <p>ผู้อำนวยการสถานศึกษา</p>
-                                        <p>(...........................................................)</p>
-                                    </div>
+                                    
                                 </div>
                             </div>
                         )}
@@ -954,7 +950,7 @@
                                             <div style={{marginBottom: '5px'}}><Icons.FileSpreadsheet size={32}/></div>
                                             <h1>รายงานผลการเรียนรายบุคคล</h1>
                                             <h2>รายวิชาชีววิทยา 2</h2>
-                                            <h3>ภาคเรียนที่ 2 ปีการศึกษา 2568 | โรงเรียน................................................................</h3>
+                                            <h3>ภาคเรียนที่ 2 ปีการศึกษา 2568 | โรงเรียนพิษณุโลกพิทยาคม </h3>
                                         </div>
                                         <div className="student-info">
                                             <div>
@@ -973,7 +969,7 @@
                                         <table className="print-table">
                                             <thead>
                                                 <tr>
-                                                    <th style={{width: '60%'}}>รายการประเมิน / ตัวชี้วัด</th>
+                                                    <th style={{width: '60%'}}>รายการประเมิน / ชิ้นงาน</th>
                                                     <th style={{width: '20%'}}>คะแนนเต็ม</th>
                                                     <th style={{width: '20%'}}>คะแนนที่ได้</th>
                                                 </tr>
@@ -1027,8 +1023,9 @@
                                             </div>
                                             <div className="signature-block">
                                                 <div className="signature-line"></div>
-                                                <p>(...........................................................)</p>
-                                                <p>ครูที่ปรึกษา / ครูผู้สอน</p>
+                                                <p>(นายนวรัตน์  เครือก๋า)</p>
+                                                <p>นักศึกษาฝึกวิชาชีพครู</p>
+                                                <p>ครูผู้สอน</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1041,8 +1038,8 @@
                             <div className="max-w-sm mx-auto mt-16 bg-white p-8 rounded-2xl shadow-xl border animate-slide-up text-center screen-only">
                                 <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4"><Icons.Lock className="w-8 h-8 text-indigo-600"/></div>
                                 <h3 className="text-xl font-bold mb-6 font-display text-gray-800">สำหรับครูผู้สอน</h3>
-                                <input type="password" placeholder="รหัสผ่าน (admin)" className="w-full p-3 border rounded-xl mb-4 text-center focus:ring-2 focus:ring-indigo-500 outline-none" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key==='Enter' && document.getElementById('login-btn').click()} />
-                                <button id="login-btn" onClick={() => { if(password==='admin') setView('teacher'); else setWarning({show:true, msg:'รหัสผ่านไม่ถูกต้อง'}); }} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">เข้าสู่ระบบ</button>
+                                <input type="password" placeholder="รหัสผ่าน" className="w-full p-3 border rounded-xl mb-4 text-center focus:ring-2 focus:ring-indigo-500 outline-none" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key==='Enter' && document.getElementById('login-btn').click()} />
+                                <button id="login-btn" onClick={() => { if(password==='65411597') setView('teacher'); else setWarning({show:true, msg:'รหัสผ่านไม่ถูกต้อง'}); }} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">เข้าสู่ระบบ</button>
                             </div>
                         )}
 
