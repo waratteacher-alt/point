@@ -3,23 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบประกาศคะแนน (GradePro Cloud)</title>
+    <title>GradePro Cloud</title>
     
-    <!-- Google Fonts: Prompt & Sarabun -->
+    <!-- Google Fonts: Prompt & Sarabun (Mixed) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Sarabun', 'sans-serif'], display: ['Prompt', 'sans-serif'] },
+                    fontFamily: { 
+                        sans: ['Sarabun', 'sans-serif'], 
+                        display: ['Prompt', 'sans-serif'] 
+                    },
                     colors: { 
-                        // Base Brand Color (Indigo)
-                        primary: { 50:'#eef2ff', 100:'#e0e7ff', 200:'#c7d2fe', 300:'#a5b4fc', 400:'#818cf8', 500:'#6366f1', 600:'#4f46e5', 700:'#4338ca', 800:'#3730a3', 900:'#312e81' } 
+                        // Vibrant Pastel Theme
+                        primary: { 50:'#f0f9ff', 100:'#e0f2fe', 200:'#bae6fd', 300:'#7dd3fc', 400:'#38bdf8', 500:'#0ea5e9', 600:'#0284c7', 700:'#0369a1', 800:'#075985', 900:'#0c4a6e' },
+                        secondary: { 50:'#fdf4ff', 100:'#fae8ff', 500:'#d946ef' },
+                        success: { 50:'#f0fdf4', 500:'#22c55e' },
+                        warning: { 50:'#fffbeb', 500:'#f59e0b' },
+                        danger: { 50:'#fef2f2', 500:'#ef4444' }
                     }
                 }
             }
@@ -27,83 +37,105 @@
     </script>
     
     <!-- Libraries -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
         * { font-family: 'Sarabun', sans-serif; }
-        h1, h2, h3, h4, h5, h6, .font-display { font-family: 'Prompt', sans-serif !important; }
-        body { background-color: #f8fafc; color: #1e293b; }
-        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(99, 102, 241, 0.2); }
-        .animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        h1, h2, h3, h4, h5, h6, .font-display, button, .tab-btn, th, .header-text { font-family: 'Prompt', sans-serif !important; }
+        
+        body { 
+            background-color: #f8fafc;
+            /* Subtle modern gradient background */
+            background-image: radial-gradient(at 40% 20%, hsla(28,100%,74%,0.1) 0px, transparent 50%),
+                              radial-gradient(at 80% 0%, hsla(189,100%,56%,0.1) 0px, transparent 50%),
+                              radial-gradient(at 0% 50%, hsla(340,100%,76%,0.1) 0px, transparent 50%);
+            color: #334155; 
+        }
+        
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); 
+        }
+        
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
+        .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Custom Scrollbar */
+        /* Modern Scrollbar */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #99f6e4; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #5eead4; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         #error-display { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 9999; padding: 20px; color: red; overflow: auto; }
         
         /* Sticky Headers */
-        .sticky-left-0 { position: sticky; left: 0; z-index: 20; }
-        .sticky-left-1 { position: sticky; left: 48px; z-index: 20; }
-        .sticky-left-2 { position: sticky; left: 128px; z-index: 20; }
+        .sticky-left-0 { position: sticky; left: 0; z-index: 20; border-right: 1px solid #e2e8f0; }
+        .sticky-left-1 { position: sticky; left: 48px; z-index: 20; border-right: 1px solid #e2e8f0; }
+        .sticky-left-2 { position: sticky; left: 128px; z-index: 20; border-right: 1px solid #e2e8f0; box-shadow: 4px 0 6px -2px rgba(0,0,0,0.05); }
         .sticky-header { position: sticky; top: 0; z-index: 30; }
         
-        /* Vertical Text for Headers */
+        /* Vertical Text */
         .vertical-header { 
             writing-mode: vertical-rl; 
             transform: rotate(180deg); 
             white-space: nowrap; 
             text-align: left;
             max-height: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        #reader video, #scanner-video video { object-fit: cover; border-radius: 0.75rem; }
+        #reader video, #scanner-video video, #mobile-reader video { object-fit: cover; border-radius: 1rem; }
 
-        /* Print Styles */
+        /* --- PRINT STYLES --- */
         .print-only { display: none; }
         
         @media print {
-            @page { size: auto; margin: 10mm; }
-            body { 
-                background-color: white; 
-                color: black; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
-                font-family: 'Sarabun', sans-serif !important;
-            }
-            .no-print, nav, button, input:not([type="text"]), select, .fixed, .shadow-sm, .shadow-md, .shadow-lg, .glass-card, .screen-only { display: none !important; }
+            body { background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print, nav, button, input:not([type="text"]), select, .fixed, .shadow-sm, .glass-card, .screen-only { display: none !important; }
             #root { width: 100%; margin: 0; padding: 0; }
             .max-w-7xl, .max-w-xl, .max-w-4xl { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
             .overflow-auto, .overflow-hidden, .overflow-x-auto { overflow: visible !important; height: auto !important; max-height: none !important; }
-            .sticky-header, .sticky-left-0, .sticky-left-1, .sticky-left-2 { position: static !important; }
-            table.print-table { width: 100% !important; border-collapse: collapse; border: 1px solid #000; font-size: 11pt; margin-top: 10px; }
-            table.print-table th, table.print-table td { border: 1px solid #000 !important; padding: 6px !important; text-align: center; color: #000 !important; background-color: transparent !important; }
-            table.print-table th { font-weight: bold; background-color: #f0f0f0 !important; }
-            table.print-table td.text-left { text-align: left !important; }
-            .rounded-xl, .rounded-2xl, .rounded-lg, .rounded { border-radius: 0 !important; }
-            .bg-white { background-color: transparent !important; }
-            input { border: none !important; background: transparent !important; text-align: center; font-family: 'Sarabun', sans-serif; font-size: 10pt; padding: 0; margin: 0; width: 100%; }
-            .print-only { display: block !important; }
-            .student-report-header { text-align: center; margin-bottom: 10px; }
-            .student-report-header h1 { font-size: 16pt; font-weight: bold; margin: 0; }
-            .student-report-header h2 { font-size: 14pt; font-weight: bold; margin: 2px 0; }
-            .student-report-header h3 { font-size: 12pt; margin: 2px 0; font-weight: normal; }
-            .student-info { margin-bottom: 10px; font-size: 12pt; line-height: 1.4; border: 1px solid #000; padding: 10px; border-radius: 4px; }
-            .student-info div { display: flex; justify-content: space-between; margin-bottom: 4px; }
-            .print-footer { margin-top: 20px; display: flex; justify-content: space-between; page-break-inside: avoid; }
-            .signature-block { text-align: center; width: 30%; font-size: 11pt; }
-            .signature-line { border-bottom: 1px dotted #000; display: block; margin: 20px auto 5px; width: 90%; }
-            tr { break-inside: avoid; }
-            .vertical-header { transform: none !important; writing-mode: horizontal-tb !important; white-space: normal !important; height: auto !important; max-height: none !important; }
-            th div { height: auto !important; }
+            .sticky-header, .sticky-left-0, .sticky-left-1, .sticky-left-2 { position: static !important; border: none !important; box-shadow: none !important; }
+            
+            .print-only { display: block !important; width: 100%; }
+
+            /* Student Report (Portrait) */
+            @page { size: A4 portrait; margin: 15mm; }
+            
+            /* Teacher Report (Landscape 2-Column) */
+            .teacher-print-wrapper { column-count: 2; column-gap: 10mm; width: 100%; }
+            .teacher-print-mode @page { size: A4 landscape; margin: 10mm; }
+            
+            /* Common Table */
+            table.print-table { width: 100% !important; border-collapse: collapse; border: 1px solid #000; font-size: 10pt; page-break-inside: auto; }
+            table.print-table th, table.print-table td { border: 1px solid #000 !important; padding: 4px !important; text-align: center; color: #000 !important; background-color: transparent !important; }
+            table.print-table th { background-color: #f0f0f0 !important; font-weight: bold; }
+            table.print-table td.text-left { text-align: left !important; padding-left: 5px !important; }
+            tr { break-inside: avoid; page-break-inside: avoid; }
+
+            /* Header/Footer */
+            .print-header { text-align: center; margin-bottom: 10px; border-bottom: 2px solid #000; padding-bottom: 5px; }
+            .print-header h1 { font-size: 16pt; font-weight: bold; margin: 0; font-family: 'Sarabun', sans-serif !important; }
+            .print-header p { font-size: 12pt; margin: 0; }
+            
+            .print-footer { margin-top: 20px; display: flex; justify-content: space-between; page-break-inside: avoid; font-size: 10pt; }
+            .signature-block { text-align: center; width: 30%; }
+            .signature-line { border-bottom: 1px dotted #000; margin: 25px auto 5px; width: 90%; }
+
+            /* Student Info */
+            .student-info-box { border: 1px solid #000; padding: 10px; margin-bottom: 15px; border-radius: 4px; }
+            .student-info div { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            
+            /* Vertical Header Print */
+            .vertical-header-print { writing-mode: vertical-rl; transform: rotate(180deg); height: 80px; white-space: nowrap; margin: 0 auto; text-align: left; font-size: 9pt; }
         }
     </style>
 </head>
@@ -115,6 +147,10 @@
         window.onerror = function(message, source, lineno, colno, error) {
             const el = document.getElementById('error-display');
             if(message.includes("permission-denied")) return; 
+            if(message.includes("Script error")) {
+                 console.warn("Cross-origin script error ignored.");
+                 return;
+            }
             el.style.display = 'block';
             el.innerHTML = `<h3>⚠️ Application Error</h3><p>${message}</p>`;
         };
@@ -151,6 +187,7 @@
             <svg onClick={onClick} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{cursor: onClick ? 'pointer' : 'inherit'}}>{p}</svg>
         );
         const Icons = {
+            Cloud: (p) => <Icon {...p} p={<><path d="M17.5 19c0-1.7-1.3-3-3-3h-11a4 4 0 0 1-0-8h1a5 5 0 0 1 9.9-1 3 3 0 0 1 3.1 3"/></>} />,
             Search: (p) => <Icon {...p} p={<><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></>} />,
             User: (p) => <Icon {...p} p={<><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
             Lock: (p) => <Icon {...p} p={<><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>} />,
@@ -181,6 +218,8 @@
             Backspace: (p) => <Icon {...p} p={<><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></>} />,
             Keyboard: (p) => <Icon {...p} p={<><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.001"/><path d="M10 8h.001"/><path d="M14 8h.001"/><path d="M18 8h.001"/><path d="M6 12h.001"/><path d="M10 12h.001"/><path d="M14 12h.001"/><path d="M18 12h.001"/><path d="M7 16h10"/></>} />,
             Calculator: (p) => <Icon {...p} p={<><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></>} />,
+            Link: (p) => <Icon {...p} p={<><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></>} />,
+            ExternalLink: (p) => <Icon {...p} p={<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></>} />
         };
 
         const SEED_SECTIONS = [
@@ -190,8 +229,8 @@
                     { 
                         id: 'g1', title: 'คะแนนเก็บ (20)', 
                         columns: [
-                           { id: 'c1', name: 'สมุด', max: 10, type: 'manual' },
-                           { id: 'c2', name: 'ใบงาน', max: 10, type: 'manual' }
+                           { id: 'c1', name: 'สมุด', max: 10, type: 'manual', link: '' },
+                           { id: 'c2', name: 'ใบงาน', max: 10, type: 'manual', link: '' }
                         ]
                     }
                 ]
@@ -199,13 +238,13 @@
         ];
         const SEED_DATA = [{ id: '66001', no: '1', name: 'นายสมชาย เรียนดี', room: '1/1', scores: { 'c1': 9, 'c2': 8 } }];
 
-        // --- THEME PALETTES ---
+        // --- THEME PALETTES (Pastel) ---
         const SECTION_THEMES = [
-            { name: 'Indigo', bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-800', header: 'bg-indigo-100', icon: 'text-indigo-600', subHeader: 'text-indigo-700', button: 'bg-indigo-600 text-white' },
-            { name: 'Fuchsia', bg: 'bg-fuchsia-50', border: 'border-fuchsia-200', text: 'text-fuchsia-800', header: 'bg-fuchsia-100', icon: 'text-fuchsia-600', subHeader: 'text-fuchsia-700', button: 'bg-fuchsia-600 text-white' },
-            { name: 'Sky', bg: 'bg-sky-50', border: 'border-sky-200', text: 'text-sky-800', header: 'bg-sky-100', icon: 'text-sky-600', subHeader: 'text-sky-700', button: 'bg-sky-600 text-white' },
-            { name: 'Emerald', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-800', header: 'bg-emerald-100', icon: 'text-emerald-600', subHeader: 'text-emerald-700', button: 'bg-emerald-600 text-white' },
-            { name: 'Orange', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', header: 'bg-orange-100', icon: 'text-orange-600', subHeader: 'text-orange-700', button: 'bg-orange-600 text-white' },
+            { name: 'Sky', bg: 'bg-primary-50', border: 'border-primary-100', text: 'text-primary-700', header: 'bg-primary-100', icon: 'text-primary-400', subHeader: 'text-primary-600', button: 'bg-primary-400 text-white' },
+            { name: 'Rose', bg: 'bg-pastelPink-100', border: 'border-pastelPink-100', text: 'text-rose-700', header: 'bg-pastelPink-100', icon: 'text-rose-400', subHeader: 'text-rose-600', button: 'bg-rose-400 text-white' },
+            { name: 'Purple', bg: 'bg-pastelPurple-100', border: 'border-pastelPurple-100', text: 'text-purple-700', header: 'bg-pastelPurple-100', icon: 'text-purple-400', subHeader: 'text-purple-600', button: 'bg-purple-400 text-white' },
+            { name: 'Emerald', bg: 'bg-pastelGreen-100', border: 'border-pastelGreen-100', text: 'text-emerald-700', header: 'bg-pastelGreen-100', icon: 'text-emerald-400', subHeader: 'text-emerald-600', button: 'bg-emerald-400 text-white' },
+            { name: 'Orange', bg: 'bg-pastelOrange-100', border: 'border-pastelOrange-100', text: 'text-orange-700', header: 'bg-pastelOrange-100', icon: 'text-orange-400', subHeader: 'text-orange-600', button: 'bg-orange-400 text-white' },
         ];
 
         const { useState, useEffect, useMemo, useRef } = React;
@@ -219,8 +258,7 @@
                     try {
                         await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
                             (text) => {
-                                const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-                                audio.volume = 0.3; audio.play().catch(()=>{});
+                                // No Beep
                                 onScan(text.trim());
                             }, 
                             () => {}
@@ -233,38 +271,143 @@
             return <div id="scanner-video" className="w-full h-full bg-black rounded-lg overflow-hidden"></div>;
         }
 
-        // Mobile Scanner (Phone View)
-        function MobileScanner({ sessionId, onClose }) {
-            const [status, setStatus] = useState('กำลังเปิดกล้อง...');
-            const [lastScanned, setLastScanned] = useState(null);
+        // Mobile Pair Modal (PC) - QR Generator
+        function MobilePairModal({ sessionId, onClose }) {
+            const qrRef = useRef(null);
+            const [status, setStatus] = useState('กำลังรอการเชื่อมต่อ...');
 
             useEffect(() => {
-                const scanner = new Html5Qrcode("mobile-reader");
-                scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, 
-                    (text) => {
-                        if (text.includes("scan_session")) return; // Ignore session QR
-                        if (lastScanned === text) return;
-                        setLastScanned(text);
-                        setStatus(`ส่ง: ${text}`);
-                        // Update Firestore
-                        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'scanner_sessions', sessionId), { lastScanned: text, timestamp: Date.now() }, { merge: true });
-                        if(navigator.vibrate) navigator.vibrate(200);
-                        setTimeout(() => { setLastScanned(null); setStatus("พร้อมสแกน..."); }, 2000);
-                    }, 
-                    () => {}
-                ).catch(e => setStatus("Error: " + e));
-                return () => { scanner.stop().catch(()=>{}); };
+                if (qrRef.current) {
+                    const url = window.location.href.split('?')[0] + '?scan_session=' + sessionId;
+                    qrRef.current.innerHTML = "";
+                    new QRCode(qrRef.current, {
+                        text: url,
+                        width: 200,
+                        height: 200,
+                        colorDark : "#ec4899", // Pastel Pink QR
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                }
+                
+                // Poll for updates (Simulated socket)
+                const checkStatus = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'scanner_sessions', sessionId), (docSnap) => {
+                    if (docSnap.exists() && docSnap.data().lastScanned) {
+                        setStatus(`ได้รับข้อมูล: ${docSnap.data().lastScanned}`);
+                        // Play Beep on PC when data received
+                        const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                        audio.volume = 0.5;
+                        audio.play().catch(()=>{});
+                    }
+                });
+                return () => checkStatus();
             }, [sessionId]);
 
             return (
-                <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center p-4">
-                    <h3 className="text-white text-xl font-bold mb-4 font-display flex items-center gap-2"><Icons.Camera/> Mobile Scanner</h3>
-                    <div id="mobile-reader" className="bg-white rounded-xl overflow-hidden w-full max-w-sm border-4 border-indigo-500 shadow-2xl"></div>
-                    <div className="mt-6 flex flex-col items-center gap-2">
-                        <div className={`px-4 py-2 rounded-full font-mono text-sm font-bold ${lastScanned ? 'bg-green-100 text-green-700' : 'bg-gray-800 text-gray-300'}`}>
+                <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 animate-fade-in">
+                    <div className="bg-white rounded-3xl p-8 text-center max-w-sm w-full relative shadow-2xl">
+                        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-2 hover:bg-gray-200 transition"><Icons.X size={20}/></button>
+                        <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 text-primary-600"><Icons.QrCode size={32}/></div>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-2 font-display">Mobile Pair</h3>
+                        <p className="text-gray-500 mb-6 text-sm">ใช้มือถือสแกน QR Code นี้<br/>เพื่อเปลี่ยนมือถือเป็นเครื่องยิงบาร์โค้ด</p>
+                        
+                        <div ref={qrRef} className="bg-white p-4 rounded-xl border-2 border-dashed border-primary-200 inline-block mb-4 shadow-sm"></div>
+                        
+                        <div className="text-xs text-gray-400 font-mono bg-gray-50 p-2 rounded border border-gray-100 mb-4 break-all">ID: {sessionId}</div>
+                        
+                        <div className={`px-4 py-2 rounded-full font-mono text-sm font-bold transition-all ${status.includes('ได้รับ') ? 'bg-green-100 text-green-700 scale-105' : 'bg-gray-100 text-gray-400'}`}>
                             {status}
                         </div>
-                        <button onClick={onClose} className="mt-4 bg-red-600 hover:bg-red-700 text-white px-8 py-2 rounded-full font-bold shadow-lg transition-transform transform active:scale-95">ปิดการทำงาน</button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Mobile Scanner View (Phone) - Camera
+        function MobileScannerView({ sessionId, onClose }) {
+            const [status, setStatus] = useState('แตะปุ่มเพื่อเริ่มสแกน');
+            const [lastScanned, setLastScanned] = useState(null);
+            const [isScanning, setIsScanning] = useState(false);
+            const scannerRef = useRef(null);
+
+            useEffect(() => {
+                if (!isScanning) return;
+
+                const timer = setTimeout(() => {
+                    const html5QrCode = new Html5Qrcode("mobile-reader");
+                    scannerRef.current = html5QrCode;
+
+                    html5QrCode.start(
+                        { facingMode: "environment" }, 
+                        { fps: 10, qrbox: 250 },
+                        (text) => {
+                            if (text.includes("scan_session")) return; 
+                            if (lastScanned === text) return;
+                            
+                            setLastScanned(text);
+                            setStatus(`กำลังส่ง: ${text}`);
+
+                            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                            audio.volume = 0.5;
+                            audio.play().catch(e => console.log('Audio play failed', e));
+
+                            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'scanner_sessions', sessionId), { 
+                                lastScanned: text, 
+                                timestamp: Date.now() 
+                            }, { merge: true })
+                            .then(() => setStatus(`ส่งสำเร็จ: ${text}`))
+                            .catch(err => setStatus(`ส่งไม่ผ่าน: ${err.message}`));
+
+                            if(navigator.vibrate) navigator.vibrate(200);
+                            
+                            setTimeout(() => { 
+                                setLastScanned(null); 
+                                setStatus("พร้อมสแกน..."); 
+                            }, 2000);
+                        },
+                        (errorMessage) => {
+                            // parse error, ignore
+                        }
+                    ).catch(err => {
+                        setStatus("ไม่สามารถเปิดกล้องได้: " + err);
+                        setIsScanning(false);
+                    });
+                }, 100);
+
+                return () => {
+                    clearTimeout(timer);
+                    if (scannerRef.current) {
+                        scannerRef.current.stop().catch(err => console.error(err));
+                    }
+                };
+            }, [isScanning, sessionId]);
+
+            return (
+                <div className="fixed inset-0 bg-black z-[200] flex flex-col items-center justify-center p-4">
+                    <h3 className="text-white text-xl font-bold mb-4 font-display flex items-center gap-2">
+                        <Icons.Camera/> Mobile Scanner
+                    </h3>
+                    
+                    {isScanning ? (
+                        <div id="mobile-reader" className="bg-white rounded-xl overflow-hidden w-full max-w-sm border-4 border-indigo-300 shadow-2xl h-80"></div>
+                    ) : (
+                        <div className="text-center w-full max-w-sm">
+                             <div className="w-full h-64 bg-gray-800 rounded-xl flex items-center justify-center mb-6 border-2 border-dashed border-gray-600">
+                                <span className="text-gray-400">กล้องปิดอยู่</span>
+                             </div>
+                             <button onClick={() => setIsScanning(true)} className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-full font-bold shadow-lg text-lg w-full animate-bounce">
+                                แตะเพื่อเริ่มสแกน
+                             </button>
+                        </div>
+                    )}
+                    
+                    <div className="mt-6 flex flex-col items-center gap-2 w-full max-w-sm">
+                        <div className={`px-4 py-3 rounded-xl font-mono text-sm font-bold text-center w-full transition-all ${status.includes('สำเร็จ') ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-800'}`}>
+                            {status}
+                        </div>
+                        <button onClick={onClose} className="mt-4 bg-red-600 hover:bg-red-700 text-white px-8 py-2 rounded-full font-bold shadow-lg w-full">
+                            ปิดการทำงาน
+                        </button>
                     </div>
                 </div>
             );
@@ -316,37 +459,37 @@
             }, [isDragging]);
             
             return (
-                <div className="fixed inset-0 z-[70] pointer-events-none flex items-center justify-center">
+                <div className="fixed top-28 right-4 z-[70] pointer-events-none">
                     <div 
-                        className="bg-white p-5 rounded-3xl shadow-2xl border border-gray-200 pointer-events-auto w-full max-w-sm ring-1 ring-black/5 animate-fade-in"
+                        className="bg-white p-3 rounded-2xl shadow-xl border border-gray-200 pointer-events-auto w-60 ring-1 ring-black/5 animate-fade-in"
                         style={{ transform: `translate(${position.x}px, ${position.y}px)`, transition: isDragging ? 'none' : 'transform 0.1s' }}
                     >
                         <div 
-                            className="flex justify-between items-center mb-4 border-b pb-3 cursor-move bg-gray-50 -m-5 mb-4 p-5 rounded-t-3xl select-none"
+                            className="flex justify-between items-center mb-2 border-b pb-2 cursor-move bg-slate-50 -m-3 mb-2 p-3 rounded-t-2xl select-none"
                             onMouseDown={handleMouseDown}
                             onTouchStart={handleTouchStart}
                             title="กดค้างเพื่อลากย้าย"
                         >
-                            <div>
-                                <div className="text-[10px] text-gray-400 uppercase font-bold tracking-wide flex items-center gap-1"><Icons.FileSpreadsheet size={12}/> ลากเพื่อย้าย (Drag me)</div>
-                                <div className="text-lg font-bold text-primary-700 flex items-center gap-2">
-                                    {target.name} <span className="bg-primary-100 text-primary-600 px-2 py-0.5 rounded text-xs">เต็ม {target.max}</span>
+                            <div className="overflow-hidden">
+                                <div className="text-[9px] text-gray-400 uppercase font-bold tracking-wide flex items-center gap-1"><Icons.FileSpreadsheet size={10}/> Drag</div>
+                                <div className="text-sm font-bold text-slate-700 flex items-center gap-2 truncate">
+                                    {target.name}
                                 </div>
                             </div>
-                            <button onClick={onClose} className="bg-white p-2 rounded-full text-gray-500 hover:bg-gray-200 transition shadow-sm pointer-events-auto"><Icons.X size={20}/></button>
+                            <button onClick={onClose} className="bg-white p-1 rounded-full text-gray-400 hover:bg-rose-100 hover:text-rose-500 transition shadow-sm pointer-events-auto"><Icons.X size={16}/></button>
                         </div>
-                        <div className="grid grid-cols-3 gap-3 mb-4">
+                        <div className="grid grid-cols-3 gap-2 mb-2">
                             {keys.map(k => (
                                 <button key={k} 
                                     onClick={() => onInput(k)}
-                                    className={`h-14 rounded-2xl text-2xl font-bold shadow-sm active:scale-90 transition-transform duration-100 flex items-center justify-center ${k === 'Del' ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-slate-50 text-slate-700 hover:bg-white border border-slate-200'}`}
+                                    className={`h-10 rounded-lg text-lg font-bold shadow-sm active:scale-95 transition-transform duration-100 flex items-center justify-center ${k === 'Del' ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
                                 >
-                                    {k === 'Del' ? <Icons.Backspace size={28}/> : k}
+                                    {k === 'Del' ? <Icons.Backspace size={20}/> : k}
                                 </button>
                             ))}
                         </div>
-                        <button onClick={onConfirm} className="w-full bg-gradient-to-r from-primary-600 to-primary-500 text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
-                            <Icons.Save size={24}/> บันทึก
+                        <button onClick={onConfirm} className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-2 rounded-xl font-bold text-base shadow-md active:scale-95 transition flex items-center justify-center gap-2">
+                            <Icons.Save size={18}/> บันทึก
                         </button>
                     </div>
                 </div>
@@ -372,7 +515,7 @@
             const [warning, setWarning] = useState({ show: false, msg: '' });
             
             // Collapsible Logic
-            const [collapsedSections, setCollapsedSections] = useState({}); // { secId: true/false }
+            const [collapsedSections, setCollapsedSections] = useState({}); 
 
             // Modals & Scanner
             const [scoreModalData, setScoreModalData] = useState(null); 
@@ -382,9 +525,9 @@
             const [importText, setImportText] = useState('');
             const [isScannerOpen, setIsScannerOpen] = useState(false);
             const [scanTarget, setScanTarget] = useState('');
-            const [returnToScanner, setReturnToScanner] = useState(false); // New: Flow control
+            const [returnToScanner, setReturnToScanner] = useState(false); 
             
-            // Mobile Pair
+            // Mobile Pair - Auto Check URL
             const [isMobilePairOpen, setIsMobilePairOpen] = useState(false);
             const [scannerSessionId, setScannerSessionId] = useState(null);
             const [isMobileScannerActive, setIsMobileScannerActive] = useState(false);
@@ -418,7 +561,7 @@
             const studentInputRef = useRef(null);
             const teacherInputRef = useRef(null);
 
-            // --- AUTH & DATA ---
+            // --- AUTH & DATA & MOBILE CHECK ---
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const scanSession = params.get('scan_session');
@@ -471,7 +614,6 @@
 
                 if (!isAnyModalOpen) {
                     if (view === 'student' && studentInputRef.current) {
-                        // Small timeout to ensure DOM is ready and modal closing animation is done
                         setTimeout(() => studentInputRef.current.focus(), 100);
                     } else if (view === 'teacher' && teacherTab === 'scores' && teacherInputRef.current) {
                         setTimeout(() => teacherInputRef.current.focus(), 100);
@@ -510,8 +652,11 @@
                     setScoreModalData(JSON.parse(JSON.stringify(s)));
                     setTeacherSearchId('');
                     setIsScannerOpen(false);
-                    // Also close mobile pair modal if open
                     setIsMobilePairOpen(false);
+                    // Play Beep on PC
+                    const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+                    audio.volume = 0.5;
+                    audio.play().catch(()=>{});
                 } else {
                     setWarning({show:true, msg:'ไม่พบข้อมูลนักเรียน'});
                 }
@@ -549,7 +694,6 @@
                 // Validate Max
                 if (parseFloat(newVal) > numpadState.max) {
                     setWarning({ show: true, msg: `คะแนนห้ามเกิน ${numpadState.max}` });
-                    // Optional: Vibrate on error
                     if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
                     return;
                 }
@@ -753,7 +897,7 @@
             const handleDeleteSection = (secId) => { if(!confirm('ยืนยันลบ?')) return; saveData(null, sections.filter(s => s.id !== secId)); };
             const handleSaveGroup = () => { if(!groupModalData.title) return; const newSecs = sections.map(s => { if(s.id === groupModalData.sectionId) { const groups = [...(s.groups || [])]; if(groupModalData.id) { const idx = groups.findIndex(g => g.id === groupModalData.id); groups[idx] = {...groups[idx], title: groupModalData.title}; } else { groups.push({id: `g_${Date.now()}`, title: groupModalData.title, columns: []}); } return {...s, groups}; } return s; }); saveData(null, newSecs); setIsGroupModalOpen(false); };
             const handleDeleteGroup = (secId, groupId) => { if(!confirm('ยืนยันลบ?')) return; const newSecs = sections.map(s => s.id === secId ? {...s, groups: s.groups.filter(g => g.id !== groupId)} : s); saveData(null, newSecs); };
-            const handleSaveColumn = () => { if(!columnModalData.name) return; const newSecs = sections.map(s => { if(s.id === columnModalData.sectionId) { return {...s, groups: s.groups.map(g => { if(g.id === columnModalData.groupId) { const cols = [...(g.columns || [])]; const newCol = { id: columnModalData.id || `c_${Date.now()}`, name: columnModalData.name, max: parseInt(columnModalData.max) || 10, type: columnModalData.type || 'manual' }; if(columnModalData.id) { const idx = cols.findIndex(c => c.id === columnModalData.id); cols[idx] = newCol; } else { cols.push(newCol); } return {...g, columns: cols}; } return g; })}; } return s; }); saveData(null, newSecs); setIsColumnModalOpen(false); };
+            const handleSaveColumn = () => { if(!columnModalData.name) return; const newSecs = sections.map(s => { if(s.id === columnModalData.sectionId) { return {...s, groups: s.groups.map(g => { if(g.id === columnModalData.groupId) { const cols = [...(g.columns || [])]; const newCol = { id: columnModalData.id || `c_${Date.now()}`, name: columnModalData.name, max: parseInt(columnModalData.max) || 10, type: columnModalData.type || 'manual', link: columnModalData.link || '' }; if(columnModalData.id) { const idx = cols.findIndex(c => c.id === columnModalData.id); cols[idx] = newCol; } else { cols.push(newCol); } return {...g, columns: cols}; } return g; })}; } return s; }); saveData(null, newSecs); setIsColumnModalOpen(false); };
             const handleDeleteColumn = (secId, groupId, colId) => { if(!confirm('ยืนยันลบ?')) return; const newSecs = sections.map(s => { if(s.id === secId) { return {...s, groups: s.groups.map(g => g.id === groupId ? {...g, columns: g.columns.filter(c => c.id !== colId)} : g)}; } return s; }); saveData(null, newSecs); };
 
             // Calculations
@@ -801,18 +945,19 @@
 
             // --- RENDER ---
             if (loading) return <div className="flex h-screen items-center justify-center font-bold text-primary-600 animate-pulse font-display">กำลังโหลดข้อมูล...</div>;
-            if (isMobileScannerActive) return <MobileScanner sessionId={scannerSessionId} onClose={() => { setIsMobileScannerActive(false); window.history.replaceState(null, '', window.location.pathname); }} />;
+            // Mobile Scanner View (No Header)
+            if (isMobileScannerActive) return <MobileScannerView sessionId={scannerSessionId} onClose={() => { setIsMobileScannerActive(false); window.history.replaceState(null, '', window.location.pathname); }} />;
 
             return (
                 <div className="min-h-screen bg-slate-50 text-slate-800 pb-20 font-sans">
                     {/* NAVBAR */}
-                    <nav className="bg-white border-b px-4 py-3 sticky top-0 z-50 shadow-sm glass-card bg-gradient-to-r from-indigo-600 to-purple-600 border-none">
+                    <nav className="bg-white border-b px-4 py-3 sticky top-0 z-50 shadow-sm glass-card">
                         <div className="max-w-7xl mx-auto flex justify-between items-center">
-                            <div className="flex items-center gap-2 font-bold text-xl text-white font-display">
-                                <div className="bg-white/20 text-white p-1.5 rounded-lg"><Icons.FileSpreadsheet className="w-5 h-5" /></div>
-                                <span>GradePro {useLocalStorage ? '(Offline)' : ''}</span>
+                            <div className="flex items-center gap-2 font-bold text-xl text-primary-600 font-display">
+                                <div className="bg-primary-500 text-white p-1.5 rounded-lg shadow-sm"><Icons.Cloud className="w-5 h-5" /></div>
+                                <span className="text-slate-700">GradePro <span className="text-primary-500">Cloud</span> {useLocalStorage ? '(Offline)' : ''}</span>
                             </div>
-                            <button onClick={() => setView(view === 'student' ? 'teacher_login' : 'student')} className="text-sm font-bold text-white/80 hover:text-white transition bg-white/10 px-3 py-1 rounded-full">
+                            <button onClick={() => setView(view === 'student' ? 'teacher_login' : 'student')} className="text-sm font-bold text-slate-500 hover:text-primary-600 transition bg-slate-100 hover:bg-slate-200 px-4 py-1.5 rounded-full">
                                 {view === 'student' ? 'เข้าสู่ระบบครู' : 'หน้าหลักนักเรียน'}
                             </button>
                         </div>
@@ -821,62 +966,47 @@
                     {/* CONTENT */}
                     <div className="max-w-7xl mx-auto p-4 md:p-6">
                         
-                        {/* TEACHER PRINT VIEW (Visible only when printing in teacher mode) */}
+                        {/* TEACHER PRINT VIEW (Optimized 2-Column Layout) */}
                         {view === 'teacher' && (
                             <div className="print-only">
-                                <div className="student-report-header">
+                                <div className="student-report-header print-header">
                                     <h1>แบบบันทึกผลการเรียน รายวิชาชีววิทยา 2</h1>
-                                    <p><strong>โรงเรียน...........................................................................................</strong></p>
+                                    <p><strong>โรงเรียนพิษณุโลกพิทยาคม</strong></p>
                                     <p>ภาคเรียนที่ 2 ปีการศึกษา 2568 ระดับชั้น {selectedRoom !== 'All' ? selectedRoom : '....................'}</p>
                                 </div>
-                                <table className="print-table">
-                                    <thead>
-                                        <tr>
-                                            <th style={{width: '5%'}}>เลขที่</th>
-                                            <th style={{width: '15%'}}>รหัส</th>
-                                            <th style={{width: '25%'}}>ชื่อ-นามสกุล</th>
-                                            {sections.map(sec => 
-                                                sec.groups.map(g => 
-                                                    g.columns.map(c => (
-                                                        <th key={c.id} style={{fontSize: '10pt', minWidth: '40px'}}>
-                                                            <div style={{writingMode: 'vertical-rl', transform: 'rotate(180deg)', margin: '0 auto', height: '80px'}}>{c.name}</div>
-                                                            <div style={{borderTop: '1px solid #ccc', marginTop: '4px'}}>({c.max})</div>
-                                                        </th>
-                                                    ))
-                                                )
-                                            )}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {processedStudents.map(s => (
-                                            <tr key={s.id}>
-                                                <td>{s.no}</td>
-                                                <td>{s.id}</td>
-                                                <td className="text-left" style={{paddingLeft: '10px'}}>{s.name}</td>
-                                                {sections.map(sec => 
-                                                    sec.groups.map(g => 
-                                                        g.columns.map(c => {
-                                                            const val = calculateColumnValue(s, g, c);
-                                                            return <td key={c.id}>{val || '-'}</td>;
-                                                        })
-                                                    )
-                                                )}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                <div className="print-container">
+                                    {[0, 1].map(colIndex => {
+                                        const half = Math.ceil(processedStudents.length / 2);
+                                        const studentsInCol = processedStudents.slice(colIndex * half, (colIndex + 1) * half);
+                                        if (studentsInCol.length === 0) return null;
+                                        return (
+                                            <div className="print-column" key={colIndex}>
+                                                <table className="print-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th className="w-no">เลขที่</th>
+                                                            <th className="w-id">รหัส</th>
+                                                            <th className="w-name">ชื่อ-นามสกุล</th>
+                                                            {sections.map(sec => sec.groups.map(g => g.columns.map(c => <th key={c.id} className="w-score"><div className="vertical-header-print">{c.name}</div><div style={{borderTop:'1px solid #ccc', fontSize:'8pt'}}>({c.max})</div></th>)))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {studentsInCol.map(s => (
+                                                            <tr key={s.id}>
+                                                                <td>{s.no}</td><td>{s.id}</td><td className="text-left">{s.name}</td>
+                                                                {sections.map(sec => sec.groups.map(g => g.columns.map(c => { const val = calculateColumnValue(s, g, c); return <td key={c.id}>{val && val !== '-' ? val : ''}</td>; })))}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                                 <div className="print-footer">
-                                    <div className="signature-block">
-                                        <div className="signature-line"></div>
-                                        <p>ลงชื่อนักศึกษาฝึกวิชาชีพครู</p>
-                                        <p>( นายนวรัตน์  เครือก๋า )</p>
-                                    </div>
-                                    <div className="signature-block">
-                                        <div className="signature-line"></div>
-                                        <p>ครูพี่เลี้ยง</p>
-                                        <p>( นางสาวพรวดี  ใจเที่ยงธรรม )</p>
-                                    </div>
-                                    
+                                    <div className="signature-block"><div className="signature-line"></div><p>(นายนวรัตน์  เครือก๋า)</p><p>นักศึกษาฝึกวิชาชีพครู</p></div>
+                                    <div className="signature-block"><div className="signature-line"></div><p>(นางสาวพรวดี ใจเที่ยงธรรม)</p><p>ครู</p></div>
+                                    <div className="signature-block"><div className="signature-line"></div><p>ผู้อำนวยการสถานศึกษา</p><p>(...........................................................)</p></div>
                                 </div>
                             </div>
                         )}
@@ -884,33 +1014,22 @@
                         {/* STUDENT VIEW */}
                         {view === 'student' && (
                             <>
-                                {/* SCREEN ONLY CONTENT */}
                                 <div className="max-w-xl mx-auto mt-8 animate-slide-up screen-only">
-                                    <div className="bg-white p-8 rounded-3xl shadow-xl border relative overflow-hidden">
-                                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-400 to-purple-500"></div>
+                                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 to-primary-600"></div>
                                         <div className="flex justify-between items-start mb-6">
-                                            <h2 className="text-3xl font-extrabold text-gray-800 font-display text-center flex-1">ตรวจสอบคะแนน</h2>
-                                            {searchResult && (
-                                                <button onClick={handlePrint} className="bg-gray-100 text-gray-600 p-2 rounded-full hover:bg-gray-200 transition" title="พิมพ์ใบรายงานผลการเรียน">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                                                </button>
-                                            )}
+                                            <h2 className="text-3xl font-extrabold text-slate-800 font-display text-center flex-1">ตรวจสอบคะแนน</h2>
+                                            {searchResult && (<button onClick={handlePrint} className="bg-slate-100 text-slate-600 p-2 rounded-full hover:bg-slate-200 transition" title="พิมพ์ใบรายงานผลการเรียน"><Icons.Print size={20}/></button>)}
                                         </div>
                                         <div className="flex gap-2">
-                                            <input ref={studentInputRef} className="w-full p-4 border-2 rounded-2xl text-lg outline-none focus:border-indigo-500 transition" placeholder="เลขประจำตัว (เช่น 66001)" value={searchId} onChange={e => setSearchId(e.target.value)} onKeyDown={e => e.key==='Enter' && document.getElementById('search-btn').click()} />
-                                            <button id="search-btn" onClick={() => {
-                                                const s = students.find(x => x.id === searchId);
-                                                if (s) setSearchResult(s); else setWarning({show:true, msg:'ไม่พบข้อมูล'});
-                                            }} className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 rounded-2xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95"><Icons.Search size={24}/></button>
+                                            <input ref={studentInputRef} className="w-full p-4 border-2 rounded-2xl text-lg outline-none focus:border-primary-500 transition" placeholder="เลขประจำตัว (เช่น 66001)" value={searchId} onChange={e => setSearchId(e.target.value)} onKeyDown={e => e.key==='Enter' && document.getElementById('search-btn').click()} />
+                                            <button id="search-btn" onClick={() => { const s = students.find(x => x.id === searchId); if (s) setSearchResult(s); else setWarning({show:true, msg:'ไม่พบข้อมูล'}); }} className="bg-primary-600 text-white px-6 rounded-2xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95"><Icons.Search size={24}/></button>
                                         </div>
                                         {searchResult && (
                                             <div className="mt-8 space-y-6 animate-fade-in">
-                                                <div className="bg-indigo-50 p-4 rounded-xl flex items-center gap-4 border border-indigo-100">
-                                                    <div className="bg-white p-3 rounded-full shadow-sm"><Icons.User className="text-indigo-600"/></div>
-                                                    <div>
-                                                        <div className="font-bold text-xl text-gray-800">{searchResult.name}</div>
-                                                        <div className="text-sm text-gray-500">เลขที่: {searchResult.no} | ห้อง: {searchResult.room}</div>
-                                                    </div>
+                                                <div className="bg-primary-50 p-4 rounded-xl flex items-center gap-4 border border-primary-100">
+                                                    <div className="bg-white p-3 rounded-full shadow-sm"><Icons.User className="text-primary-600"/></div>
+                                                    <div><div className="font-bold text-xl text-slate-800">{searchResult.name}</div><div className="text-sm text-slate-500">เลขที่: {searchResult.no} | ห้อง: {searchResult.room}</div></div>
                                                 </div>
                                                 {sections.map((sec, idx) => {
                                                     const theme = SECTION_THEMES[idx % SECTION_THEMES.length];
@@ -921,16 +1040,19 @@
                                                                 {sec.groups?.map(g => g.columns?.map(c => {
                                                                     const val = calculateColumnValue(searchResult, g, c);
                                                                     const isSpecial = c.type === 'sum' || c.type === 'percent';
+                                                                    const isMissing = !val || val === '-';
                                                                     return (
                                                                         <div key={c.id} className={`flex justify-between items-center py-2.5 border-b last:border-0 px-3 rounded-lg transition-colors ${isSpecial ? 'bg-slate-100 border-slate-200 shadow-sm' : 'border-gray-100 hover:bg-slate-50'}`}>
                                                                             <span className={`text-sm flex items-center gap-2 ${isSpecial ? 'font-bold text-slate-700' : 'text-gray-600'}`}>
                                                                                 {c.name}
                                                                                 {isSpecial && <span className="text-[9px] bg-white border border-slate-300 text-slate-500 px-1.5 py-0.5 rounded uppercase tracking-wider">{c.type === 'percent' ? '%' : 'SUM'}</span>}
                                                                             </span>
-                                                                            <span className={`font-bold text-base ${isSpecial ? 'text-slate-800' : theme.text}`}>
-                                                                                {val || '-'} 
-                                                                                <span className={`${isSpecial ? 'text-slate-400' : 'text-gray-300'} text-xs font-normal ml-1`}>/{c.max}</span>
-                                                                            </span>
+                                                                            <div className="flex items-center gap-2">
+                                                                                {isMissing && c.link && (
+                                                                                    <a href={c.link} target="_blank" className="text-xs bg-rose-100 text-rose-600 px-2 py-1 rounded hover:bg-rose-200 font-bold flex items-center gap-1"><Icons.AlertTriangle size={12}/> ตามงาน</a>
+                                                                                )}
+                                                                                <span className={`font-bold text-base ${isSpecial ? 'text-slate-800' : 'text-slate-600'}`}>{val || '-'} <span className={`${isSpecial ? 'text-slate-400' : 'text-slate-300'} text-xs font-normal ml-1`}>/{c.max}</span></span>
+                                                                            </div>
                                                                         </div>
                                                                     );
                                                                 }))}
@@ -943,90 +1065,37 @@
                                     </div>
                                 </div>
 
-                                {/* PRINT ONLY CONTENT (STUDENT REPORT CARD) */}
                                 {searchResult && (
                                     <div className="print-only">
                                         <div className="student-report-header">
                                             <div style={{marginBottom: '5px'}}><Icons.FileSpreadsheet size={32}/></div>
                                             <h1>รายงานผลการเรียนรายบุคคล</h1>
                                             <h2>รายวิชาชีววิทยา 2</h2>
-                                            <h3>ภาคเรียนที่ 2 ปีการศึกษา 2568 | โรงเรียนพิษณุโลกพิทยาคม </h3>
+                                            <h3>ภาคเรียนที่ 2 ปีการศึกษา 2568 | โรงเรียนพิษณุโลกพิทยาคม</h3>
                                         </div>
                                         <div className="student-info">
-                                            <div>
-                                                <span><strong>ชื่อ-นามสกุล:</strong> {searchResult.name}</span>
-                                                <span><strong>รหัสประจำตัว:</strong> {searchResult.id}</span>
-                                            </div>
-                                            <div>
-                                                <span><strong>ระดับชั้น/ห้อง:</strong> {searchResult.room}</span>
-                                                <span><strong>เลขที่:</strong> {searchResult.no}</span>
-                                            </div>
-                                            <div>
-                                                <span><strong>วันที่พิมพ์:</strong> {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                                            </div>
+                                            <div><span><strong>ชื่อ-นามสกุล:</strong> {searchResult.name}</span><span><strong>รหัสประจำตัว:</strong> {searchResult.id}</span></div>
+                                            <div><span><strong>ระดับชั้น/ห้อง:</strong> {searchResult.room}</span><span><strong>เลขที่:</strong> {searchResult.no}</span></div>
+                                            <div><span><strong>วันที่พิมพ์:</strong> {new Date().toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}</span></div>
                                         </div>
-                                        
                                         <table className="print-table">
-                                            <thead>
-                                                <tr>
-                                                    <th style={{width: '60%'}}>รายการประเมิน / ชิ้นงาน</th>
-                                                    <th style={{width: '20%'}}>คะแนนเต็ม</th>
-                                                    <th style={{width: '20%'}}>คะแนนที่ได้</th>
-                                                </tr>
-                                            </thead>
+                                            <thead><tr><th style={{width: '60%'}}>รายการประเมิน / ตัวชี้วัด</th><th style={{width: '20%'}}>คะแนนเต็ม</th><th style={{width: '20%'}}>คะแนนที่ได้</th></tr></thead>
                                             <tbody>
                                                 {sections.map(sec => (
                                                     <React.Fragment key={sec.id}>
-                                                        <tr style={{backgroundColor: '#f9fafb'}}>
-                                                            <td colSpan="3" className="text-left" style={{fontWeight: 'bold', paddingLeft: '10px'}}>{sec.title}</td>
-                                                        </tr>
+                                                        <tr style={{backgroundColor: '#f9fafb'}}><td colSpan="3" className="text-left" style={{fontWeight: 'bold', paddingLeft: '10px'}}>{sec.title}</td></tr>
                                                         {sec.groups?.map(g => g.columns?.map(c => {
                                                             const val = calculateColumnValue(searchResult, g, c);
-                                                            return (
-                                                                <tr key={c.id}>
-                                                                    <td className="text-left" style={{paddingLeft: '30px'}}>{c.name}</td>
-                                                                    <td>{c.max}</td>
-                                                                    <td>{val || '-'}</td>
-                                                                </tr>
-                                                            );
+                                                            return <tr key={c.id}><td className="text-left" style={{paddingLeft: '30px'}}>{c.name}</td><td>{c.max}</td><td>{val || '-'}</td></tr>;
                                                         }))}
                                                     </React.Fragment>
                                                 ))}
-                                                {/* Total Summary Row (Optional calculation logic needed for exact total) */}
-                                                <tr style={{borderTop: '2px solid black'}}>
-                                                    <td className="text-right" style={{fontWeight: 'bold', paddingRight: '20px'}}>รวมคะแนนทั้งหมด</td>
-                                                    <td></td>
-                                                    <td style={{fontWeight: 'bold', fontSize: '14pt'}}>
-                                                        {(() => {
-                                                            let total = 0;
-                                                            // Simple sum of all manual inputs for now, adjust based on real logic (e.g. sum of weighted)
-                                                            sections.forEach(s => s.groups?.forEach(g => g.columns?.forEach(c => {
-                                                                if(c.type === 'manual' || c.type === 'sum') {
-                                                                    // Complex to sum generic, sticking to manual for safe sum or just leave blank
-                                                                    // Let's sum only columns marked as 'sum' if available, else sum all manuals?
-                                                                    // Safest: Sum all 'manual' scores
-                                                                    if(c.type === 'manual') total += parseFloat(searchResult.scores?.[c.id] || 0);
-                                                                }
-                                                            })));
-                                                            return parseFloat(total.toFixed(2));
-                                                        })()}
-                                                    </td>
-                                                </tr>
+                                                <tr style={{borderTop: '2px solid black'}}><td className="text-right" style={{fontWeight: 'bold', paddingRight: '20px'}}>รวมคะแนนทั้งหมด</td><td></td><td style={{fontWeight: 'bold', fontSize: '14pt'}}>{(() => { let total = 0; sections.forEach(s => s.groups?.forEach(g => g.columns?.forEach(c => { if(c.type === 'manual') total += parseFloat(searchResult.scores?.[c.id] || 0); }))); return parseFloat(total.toFixed(2)); })()}</td></tr>
                                             </tbody>
                                         </table>
-
                                         <div className="print-footer">
-                                            <div className="signature-block">
-                                                <div className="signature-line"></div>
-                                                <p>({searchResult.name})</p>
-                                                <p>นักเรียนผู้รับรอง</p>
-                                            </div>
-                                            <div className="signature-block">
-                                                <div className="signature-line"></div>
-                                                <p>(นายนวรัตน์  เครือก๋า)</p>
-                                                <p>นักศึกษาฝึกวิชาชีพครู</p>
-                                                <p>ครูผู้สอน</p>
-                                            </div>
+                                            <div className="signature-block"><div className="signature-line"></div><p>({searchResult.name})</p><p>นักเรียนผู้รับรอง</p></div>
+                                            <div className="signature-block"><div className="signature-line"></div><p>(นายนวรัตน์ เครือก๋า)</p><p>ครูผู้สอน</p></div>
                                         </div>
                                     </div>
                                 )}
@@ -1036,10 +1105,10 @@
                         {/* TEACHER LOGIN */}
                         {view === 'teacher_login' && (
                             <div className="max-w-sm mx-auto mt-16 bg-white p-8 rounded-2xl shadow-xl border animate-slide-up text-center screen-only">
-                                <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4"><Icons.Lock className="w-8 h-8 text-indigo-600"/></div>
-                                <h3 className="text-xl font-bold mb-6 font-display text-gray-800">สำหรับครูผู้สอน</h3>
-                                <input type="password" placeholder="รหัสผ่าน" className="w-full p-3 border rounded-xl mb-4 text-center focus:ring-2 focus:ring-indigo-500 outline-none" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key==='Enter' && document.getElementById('login-btn').click()} />
-                                <button id="login-btn" onClick={() => { if(password==='65411597') setView('teacher'); else setWarning({show:true, msg:'รหัสผ่านไม่ถูกต้อง'}); }} className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">เข้าสู่ระบบ</button>
+                                <div className="w-16 h-16 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4"><Icons.Lock className="w-8 h-8 text-primary-600"/></div>
+                                <h3 className="text-xl font-bold mb-6 font-display text-slate-800">สำหรับครูผู้สอน</h3>
+                                <input type="password" placeholder="รหัสผ่าน" className="w-full p-3 border rounded-xl mb-4 text-center focus:ring-2 focus:ring-primary-500 outline-none" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key==='Enter' && document.getElementById('login-btn').click()} />
+                                <button id="login-btn" onClick={() => { if(password==='65411597') setView('teacher'); else setWarning({show:true, msg:'รหัสผ่านไม่ถูกต้อง'}); }} className="w-full bg-gradient-to-r from-primary-500 to-primary-600 text-white py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">เข้าสู่ระบบ</button>
                             </div>
                         )}
 
@@ -1047,10 +1116,10 @@
                         {view === 'teacher' && (
                             <div className="animate-fade-in screen-only">
                                 {/* TAB NAVIGATION */}
-                                <div className="flex space-x-2 bg-white p-1.5 rounded-2xl mb-6 w-fit shadow-sm border border-gray-100 mx-auto md:mx-0">
-                                    <button onClick={() => setTeacherTab('scores')} className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${teacherTab==='scores' ? 'bg-indigo-100 text-indigo-700 shadow-inner' : 'text-gray-500 hover:bg-gray-50'}`}><Icons.FileSpreadsheet/> บันทึกคะแนน</button>
-                                    <button onClick={() => setTeacherTab('students')} className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${teacherTab==='students' ? 'bg-fuchsia-100 text-fuchsia-700 shadow-inner' : 'text-gray-500 hover:bg-gray-50'}`}><Icons.Users/> รายชื่อนักเรียน</button>
-                                    <button onClick={() => setTeacherTab('settings')} className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${teacherTab==='settings' ? 'bg-slate-100 text-slate-700 shadow-inner' : 'text-gray-500 hover:bg-gray-50'}`}><Icons.Settings/> โครงสร้างวิชา</button>
+                                <div className="flex space-x-2 bg-white p-1.5 rounded-2xl mb-6 w-fit shadow-sm border border-gray-200 mx-auto md:mx-0">
+                                    <button onClick={() => setTeacherTab('scores')} className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${teacherTab==='scores' ? 'bg-primary-100 text-primary-700 shadow-inner' : 'text-slate-500 hover:bg-slate-50'}`}><Icons.FileSpreadsheet/> บันทึกคะแนน</button>
+                                    <button onClick={() => setTeacherTab('students')} className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${teacherTab==='students' ? 'bg-primary-100 text-primary-700 shadow-inner' : 'text-slate-500 hover:bg-slate-50'}`}><Icons.Users/> รายชื่อนักเรียน</button>
+                                    <button onClick={() => setTeacherTab('settings')} className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${teacherTab==='settings' ? 'bg-slate-100 text-slate-700 shadow-inner' : 'text-slate-500 hover:bg-slate-50'}`}><Icons.Settings/> โครงสร้างวิชา</button>
                                 </div>
 
                                 {/* SCORES TAB */}
@@ -1059,36 +1128,35 @@
                                         <div className="bg-white p-4 rounded-2xl shadow-sm border flex flex-wrap gap-4 items-center justify-between sticky top-20 z-40 glass-card">
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
-                                                    <Icons.Filter size={16} className="text-gray-400"/><span className="text-sm font-bold text-gray-600">ห้อง:</span>
-                                                    <select className="bg-transparent text-sm font-bold outline-none cursor-pointer text-indigo-700" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+                                                    <Icons.Filter size={16} className="text-slate-400"/><span className="text-sm font-bold text-slate-600">ห้อง:</span>
+                                                    <select className="bg-transparent text-sm font-bold outline-none cursor-pointer text-primary-700" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
                                                         <option value="All">ทั้งหมด</option>
                                                         {uniqueRooms.map(r => <option key={r} value={r}>{r}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 shadow-sm">
-                                                    <Icons.Search size={16} className="text-gray-400"/>
+                                                    <Icons.Search size={16} className="text-slate-400"/>
                                                     <input ref={teacherInputRef} className="bg-transparent text-sm outline-none w-32" placeholder="ค้นหา..." value={teacherSearchId} onChange={e => setTeacherSearchId(e.target.value)} onKeyDown={e => e.key==='Enter' && handleTeacherSearch()} />
                                                 </div>
-                                                <button onClick={() => { setScanTarget('score'); setIsScannerOpen(true); }} className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-2 rounded-xl font-bold text-sm flex gap-2 hover:shadow-lg transition transform active:scale-95"><Icons.Camera size={18}/> สแกน</button>
-                                                <button onClick={handleGenerateScanner} className="bg-white border border-indigo-200 text-indigo-700 px-4 py-2 rounded-xl font-bold text-sm flex gap-2 hover:bg-indigo-50 shadow-sm transition"><Icons.QrCode size={18}/> Mobile Pair</button>
-                                                <button onClick={handlePrint} className="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm flex gap-2 hover:bg-gray-200 shadow-sm transition"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
+                                                <button onClick={() => { setScanTarget('score'); setIsScannerOpen(true); }} className="bg-primary-600 text-white px-4 py-2 rounded-xl font-bold text-sm flex gap-2 hover:shadow-lg transition transform active:scale-95"><Icons.Camera size={18}/> สแกน</button>
+                                                <button onClick={handleGenerateScanner} className="bg-white border border-primary-200 text-primary-700 px-4 py-2 rounded-xl font-bold text-sm flex gap-2 hover:bg-primary-50 shadow-sm transition"><Icons.QrCode size={18}/> Mobile Pair</button>
+                                                <button onClick={handlePrint} className="bg-slate-100 text-slate-600 px-4 py-2 rounded-xl font-bold text-sm flex gap-2 hover:bg-slate-200 shadow-sm transition"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
                                             </div>
-                                            <div className="text-xs text-gray-400 font-mono bg-gray-50 px-2 py-1 rounded border">นักเรียน: {processedStudents.length}</div>
+                                            <div className="text-xs text-slate-400 font-mono bg-slate-50 px-2 py-1 rounded border">นักเรียน: {processedStudents.length}</div>
                                         </div>
 
                                         <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden relative" style={{maxHeight: '75vh', overflow: 'auto'}}>
                                             <table className="w-full text-sm text-left border-collapse">
-                                                <thead className="sticky-header shadow-sm">
-                                                    <tr className="bg-white text-gray-700 font-display border-b">
+                                                <thead className="sticky-header shadow-sm bg-slate-50">
+                                                    <tr className="bg-white text-slate-700 font-display border-b">
                                                         <th className="p-3 border-r bg-white sticky-left-0 w-12 text-center shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-30">#</th>
                                                         <th className="p-3 border-r bg-white sticky-left-1 w-24 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-30">รหัส</th>
                                                         <th className="p-3 border-r bg-white sticky-left-2 min-w-[200px] shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] z-30">ชื่อ-สกุล</th>
                                                         {sections.map((sec, idx) => {
                                                             const isCollapsed = collapsedSections[sec.id];
                                                             const colsCount = isCollapsed ? 1 : (sec.groups?.reduce((a, b) => a + (b.columns?.length||0), 0) || 0);
-                                                            const theme = SECTION_THEMES[idx % SECTION_THEMES.length];
                                                             return colsCount > 0 && (
-                                                                <th key={sec.id} colSpan={colsCount} className={`p-2 border-r text-center ${theme.header} ${theme.text} font-bold border-b group cursor-pointer hover:brightness-95 transition select-none`} onClick={() => setCollapsedSections({...collapsedSections, [sec.id]: !isCollapsed})}>
+                                                                <th key={sec.id} colSpan={colsCount} className={`p-2 border-r text-center bg-primary-50 text-primary-700 font-bold border-b border-primary-200 group cursor-pointer hover:bg-primary-100 transition select-none`} onClick={() => setCollapsedSections({...collapsedSections, [sec.id]: !isCollapsed})}>
                                                                     <div className="flex items-center justify-center gap-2">
                                                                         {sec.title}
                                                                         <span className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : ''}`}><Icons.ChevronDown size={14}/></span>
@@ -1098,52 +1166,50 @@
                                                         })}
                                                         <th className="p-3 text-center w-20 bg-white z-20">แก้ไข</th>
                                                     </tr>
-                                                    <tr className="bg-gray-50 text-gray-500 text-xs border-b">
-                                                        <th className="p-2 border-r bg-gray-50 sticky-left-0 z-30"></th>
-                                                        <th className="p-2 border-r bg-gray-50 sticky-left-1 z-30"></th>
-                                                        <th className="p-2 border-r bg-gray-50 sticky-left-2 z-30"></th>
+                                                    <tr className="bg-slate-50 text-slate-500 text-xs border-b">
+                                                        <th className="p-2 border-r bg-slate-50 sticky-left-0 z-30"></th>
+                                                        <th className="p-2 border-r bg-slate-50 sticky-left-1 z-30"></th>
+                                                        <th className="p-2 border-r bg-slate-50 sticky-left-2 z-30"></th>
                                                         {sections.map((sec, idx) => {
-                                                            const theme = SECTION_THEMES[idx % SECTION_THEMES.length];
                                                             if (collapsedSections[sec.id]) {
                                                                 return <th key={sec.id} className="p-2 border-r text-center bg-gray-100 text-gray-400 font-normal italic h-40 align-middle">ยุบแล้ว</th>
                                                             }
                                                             return sec.groups?.map(g => g.columns?.map(col => (
-                                                                <th key={col.id} className={`p-1 border-r text-center font-normal group relative align-bottom h-48 min-w-[40px] max-w-[50px] ${col.type!=='manual' ? 'bg-slate-200' : 'bg-white hover:bg-gray-50'}`} title={`กลุ่ม: ${g.title}`}>
+                                                                <th key={col.id} className={`p-1 border-r text-center font-normal group relative align-bottom h-48 min-w-[40px] max-w-[50px] ${col.type!=='manual' ? 'bg-slate-100' : 'bg-white hover:bg-slate-50'}`} title={`กลุ่ม: ${g.title}`}>
                                                                      <div className="flex flex-col items-center justify-end h-full pb-1 w-full">
-                                                                        <div className={`mb-2 font-bold text-xs ${theme.subHeader} vertical-header tracking-wide leading-none`}>
+                                                                        <div className="mb-2 font-bold text-xs text-slate-700 vertical-header tracking-wide leading-none">
                                                                             {col.name}
                                                                         </div>
-                                                                        <div className={`border rounded px-0.5 w-full text-center text-[10px] font-mono mb-0.5 ${col.type!=='manual' ? 'bg-slate-300 text-slate-700 border-slate-400' : 'bg-gray-50 text-gray-500'}`}>{col.max}</div>
+                                                                        <div className={`border rounded px-0.5 w-full text-center text-[10px] font-mono mb-0.5 ${col.type!=='manual' ? 'bg-slate-200 text-slate-600 border-slate-300' : 'bg-white text-slate-500 border-slate-200'}`}>{col.max}</div>
                                                                         {col.type!=='manual' && <div className={`text-[8px] font-bold text-slate-600 uppercase bg-white/50 px-1 rounded`}>{col.type === 'sum' ? 'SUM' : '%'}</div>}
                                                                      </div>
                                                                 </th>
                                                             )))
                                                         })}
-                                                        <th className="bg-gray-50"></th>
+                                                        <th className="bg-slate-50"></th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {processedStudents.map((s, sIdx) => (
-                                                        <tr key={s.id} className={`border-b hover:bg-indigo-50 group transition-colors ${sIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                                                            <td className="p-2 text-center border-r bg-inherit sticky-left-0 group-hover:bg-indigo-50 z-20 font-mono">{s.no}</td>
-                                                            <td className="p-2 font-mono border-r bg-inherit sticky-left-1 group-hover:bg-indigo-50 z-20 text-xs font-bold text-gray-600">{s.id}</td>
-                                                            <td className="p-2 border-r bg-inherit sticky-left-2 group-hover:bg-indigo-50 z-20 font-medium text-gray-700 truncate max-w-[200px]">{s.name}</td>
+                                                        <tr key={s.id} className={`border-b hover:bg-primary-50 group transition-colors ${sIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                                                            <td className="p-2 text-center border-r bg-inherit sticky-left-0 group-hover:bg-primary-50 z-20 font-mono text-slate-500">{s.no}</td>
+                                                            <td className="p-2 font-mono border-r bg-inherit sticky-left-1 group-hover:bg-primary-50 z-20 text-xs font-bold text-slate-500">{s.id}</td>
+                                                            <td className="p-2 border-r bg-inherit sticky-left-2 group-hover:bg-primary-50 z-20 font-medium text-slate-700 truncate max-w-[200px]">{s.name}</td>
                                                             {sections.map((sec, idx) => {
-                                                                const theme = SECTION_THEMES[idx % SECTION_THEMES.length];
                                                                 if(collapsedSections[sec.id]) {
-                                                                    return <td key={sec.id} className="p-2 border-r text-center text-gray-300 bg-gray-50 group-hover:bg-blue-50"><Icons.Minus size={12} className="mx-auto"/></td>
+                                                                    return <td key={sec.id} className="p-2 border-r text-center text-slate-300 bg-slate-50 group-hover:bg-primary-50"><Icons.Minus size={12} className="mx-auto"/></td>
                                                                 }
                                                                 return sec.groups?.map(g => g.columns?.map(col => {
                                                                     const val = calculateColumnValue(s, g, col);
                                                                     return (
-                                                                        <td key={col.id} className={`p-1 text-center border-r group-hover:bg-indigo-50 ${col.type!=='manual'?'bg-slate-200 text-slate-800 font-bold text-xs border-slate-300': theme.text + ' font-medium'}`}>
-                                                                            {val && val !== '-' ? val : <span className="text-gray-200 font-light">-</span>}
+                                                                        <td key={col.id} className={`p-1 text-center border-r group-hover:bg-primary-50 ${col.type!=='manual'?'bg-slate-100 text-slate-800 font-bold text-xs border-slate-200': 'text-slate-600 font-medium'}`}>
+                                                                            {val && val !== '-' ? val : <span className="text-slate-200 font-light">-</span>}
                                                                         </td>
                                                                     );
                                                                 }))
                                                             })}
                                                             <td className="p-2 text-center">
-                                                                <button onClick={() => setScoreModalData(JSON.parse(JSON.stringify(s)))} className="bg-white border border-indigo-200 text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-600 hover:text-white transition shadow-sm"><Icons.Edit size={16}/></button>
+                                                                <button onClick={() => setScoreModalData(JSON.parse(JSON.stringify(s)))} className="bg-white border border-primary-200 text-primary-600 p-1.5 rounded-lg hover:bg-primary-600 hover:text-white transition shadow-sm"><Icons.Edit size={16}/></button>
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -1157,9 +1223,9 @@
                                 {teacherTab === 'students' && (
                                     <div className="space-y-4">
                                         <div className="bg-white p-4 rounded-2xl shadow-sm border flex justify-between items-center glass-card">
-                                            <h3 className="font-bold flex gap-2 text-gray-700 font-display"><Icons.Users className="text-indigo-500"/> จัดการรายชื่อ</h3>
+                                            <h3 className="font-bold flex gap-2 text-gray-700 font-display"><Icons.Users className="text-primary-500"/> จัดการรายชื่อ</h3>
                                             <div className="flex gap-2">
-                                                <button onClick={() => setIsAddStudentOpen(true)} className="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow hover:bg-indigo-700 flex gap-2 transition active:scale-95"><Icons.Plus/> เพิ่มรายคน</button>
+                                                <button onClick={() => setIsAddStudentOpen(true)} className="bg-primary-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow hover:bg-primary-700 flex gap-2 transition active:scale-95"><Icons.Plus/> เพิ่มรายคน</button>
                                                 <button onClick={() => setIsImportOpen(true)} className="bg-white border border-gray-200 px-4 py-2 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-50 flex gap-2 transition"><Icons.Upload/> Import Excel</button>
                                             </div>
                                         </div>
@@ -1170,13 +1236,13 @@
                                                 </thead>
                                                 <tbody className="divide-y">
                                                     {processedStudents.map(s => (
-                                                        <tr key={s.id} className="hover:bg-indigo-50 transition-colors">
+                                                        <tr key={s.id} className="hover:bg-primary-50 transition-colors">
                                                             <td className="p-3 text-center">{s.no}</td>
                                                             <td className="p-3 font-mono text-gray-500 font-bold">{s.id}</td>
                                                             <td className="p-3 font-bold text-gray-700">{s.name}</td>
-                                                            <td className="p-3 text-center"><span className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs font-bold">{s.room}</span></td>
+                                                            <td className="p-3 text-center"><span className="bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-bold">{s.room}</span></td>
                                                             <td className="p-3 text-center flex justify-center gap-2">
-                                                                <button onClick={() => setStudentModalData({...s})} className="text-indigo-500 hover:bg-indigo-100 p-2 rounded transition"><Icons.Edit/></button>
+                                                                <button onClick={() => setStudentModalData({...s})} className="text-primary-500 hover:bg-primary-100 p-2 rounded transition"><Icons.Edit/></button>
                                                                 <button onClick={async () => { if(confirm('ยืนยันลบ?')) {
                                                                     if(useLocalStorage) { saveData(students.filter(x=>x.id!==s.id), null); }
                                                                     else { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'students', s.id)); }
@@ -1258,28 +1324,31 @@
                                                             <div key={group.id} className="flex flex-col md:flex-row gap-4 p-4 border border-gray-100 rounded-xl bg-gray-50/50 hover:bg-white hover:shadow-md transition-all duration-300">
                                                                 {/* Group Name */}
                                                                 <div className="w-full md:w-1/4 border-l-4 border-gray-300 pl-3 py-1">
-                                                                    <div className="font-bold text-gray-700 text-sm font-display">{group.title}</div>
+                                                                    <div className="flex justify-between items-center mb-2">
+                                                                         <div className="font-bold text-gray-700 text-sm font-display">{group.title}</div>
+                                                                         <button onClick={() => { setColumnModalData({name: '', max: 10, type: 'manual', sectionId: sec.id, groupId: group.id, link: ''}); setIsColumnModalOpen(true); }} className="text-xs bg-primary-100 text-primary-600 px-2 py-1 rounded hover:bg-primary-200 flex items-center gap-1">
+                                                                            <Icons.Plus size={12}/> เพิ่มช่อง
+                                                                        </button>
+                                                                    </div>
                                                                     <div className="text-xs text-gray-400 mt-1 flex gap-2">
-                                                                        <button onClick={() => { setGroupModalData({id: group.id, title: group.title, sectionId: sec.id}); setIsGroupModalOpen(true); }} className="hover:text-indigo-500">แก้ไข</button>
-                                                                        <button onClick={() => handleDeleteGroup(sec.id, group.id)} className="hover:text-red-500">ลบ</button>
+                                                                        <button onClick={() => { setGroupModalData({id: group.id, title: group.title, sectionId: sec.id}); setIsGroupModalOpen(true); }} className="hover:text-indigo-500">แก้ไขกลุ่ม</button>
+                                                                        <button onClick={() => handleDeleteGroup(sec.id, group.id)} className="hover:text-red-500">ลบกลุ่ม</button>
                                                                     </div>
                                                                 </div>
 
                                                                 {/* Columns List */}
                                                                 <div className="flex-1 flex flex-wrap gap-2 items-center">
                                                                     {group.columns?.map(col => (
-                                                                        <div key={col.id} className="group/col relative bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-3 hover:border-indigo-300 transition cursor-pointer shadow-sm"
-                                                                             onClick={() => { setColumnModalData({id: col.id, name: col.name, max: col.max, type: col.type, sectionId: sec.id, groupId: group.id}); setIsColumnModalOpen(true); }}>
+                                                                        <div key={col.id} className="group/col relative bg-white border border-gray-200 rounded-lg px-3 py-2 flex items-center gap-3 hover:border-primary-300 transition cursor-pointer shadow-sm"
+                                                                             onClick={() => { setColumnModalData({id: col.id, name: col.name, max: col.max, type: col.type, sectionId: sec.id, groupId: group.id, link: col.link || ''}); setIsColumnModalOpen(true); }}>
                                                                             <div>
                                                                                 <div className="text-xs font-bold text-gray-700">{col.name}</div>
                                                                                 <div className="text-[10px] text-gray-400">เต็ม {col.max} {col.type!=='manual' && `(${col.type})`}</div>
                                                                             </div>
-                                                                            <Icons.Edit size={14} className="text-gray-300 group-hover/col:text-indigo-400"/>
+                                                                            <Icons.Edit size={14} className="text-gray-300 group-hover/col:text-primary-400"/>
                                                                         </div>
                                                                     ))}
-                                                                    <button onClick={() => { setColumnModalData({name: '', max: 10, type: 'manual', sectionId: sec.id, groupId: group.id}); setIsColumnModalOpen(true); }} className="h-full px-3 py-2 border border-dashed border-gray-300 rounded-lg text-gray-400 hover:text-indigo-500 hover:border-indigo-300 flex items-center gap-1 transition text-xs font-bold">
-                                                                        <Icons.Plus size={14}/> เพิ่มช่อง
-                                                                    </button>
+                                                                    {(!group.columns || group.columns.length === 0) && <div className="text-xs text-gray-400 italic p-2">ไม่มีช่องคะแนน</div>}
                                                                 </div>
                                                             </div>
                                                         ))}
@@ -1295,62 +1364,22 @@
                         {/* --- MODALS --- */}
 
                         {/* MOBILE PAIR MODAL */}
-                        {isMobilePairOpen && (
-                            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4 animate-fade-in">
-                                <div className="bg-white rounded-3xl p-8 text-center max-w-sm w-full relative">
-                                    <button onClick={() => setIsMobilePairOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 rounded-full p-1"><Icons.X size={20}/></button>
-                                    <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4 text-teal-600"><Icons.QrCode size={32}/></div>
-                                    <h3 className="text-2xl font-bold text-gray-800 mb-2 font-display">Mobile Pair</h3>
-                                    <p className="text-gray-500 mb-6 text-sm">ใช้มือถือสแกนเพื่อเปลี่ยนเป็นเครื่องยิงบาร์โค้ด</p>
-                                    <div className="bg-white p-3 rounded-2xl border-2 border-dashed border-teal-200 inline-block mb-4 shadow-sm">
-                                        <img src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(window.location.href.split('?')[0] + '?scan_session=' + scannerSessionId)}`} alt="Scan QR" className="w-48 h-48 mix-blend-multiply" />
-                                    </div>
-                                    <div className="text-xs text-gray-400 font-mono bg-gray-50 p-2 rounded border border-gray-100">Session ID: {scannerSessionId}</div>
-                                </div>
-                            </div>
-                        )}
+                        {isMobilePairOpen && <MobilePairModal sessionId={scannerSessionId} onClose={() => setIsMobilePairOpen(false)} />}
 
-                        {/* SECTION SETTINGS MODAL */}
-                        {isSectionSettingsOpen && (
-                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
-                                <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-slide-up">
-                                    <h3 className="font-bold text-lg mb-4 text-gray-800 font-display">{sectionSettings.id ? 'แก้ไขชื่อบทเรียน' : 'สร้างบทเรียนใหม่'}</h3>
-                                    <input className="w-full p-3 border-2 border-gray-100 rounded-xl mb-6 focus:border-teal-500 focus:outline-none transition" placeholder="ชื่อบทเรียน (เช่น บทที่ 1)" value={sectionSettings.title} onChange={e => setSectionSettings({...sectionSettings, title: e.target.value})} autoFocus />
-                                    <div className="flex justify-end gap-2">
-                                        <button onClick={() => setIsSectionSettingsOpen(false)} className="px-5 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition">ยกเลิก</button>
-                                        <button onClick={handleSaveSection} className="px-6 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">บันทึก</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* GROUP MODAL */}
-                        {isGroupModalOpen && (
-                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
-                                <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-slide-up">
-                                    <h3 className="font-bold text-lg mb-4 text-gray-800 font-display">{groupModalData.id ? 'แก้ไขชื่อกลุ่ม' : 'เพิ่มกลุ่มคะแนน'}</h3>
-                                    <input className="w-full p-3 border-2 border-gray-100 rounded-xl mb-6 focus:border-indigo-500 focus:outline-none transition" placeholder="ชื่อกลุ่ม (เช่น สอบเก็บคะแนน)" value={groupModalData.title} onChange={e => setGroupModalData({...groupModalData, title: e.target.value})} autoFocus />
-                                    <div className="flex justify-end gap-2">
-                                        <button onClick={() => setIsGroupModalOpen(false)} className="px-5 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition">ยกเลิก</button>
-                                        <button onClick={handleSaveGroup} className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition transform active:scale-95">บันทึก</button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* COLUMN MODAL */}
+                        {/* COLUMN MODAL WITH LINK INPUT */}
                         {isColumnModalOpen && (
                             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
                                 <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-slide-up">
                                     <h3 className="font-bold text-lg mb-4 text-gray-800 font-display">{columnModalData.id ? 'แก้ไขช่องคะแนน' : 'เพิ่มช่องคะแนน'}</h3>
                                     <div className="space-y-4">
-                                        <div><label className="text-xs font-bold text-gray-400">ชื่อช่องคะแนน</label><input className="w-full p-3 border-2 border-gray-100 rounded-xl mt-1 focus:border-teal-500 focus:outline-none transition" value={columnModalData.name} onChange={e => setColumnModalData({...columnModalData, name: e.target.value})} autoFocus /></div>
-                                        <div><label className="text-xs font-bold text-gray-400">คะแนนเต็ม</label><input type="number" className="w-full p-3 border-2 border-gray-100 rounded-xl mt-1 text-center font-mono focus:border-teal-500 focus:outline-none transition" value={columnModalData.max} onChange={e => setColumnModalData({...columnModalData, max: e.target.value})} /></div>
+                                        <div><label className="text-xs font-bold text-gray-400">ชื่อช่องคะแนน</label><input className="w-full p-3 border-2 border-gray-100 rounded-xl mt-1 focus:border-primary-500 focus:outline-none transition" value={columnModalData.name} onChange={e => setColumnModalData({...columnModalData, name: e.target.value})} autoFocus /></div>
+                                        <div><label className="text-xs font-bold text-gray-400">คะแนนเต็ม</label><input type="number" className="w-full p-3 border-2 border-gray-100 rounded-xl mt-1 text-center font-mono focus:border-primary-500 focus:outline-none transition" value={columnModalData.max} onChange={e => setColumnModalData({...columnModalData, max: e.target.value})} /></div>
+                                        <div><label className="text-xs font-bold text-gray-400">ลิงก์งาน (URL) <span className="text-gray-300 font-normal">*สำหรับนักเรียนตามงาน</span></label><input type="text" className="w-full p-3 border-2 border-gray-100 rounded-xl mt-1 text-xs focus:border-primary-500 focus:outline-none transition" placeholder="https://..." value={columnModalData.link || ''} onChange={e => setColumnModalData({...columnModalData, link: e.target.value})} /></div>
                                         <div>
                                             <label className="text-xs font-bold text-gray-400">ประเภท</label>
                                             <div className="flex gap-2 mt-1">
                                                 {['manual', 'sum', 'percent'].map(t => (
-                                                    <button key={t} onClick={() => setColumnModalData({...columnModalData, type: t})} className={`flex-1 py-2 rounded-lg border-2 text-xs font-bold transition ${columnModalData.type === t ? 'bg-teal-50 border-teal-500 text-teal-700' : 'border-gray-100 text-gray-400 hover:border-gray-300'}`}>
+                                                    <button key={t} onClick={() => setColumnModalData({...columnModalData, type: t})} className={`flex-1 py-2 rounded-lg border-2 text-xs font-bold transition ${columnModalData.type === t ? 'bg-primary-50 border-primary-500 text-primary-700' : 'border-gray-100 text-gray-400 hover:border-gray-300'}`}>
                                                         {t === 'manual' ? 'กรอกเอง' : (t === 'sum' ? 'รวม' : '%')}
                                                     </button>
                                                 ))}
@@ -1361,18 +1390,45 @@
                                         {columnModalData.id ? <button onClick={() => { setIsColumnModalOpen(false); handleDeleteColumn(columnModalData.sectionId, columnModalData.groupId, columnModalData.id); }} className="text-rose-400 text-sm hover:text-rose-600 font-bold transition">ลบช่องนี้</button> : <div></div>}
                                         <div className="flex gap-2">
                                             <button onClick={() => setIsColumnModalOpen(false)} className="px-5 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition">ยกเลิก</button>
-                                            <button onClick={handleSaveColumn} className="px-6 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">บันทึก</button>
+                                            <button onClick={handleSaveColumn} className="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">บันทึก</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         )}
                         
-                        {/* PASSWORD CONFIRM MODAL */}
+                        {/* Other Modals (Section, Group, Password, Score, Student, Add, Scanner, Import) - reusing previous code structure, just ensure they are included */}
+                        
+                        {isSectionSettingsOpen && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+                                <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-slide-up">
+                                    <h3 className="font-bold text-lg mb-4 text-gray-800 font-display">{sectionSettings.id ? 'แก้ไขชื่อบทเรียน' : 'สร้างบทเรียนใหม่'}</h3>
+                                    <input className="w-full p-3 border-2 border-gray-100 rounded-xl mb-6 focus:border-primary-500 focus:outline-none transition" placeholder="ชื่อบทเรียน (เช่น บทที่ 1)" value={sectionSettings.title} onChange={e => setSectionSettings({...sectionSettings, title: e.target.value})} autoFocus />
+                                    <div className="flex justify-end gap-2">
+                                        <button onClick={() => setIsSectionSettingsOpen(false)} className="px-5 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition">ยกเลิก</button>
+                                        <button onClick={handleSaveSection} className="px-6 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">บันทึก</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {isGroupModalOpen && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 backdrop-blur-sm">
+                                <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-slide-up">
+                                    <h3 className="font-bold text-lg mb-4 text-gray-800 font-display">{groupModalData.id ? 'แก้ไขชื่อกลุ่ม' : 'เพิ่มกลุ่มคะแนน'}</h3>
+                                    <input className="w-full p-3 border-2 border-gray-100 rounded-xl mb-6 focus:border-primary-500 focus:outline-none transition" placeholder="ชื่อกลุ่ม (เช่น สอบเก็บคะแนน)" value={groupModalData.title} onChange={e => setGroupModalData({...groupModalData, title: e.target.value})} autoFocus />
+                                    <div className="flex justify-end gap-2">
+                                        <button onClick={() => setIsGroupModalOpen(false)} className="px-5 py-2 text-gray-500 hover:bg-gray-100 rounded-xl font-bold transition">ยกเลิก</button>
+                                        <button onClick={handleSaveGroup} className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition transform active:scale-95">บันทึก</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {isPasswordConfirmOpen && (
                             <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4 backdrop-blur-sm animate-fade-in">
                                 <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-xs text-center">
-                                    <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4 text-amber-600"><Icons.Lock size={28}/></div>
+                                    <div className="w-14 h-14 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-4 text-warning-600"><Icons.Lock size={28}/></div>
                                     <h3 className="font-bold text-lg text-gray-800 mb-2">ยืนยันรหัสผ่าน</h3>
                                     <p className="text-sm text-gray-500 mb-4">กรุณากรอกรหัสผ่าน 'admin' เพื่อดำเนินการต่อ</p>
                                     <input 
@@ -1392,7 +1448,6 @@
                             </div>
                         )}
 
-                        {/* --- SCORE ENTRY MODAL --- */}
                         {scoreModalData && (
                             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
                                 <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
@@ -1405,7 +1460,7 @@
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-3xl font-bold text-emerald-400">{totalScorePreview}</div>
+                                            <div className="text-3xl font-bold text-success-400">{totalScorePreview}</div>
                                             <div className="text-[10px] text-gray-400 uppercase tracking-widest">Total Score</div>
                                         </div>
                                     </div>
@@ -1414,9 +1469,9 @@
                                             <span className="text-sm text-gray-500 font-bold ml-2">โหมดการกรอก:</span>
                                             <button 
                                                 onClick={() => setUseNumpad(!useNumpad)}
-                                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${useNumpad ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm transition-all ${useNumpad ? 'bg-primary-600 text-white shadow-md' : 'bg-white text-gray-600 border hover:bg-gray-50'}`}
                                             >
-                                                {useNumpad ? <><Icons.Calculator size={18}/> ใช้ Numpad (แป้นพิมพ์ปิด)</> : <><Icons.Keyboard size={18}/> ใช้แป้นพิมพ์ปกติ</>}
+                                                {useNumpad ? <><Icons.Calculator size={18}/> Numpad (แป้นพิมพ์ปิด)</> : <><Icons.Keyboard size={18}/> ใช้แป้นพิมพ์ปกติ</>}
                                             </button>
                                         </div>
 
@@ -1511,10 +1566,10 @@
                                                 const btn = document.getElementById('save-btn');
                                                 const originalText = btn.innerHTML;
                                                 btn.innerHTML = '✅ บันทึกแล้ว';
-                                                btn.classList.add('bg-green-600');
+                                                btn.classList.add('bg-success-600');
                                                 setTimeout(() => {
                                                     btn.innerHTML = originalText;
-                                                    btn.classList.remove('bg-green-600');
+                                                    btn.classList.remove('bg-success-600');
                                                     
                                                     // Logic: Save and Close immediately
                                                     setScoreModalData(null);
@@ -1542,7 +1597,6 @@
                             </div>
                         )}
 
-                        {/* STUDENT INFO MODAL */}
                         {studentModalData && (
                             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                                 <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-slide-up">
@@ -1561,7 +1615,6 @@
                             </div>
                         )}
 
-                        {/* ADD STUDENT MODAL */}
                         {isAddStudentOpen && (
                             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                                 <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
@@ -1574,22 +1627,15 @@
                                     </div>
                                     <div className="flex justify-end gap-2">
                                         <button onClick={() => setIsAddStudentOpen(false)} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition">ยกเลิก</button>
-                                        <button onClick={async () => {
-                                            if(!newStudent.id) return alert('ใส่รหัสด้วยครับ');
-                                            await updateStudent({...newStudent, scores: {}});
-                                            setIsAddStudentOpen(false); setNewStudent({id:'', name:'', room:'', no:''});
-                                        }} className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold shadow hover:bg-primary-700 transition">บันทึก</button>
+                                        <button onClick={async () => { if(!newStudent.id) return alert('ใส่รหัสด้วยครับ'); await updateStudent({...newStudent, scores: {}}); setIsAddStudentOpen(false); setNewStudent({id:'', name:'', room:'', no:''}); }} className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold shadow hover:bg-primary-700 transition">บันทึก</button>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* SCANNER MODAL */}
                         {isScannerOpen && (
                             <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[100]">
-                                <div className="absolute top-4 right-4 z-50">
-                                    <button onClick={() => setIsScannerOpen(false)} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/40"><Icons.X size={32}/></button>
-                                </div>
+                                <div className="absolute top-4 right-4 z-50"><button onClick={() => setIsScannerOpen(false)} className="bg-white/20 p-2 rounded-full text-white hover:bg-white/40"><Icons.X size={32}/></button></div>
                                 <h3 className="text-white text-2xl font-bold mb-8 flex gap-3 animate-slide-up"><Icons.Camera size={32}/> ส่องบาร์โค้ดเลยครับ</h3>
                                 <div className="w-full max-w-sm aspect-square bg-black rounded-3xl overflow-hidden border-4 border-primary-500 relative shadow-2xl">
                                     <ScannerController isOpen={isScannerOpen} onScan={handleTeacherSearch} />
@@ -1599,17 +1645,14 @@
                             </div>
                         )}
 
-                        {/* IMPORT MODAL */}
                         {isImportOpen && (
                             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                                 <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
                                     <h3 className="font-bold text-lg mb-2">นำเข้าข้อมูล (Excel Copy-Paste)</h3>
-                                    <p className="text-xs text-gray-500 mb-4 bg-yellow-50 p-2 rounded border border-yellow-100">รูปแบบ: รหัส [tab] ชื่อ [tab] ห้อง [tab] เลขที่</p>
+                                    <p className="text-xs text-gray-500 mb-4 bg-warning-50 p-2 rounded border border-warning-100">รูปแบบ: รหัส [tab] ชื่อ [tab] ห้อง [tab] เลขที่</p>
                                     {isImporting ? (
                                         <div className="w-full h-48 flex flex-col items-center justify-center bg-gray-50 rounded-xl border border-gray-200">
-                                            <div className="w-64 bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
-                                                <div className="bg-primary-600 h-4 rounded-full transition-all duration-300 ease-out" style={{width: `${importProgress}%`}}></div>
-                                            </div>
+                                            <div className="w-64 bg-gray-200 rounded-full h-4 mb-2 overflow-hidden"><div className="bg-primary-600 h-4 rounded-full transition-all duration-300 ease-out" style={{width: `${importProgress}%`}}></div></div>
                                             <div className="text-gray-500 font-bold">{importProgress}%</div>
                                             <div className="text-xs text-gray-400 mt-1">กำลังนำเข้าข้อมูล...</div>
                                         </div>
@@ -1618,17 +1661,14 @@
                                     )}
                                     <div className="flex justify-end gap-2 mt-4">
                                         <button onClick={() => setIsImportOpen(false)} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg transition" disabled={isImporting}>ปิด</button>
-                                        <button onClick={handleBulkImport} className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold shadow hover:bg-primary-700 transition" disabled={isImporting}>
-                                            {isImporting ? 'กำลังทำงาน...' : `นำเข้า ${importText.split('\n').filter(l=>l.trim()).length} คน`}
-                                        </button>
+                                        <button onClick={handleBulkImport} className="px-6 py-2 bg-primary-600 text-white rounded-xl font-bold shadow hover:bg-primary-700 transition" disabled={isImporting}>{isImporting ? 'กำลังทำงาน...' : `นำเข้า ${importText.split('\n').filter(l=>l.trim()).length} คน`}</button>
                                     </div>
                                 </div>
                             </div>
                         )}
 
-                        {/* TOAST WARNING */}
                         {warning.show && (
-                            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-full shadow-2xl z-[200] animate-slide-up flex items-center gap-3 cursor-pointer hover:bg-red-700 transition" onClick={() => setWarning({show:false, msg:''})}>
+                            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-danger-600 text-white px-6 py-3 rounded-full shadow-2xl z-[200] animate-slide-up flex items-center gap-3 cursor-pointer hover:bg-danger-700 transition" onClick={() => setWarning({show:false, msg:''})}>
                                 <Icons.AlertTriangle/> <span className="font-bold">{warning.msg}</span>
                             </div>
                         )}
