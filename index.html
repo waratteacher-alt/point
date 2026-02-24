@@ -821,38 +821,49 @@
                                                 </div>
 
                                                 {/* Detailed Scores */}
-                                                <div className="space-y-4">
-                                                    {sections.map(sec => sec.published !== false && (
-                                                        <div key={sec.id} className="border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                                                            <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 font-bold text-slate-700 font-display flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-primary-500"></div> {sec.title}</div>
-                                                            <div className="p-4 bg-white space-y-3">
-                                                                {sec.groups?.map(grp => grp.published !== false && grp.columns?.map(col => {
-                                                                    if (col.published === false) return null;
-                                                                    
-                                                                    const isManual = col.type === 'manual';
-                                                                    // We calculate val using activeStudentData (which merges real + simulated scores)
-                                                                    let val = isManual ? getScore(activeStudentData, col.id) : calculateAutoScore(activeStudentData, grp, col);
-                                                                    let numVal = parseFloat(val);
-                                                                    let max = parseFloat(col.max);
-                                                                    let color = isSimulateMode ? 'bg-primary-500' : (numVal >= max*0.8 ? 'bg-green-500' : (numVal >= max*0.5 ? 'bg-yellow-500' : 'bg-red-500'));
-                                                                    
-                                                                    // Check if this specific column is currently being simulated by the user
-                                                                    const isCurrentlySimulated = isSimulateMode && isManual && simulatedScores[col.id] !== undefined;
+                                                <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                                                    <table className="w-full text-sm text-left">
+                                                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-display">
+                                                            <tr>
+                                                                <th className="px-4 py-3 font-bold">รายการประเมิน</th>
+                                                                <th className="px-4 py-3 font-bold text-center w-20">คะแนนเต็ม</th>
+                                                                <th className="px-4 py-3 font-bold text-center w-24">คะแนนที่ได้</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100">
+                                                            {sections.map(sec => sec.published !== false && (
+                                                                <React.Fragment key={sec.id}>
+                                                                    {/* Section Header */}
+                                                                    <tr className="bg-slate-50/50">
+                                                                        <td colSpan="3" className="px-4 py-2 font-bold text-primary-700 text-xs uppercase tracking-wider flex items-center gap-2">
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-primary-500"></div>
+                                                                            {sec.title}
+                                                                        </td>
+                                                                    </tr>
+                                                                    {/* Columns */}
+                                                                    {sec.groups?.map(grp => grp.published !== false && grp.columns?.map(col => {
+                                                                        if (col.published === false) return null;
+                                                                        
+                                                                        const isManual = col.type === 'manual';
+                                                                        let val = isManual ? getScore(activeStudentData, col.id) : calculateAutoScore(activeStudentData, grp, col);
+                                                                        const isCurrentlySimulated = isSimulateMode && isManual && simulatedScores[col.id] !== undefined;
 
-                                                                    return (
-                                                                        <div key={col.id} className={`p-2 rounded-lg transition-colors ${isCurrentlySimulated ? 'bg-blue-50/50' : ''}`}>
-                                                                            <div className="flex justify-between items-center text-sm mb-1">
-                                                                                <span className="font-medium text-slate-600 flex items-center gap-1">
-                                                                                    {col.name}
-                                                                                    {isCurrentlySimulated && <span className="text-[10px] bg-primary-100 text-primary-700 px-1.5 rounded font-bold">จำลอง</span>}
-                                                                                </span>
-                                                                                
-                                                                                {/* Score Display / Input */}
-                                                                                {isSimulateMode && isManual ? (
-                                                                                    <div className="flex items-center justify-end gap-1">
+                                                                        return (
+                                                                            <tr key={col.id} className={`hover:bg-slate-50 transition-colors ${isCurrentlySimulated ? 'bg-blue-50/30' : ''}`}>
+                                                                                <td className="px-4 py-3 text-slate-700">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span>{col.name}</span>
+                                                                                        {isCurrentlySimulated && <span className="text-[9px] bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-bold">จำลอง</span>}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-4 py-3 text-center text-slate-500 font-mono">
+                                                                                    {col.max}
+                                                                                </td>
+                                                                                <td className="px-4 py-3 text-center font-bold">
+                                                                                    {isSimulateMode && isManual ? (
                                                                                         <input 
                                                                                             type="number"
-                                                                                            className="w-16 text-right border-b-2 border-primary-300 focus:border-primary-600 outline-none bg-blue-50/50 hover:bg-blue-100 font-bold text-primary-700 rounded px-1 transition-colors"
+                                                                                            className="w-full text-center border-b-2 border-primary-300 focus:border-primary-600 outline-none bg-blue-50/50 hover:bg-blue-100 font-bold text-primary-700 rounded py-1 transition-colors"
                                                                                             value={simulatedScores[col.id] !== undefined ? simulatedScores[col.id] : (studentViewData.scores?.[col.id] || '')}
                                                                                             placeholder="-"
                                                                                             onChange={(e) => {
@@ -862,22 +873,21 @@
                                                                                                 }
                                                                                             }}
                                                                                         />
-                                                                                        <span className="text-slate-400 font-normal">/{col.max}</span>
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <span className={`font-bold ${isSimulateMode && !isManual ? 'text-primary-700' : 'text-slate-800'}`}>
-                                                                                        {val} <span className="text-slate-400 font-normal">/{col.max}</span>
-                                                                                    </span>
-                                                                                )}
-                                                                            </div>
-                                                                            {!isNaN(numVal) && <ProgressBar current={numVal} max={max} color={color} isSimulated={isSimulateMode && (isCurrentlySimulated || !isManual)} />}
-                                                                        </div>
-                                                                    );
-                                                                }))}
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                                                    ) : (
+                                                                                        <span className={`${isSimulateMode && !isManual ? 'text-primary-700' : 'text-slate-800'}`}>
+                                                                                            {val || '-'}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    }))}
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
                                                 </div>
+                                                
                                                 {studentViewData.note && <div className="mt-4 p-4 bg-yellow-50 text-yellow-800 rounded-xl text-sm border border-yellow-200"><strong>หมายเหตุ:</strong> {studentViewData.note}</div>}
                                                 <button onClick={() => window.print()} className="mt-6 w-full py-3 bg-slate-800 text-white rounded-xl font-bold shadow-lg hover:bg-slate-900 transition flex items-center justify-center gap-2"><Icons.Print size={18}/> พิมพ์ผลการเรียน</button>
                                             </div>
