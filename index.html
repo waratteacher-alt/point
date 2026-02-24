@@ -226,7 +226,9 @@
             Save: (p) => <Icon {...p} p={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>} />,
             Popup: (p) => <Icon {...p} p={<><path d="M3 3h18v18H3zM15 9l-6 6M9 9l6 6"/></>} />, 
             Maximize: (p) => <Icon {...p} p={<><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></>} />,
-            Target: (p) => <Icon {...p} p={<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>} />
+            Target: (p) => <Icon {...p} p={<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>} />,
+            Shuffle: (p) => <Icon {...p} p={<><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></>} />,
+            Aperture: (p) => <Icon {...p} p={<><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></>} />
         };
 
         const SECTION_COLORS = [
@@ -235,6 +237,11 @@
             { bg: 'bg-orange-300', border: 'border-orange-400', text: 'text-orange-900' },
             { bg: 'bg-purple-300', border: 'border-purple-400', text: 'text-purple-900' },
             { bg: 'bg-emerald-300', border: 'border-emerald-400', text: 'text-emerald-900' },
+        ];
+
+        const WHEEL_COLORS = [
+            '#fca5a5', '#93c5fd', '#fcd34d', '#c4b5fd', '#86efac', '#f9a8d4', '#6ee7b7', '#fde047', 
+            '#f87171', '#60a5fa', '#fbbf24', '#a78bfa', '#4ade80', '#f472b6', '#34d399', '#facc15'
         ];
 
         // --- COMPONENTS ---
@@ -427,6 +434,14 @@
             const [isSimulateMode, setIsSimulateMode] = useState(false);
             const [simulatedScores, setSimulatedScores] = useState({});
 
+            // Randomizer State
+            const [randomRoom, setRandomRoom] = useState('');
+            const [wheelStudents, setWheelStudents] = useState([]);
+            const [randomHistory, setRandomHistory] = useState([]);
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [wheelRotation, setWheelRotation] = useState(0);
+            const [randomWinner, setRandomWinner] = useState(null);
+
             // Init
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
@@ -493,6 +508,19 @@
 
                 return () => { unsubSections(); unsubStudents(); clearInterval(heartbeat); unsubLogs(); unsubPresence(); unsubSession(); };
             }, [user, view, studentViewData, sessionId]);
+
+            // Auto-select room for randomizer if empty
+            const uniqueRooms = useMemo(() => [...new Set(students.map(s => s.room).filter(Boolean))].sort(), [students]);
+            
+            useEffect(() => {
+                if (teacherTab === 'random' && !randomRoom) {
+                    if (selectedRoom !== 'All') {
+                        handleRandomRoomChange(selectedRoom);
+                    } else if (uniqueRooms.length > 0) {
+                        handleRandomRoomChange(uniqueRooms[0]);
+                    }
+                }
+            }, [teacherTab, uniqueRooms, selectedRoom, randomRoom]);
 
             // Reset Simulation State when changing student or view
             useEffect(() => {
@@ -713,6 +741,59 @@
                 }
             };
 
+            // Randomizer Logic
+            const handleRandomRoomChange = (room) => {
+                setRandomRoom(room);
+                setWheelRotation(0);
+                setRandomWinner(null);
+                const roomStds = students.filter(s => s.room === room).sort((a,b) => (parseInt(a.no)||0)-(parseInt(b.no)||0));
+                setWheelStudents(roomStds);
+                setRandomHistory([]);
+            };
+
+            const spinWheel = () => {
+                if (isSpinning || wheelStudents.length === 0) return;
+                setIsSpinning(true);
+                setRandomWinner(null);
+                
+                const n = wheelStudents.length;
+                const winnerIndex = Math.floor(Math.random() * n);
+                const sliceAngle = 360 / n;
+                // Target angle is the middle of the chosen slice
+                const landingAngle = winnerIndex * sliceAngle + (sliceAngle / 2);
+                
+                // We want the chosen slice to stop at 0 degrees (3 o'clock where the pointer is).
+                const extraSpins = 360 * 5; // 5 full rotations
+                const currentMod = wheelRotation % 360;
+                // We need to rotate forward enough so that the landingAngle lands at 360 (or 0)
+                const offset = 360 - landingAngle - currentMod;
+                const targetRotation = wheelRotation + extraSpins + offset;
+                
+                setWheelRotation(targetRotation);
+                
+                // Play ticking sound if possible (optional, might be blocked by browser without interaction)
+                
+                setTimeout(() => {
+                    setIsSpinning(false);
+                    const winner = wheelStudents[winnerIndex];
+                    setRandomWinner(winner);
+                    
+                    // Add to history and remove from wheel
+                    setRandomHistory(prev => [winner, ...prev]);
+                    setWheelStudents(prev => prev.filter(s => s.id !== winner.id));
+                    
+                    showToast(`ผู้โชคดี: ${winner.name}`, 'success');
+                }, 3000); 
+            };
+
+            const restoreToWheel = (student) => {
+                setRandomHistory(prev => prev.filter(s => s.id !== student.id));
+                setWheelStudents(prev => {
+                    const next = [...prev, student];
+                    return next.sort((a,b) => (parseInt(a.no)||0)-(parseInt(b.no)||0));
+                });
+                setRandomWinner(null);
+            };
 
             const filteredStudents = useMemo(() => {
                 let res = students;
@@ -720,7 +801,6 @@
                 if (searchQuery) { const q = searchQuery.toLowerCase(); res = res.filter(s => s.id.includes(q) || s.name.toLowerCase().includes(q)); }
                 return res.sort((a,b) => (a.room === b.room ? (parseInt(a.no)||0)-(parseInt(b.no)||0) : a.room.localeCompare(b.room)));
             }, [students, selectedRoom, searchQuery]);
-            const uniqueRooms = useMemo(() => [...new Set(students.map(s => s.room).filter(Boolean))].sort(), [students]);
             
             const analysisData = useMemo(() => {
                 const data = { high: [], mid: [], low: [] };
@@ -955,6 +1035,7 @@
                                     <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto hide-scrollbar">
                                         {[
                                             {id:'scores', icon:Icons.FileText, label:'คะแนน'},
+                                            {id:'random', icon:Icons.Shuffle, label:'สุ่มนักเรียน'},
                                             {id:'analysis', icon:Icons.Chart, label:'วิเคราะห์'},
                                             {id:'activity', icon:Icons.Activity, label:'ความเคลื่อนไหว'},
                                             {id:'students', icon:Icons.Users, label:'รายชื่อ'},
@@ -980,6 +1061,122 @@
                                         </div>
                                     )}
                                 </div>
+
+                                {teacherTab === 'random' && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto animate-scale">
+                                        {/* Left: Wheel */}
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                                            <div className="w-full flex justify-between items-center mb-6">
+                                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Shuffle size={20} className="text-primary-600"/> วงล้อสุ่ม</h3>
+                                                <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none" value={randomRoom} onChange={e => handleRandomRoomChange(e.target.value)}>
+                                                    <option value="" disabled hidden>เลือกห้องเรียน</option>
+                                                    {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                                </select>
+                                            </div>
+
+                                            <div className="relative w-64 h-64 sm:w-80 sm:h-80 my-4">
+                                                {/* The Wheel */}
+                                                <div 
+                                                    className="w-full h-full rounded-full border-4 border-white shadow-xl relative overflow-hidden transition-transform duration-[3000ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                                                    style={{ 
+                                                        background: wheelStudents.length > 1 
+                                                            ? `conic-gradient(from -90deg, ${wheelStudents.map((s, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${(i / wheelStudents.length) * 100}% ${((i + 1) / wheelStudents.length) * 100}%`).join(', ')})`
+                                                            : wheelStudents.length === 1 ? WHEEL_COLORS[0] : '#f1f5f9',
+                                                        transform: `rotate(${wheelRotation}deg)`
+                                                    }}
+                                                >
+                                                    {wheelStudents.length > 1 && wheelStudents.map((s, i) => {
+                                                        const n = wheelStudents.length;
+                                                        const angle = (i * 360) / n + (360 / n) / 2;
+                                                        return (
+                                                            <div key={s.id} style={{
+                                                                position: 'absolute', top: '50%', left: '50%', width: '50%', height: '24px', marginTop: '-12px',
+                                                                transformOrigin: '0% 50%', transform: `rotate(${angle}deg)`,
+                                                                textAlign: 'right', paddingRight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end'
+                                                            }}>
+                                                                <span className="text-[10px] sm:text-xs font-bold text-slate-800 truncate" style={{maxWidth: '85%'}}>
+                                                                    {s.name.split(' ')[0]}
+                                                                </span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    {wheelStudents.length === 1 && (
+                                                        <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-800 text-lg">
+                                                            {wheelStudents[0].name.split(' ')[0]}
+                                                        </div>
+                                                    )}
+                                                    {wheelStudents.length === 0 && (
+                                                        <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-400">
+                                                            {randomRoom ? 'สุ่มครบทุกคนแล้ว' : 'กรุณาเลือกห้อง'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {/* Pointer */}
+                                                <div className="absolute top-1/2 -right-3 w-0 h-0 border-y-[12px] border-y-transparent border-r-[24px] border-r-slate-800 -translate-y-1/2 z-10 drop-shadow-md"></div>
+                                                {/* Center Dot */}
+                                                <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-white rounded-full shadow-inner transform -translate-x-1/2 -translate-y-1/2 border-2 border-slate-100 z-10"></div>
+                                            </div>
+
+                                            <div className="h-20 flex items-center justify-center w-full mb-4">
+                                                {randomWinner ? (
+                                                    <div className="text-center animate-scale">
+                                                        <div className="text-sm text-slate-500 mb-1">ผู้โชคดีคือ (เลขที่ {randomWinner.no})</div>
+                                                        <div className="text-2xl font-bold text-primary-600 bg-primary-50 px-6 py-2 rounded-2xl border border-primary-100 shadow-sm">{randomWinner.name}</div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="text-slate-400 text-sm">
+                                                        {wheelStudents.length > 0 ? `พร้อมสุ่มนักเรียนจำนวน ${wheelStudents.length} คน` : ''}
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button 
+                                                onClick={spinWheel} 
+                                                disabled={isSpinning || wheelStudents.length === 0}
+                                                className={`w-full py-4 rounded-2xl font-bold text-lg text-white shadow-lg transition active:scale-95 ${isSpinning || wheelStudents.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-primary-200'}`}
+                                            >
+                                                {isSpinning ? 'กำลังสุ่ม...' : 'เริ่มสุ่ม (Spin)'}
+                                            </button>
+                                        </div>
+
+                                        {/* Right: History */}
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[600px] lg:h-auto">
+                                            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                                                <h3 className="font-bold text-lg text-slate-800">ประวัติการสุ่ม ({randomHistory.length})</h3>
+                                                {randomHistory.length > 0 && (
+                                                    <button onClick={() => handleRandomRoomChange(randomRoom)} className="text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 font-bold flex items-center gap-1 transition">
+                                                        <Icons.Refresh size={12}/> คืนค่าทั้งหมด
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                                                {randomHistory.length === 0 && (
+                                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
+                                                        <Icons.Users size={48} className="mb-4 opacity-50"/>
+                                                        <div>ยังไม่มีประวัติการสุ่ม</div>
+                                                    </div>
+                                                )}
+                                                {randomHistory.map((s, i) => (
+                                                    <div key={i + '-' + s.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl animate-fade-in hover:border-slate-200 transition group">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs shadow-inner">{s.no}</div>
+                                                            <div>
+                                                                <div className="font-bold text-sm text-slate-700">{s.name}</div>
+                                                                <div className="text-[10px] text-slate-400 font-mono">รหัส: {s.id}</div>
+                                                            </div>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => restoreToWheel(s)}
+                                                            className="text-xs text-primary-600 bg-white border border-primary-200 hover:bg-primary-50 px-3 py-1.5 rounded-lg font-bold transition shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                                        >
+                                                            นำกลับไปสุ่ม
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {teacherTab === 'scores' && (
                                     <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative">
