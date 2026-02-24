@@ -8,7 +8,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -95,20 +95,58 @@
             background-color: #f9fafb;
         }
 
-        /* Print Styles */
+        /* Official Print Styles */
         @media print {
-            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; font-size: 10pt; margin: 0; }
+            body { 
+                background: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                margin: 0; 
+            }
+            
+            /* Hide UI Elements */
             .no-print, nav, button, .fixed-ui, ::-webkit-scrollbar, .toast-container, .virtual-numpad { display: none !important; }
-            .print-only { display: block !important; width: 100%; height: auto; overflow: visible; }
+            
+            /* Reset Layout for Print */
+            .print-only { display: block !important; width: 100%; height: auto; overflow: visible; font-family: 'Sarabun', serif !important; color: #000; }
             #root, main, .overflow-x-auto, .max-h-\[75vh\], .bg-white { overflow: visible !important; height: auto !important; max-height: none !important; width: 100% !important; position: static !important; box-shadow: none !important; border: none !important; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 15px; page-break-inside: auto; table-layout: auto !important; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-            thead { display: table-header-group; }
-            tfoot { display: table-footer-group; }
-            th, td { border: 1px solid #000 !important; padding: 4px; text-align: center; vertical-align: middle; }
-            .text-left { text-align: left !important; padding-left: 8px !important; }
-            @page { margin: 10mm; size: A4 landscape; } 
-            .vertical-text-print { writing-mode: vertical-rl; transform: rotate(180deg); height: 120px; white-space: nowrap; text-align: left; margin: 0 auto; }
+            
+            /* Official Typography */
+            .print-only h1, .print-only h2, .print-only h3, .print-only p, .print-only th, .print-only td, .print-only div {
+                font-family: 'Sarabun', serif !important;
+            }
+            .official-title { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 4px; line-height: 1.2; }
+            .official-subtitle { font-size: 16pt; font-weight: normal; text-align: center; margin-bottom: 24px; line-height: 1.2; }
+            .official-info { font-size: 14pt; line-height: 1.5; margin-bottom: 12px; }
+            
+            /* Official Table Formatting */
+            .print-only table { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: auto; table-layout: auto !important; }
+            .print-only tr { page-break-inside: avoid; page-break-after: auto; }
+            .print-only thead { display: table-header-group; }
+            .print-only tfoot { display: table-footer-group; }
+            .print-only th, .print-only td { 
+                border: 1px solid #000 !important; 
+                padding: 6px 8px; 
+                text-align: center; 
+                vertical-align: middle; 
+                font-size: 14pt; 
+            }
+            .print-only th { background-color: #f2f2f2 !important; font-weight: bold; }
+            .print-only td.text-left { text-align: left !important; padding-left: 12px !important; }
+            .print-only td.font-bold { font-weight: bold !important; }
+            
+            /* Signature Box */
+            .signature-area { display: flex; justify-content: space-around; margin-top: 40px; page-break-inside: avoid; text-align: center; font-size: 14pt; }
+            .signature-box { width: 250px; }
+            .signature-line { border-bottom: 1px dotted #000; margin-bottom: 8px; height: 30px; }
+            
+            /* Page Orientations */
+            @page { margin: 15mm; size: A4 portrait; } 
+            .landscape-mode { page-break-before: always; }
+            @page :landscape { size: A4 landscape; margin: 12mm; }
+            
+            /* Vertical Text for Columns */
+            .vertical-text-print { writing-mode: vertical-rl; transform: rotate(180deg); height: 130px; white-space: nowrap; text-align: left; margin: 0 auto; font-size: 12pt; padding: 4px; }
         }
         .print-only { display: none; }
     </style>
@@ -1326,28 +1364,94 @@
                     {/* PRINT LAYOUT */}
                     <div className="print-only">
                         {studentViewData && (
-                            <div className="p-8">
-                                <div className="report-header"><h1>รายงานผลการเรียนรายบุคคล</h1><h2>{sysInfo.subject} ({sysInfo.code})</h2><p>ปีการศึกษา {sysInfo.year} | {sysInfo.school}</p></div>
-                                <div className="flex justify-between mb-6 text-lg border-b border-gray-300 pb-4"><div><p><strong>ชื่อ-สกุล:</strong> {studentViewData.name}</p><p><strong>รหัสประจำตัว:</strong> {studentViewData.id}</p></div><div className="text-right"><p><strong>ชั้น:</strong> {studentViewData.room}</p><p><strong>เลขที่:</strong> {studentViewData.no}</p></div></div>
-                                <table><thead><tr className="bg-gray-200"><th className="text-left w-3/5">รายการประเมิน</th><th className="w-1/5">คะแนนเต็ม</th><th className="w-1/5">คะแนนที่ได้</th></tr></thead><tbody>{sections.map(sec => sec.published !== false && (<React.Fragment key={sec.id}><tr><td colSpan="3" className="text-left font-bold bg-gray-100">{sec.title}</td></tr>{sec.groups?.map(grp => grp.published !== false && grp.columns?.map(col => { if(col.published === false) return null; let val = col.type === 'manual' ? getScore(studentViewData, col.id) : calculateAutoScore(studentViewData, grp, col); let max = col.max; let width = (parseFloat(val)/parseFloat(max))*50; return <tr key={col.id}><td className="text-left pl-6 flex justify-between"><span>{col.name}</span><div className="progress-bar-print"><div className="progress-fill-print" style={{width: width+'px'}}></div></div></td><td>{max}</td><td className="font-bold">{val}</td></tr>; }))}</React.Fragment>))}
-                                <tr className="bg-slate-100 border-t-2 border-black"><td className="text-right font-bold pr-4">รวมคะแนน</td><td>100</td><td className="font-bold">{calculateTotalScore(studentViewData)}</td></tr>
-                                <tr className="bg-yellow-50"><td className="text-right font-bold pr-4">เกรดที่ได้</td><td></td><td className="font-bold text-lg">{calculateGrade(calculateTotalScore(studentViewData))}</td></tr>
-                                </tbody></table>
-                                {studentViewData.note && <div className="mb-4 text-sm"><strong>หมายเหตุ:</strong> {studentViewData.note}</div>}
-                                <div className="signature-section"><div className="signature-block"><div className="signature-line"></div><p>({sysInfo.teacher})</p><p>ครูผู้สอน</p></div><div className="signature-block"><div className="signature-line"></div><p>ลงชื่อผู้ปกครอง</p></div></div>
+                            <div className="p-4 landscape-mode:hidden">
+                                <div className="text-center mb-6">
+                                    <h1 className="official-title">รายงานผลการพัฒนาคุณภาพผู้เรียนรายวิชา</h1>
+                                    <h2 className="official-subtitle">โรงเรียน{sysInfo.school} ปีการศึกษา {sysInfo.year}</h2>
+                                </div>
+                                
+                                <div className="official-info flex justify-between mb-4">
+                                    <div>
+                                        <p><strong>รหัสวิชา:</strong> {sysInfo.code} &nbsp;&nbsp; <strong>รายวิชา:</strong> {sysInfo.subject}</p>
+                                        <p><strong>ชื่อ-นามสกุล:</strong> {studentViewData.name} &nbsp;&nbsp; <strong>รหัสประจำตัว:</strong> {studentViewData.id}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p><strong>ครูผู้สอน:</strong> {sysInfo.teacher}</p>
+                                        <p><strong>ระดับชั้น:</strong> {studentViewData.room} &nbsp;&nbsp; <strong>เลขที่:</strong> {studentViewData.no}</p>
+                                    </div>
+                                </div>
+
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th className="text-left" style={{width: '60%'}}>รายการประเมิน</th>
+                                            <th style={{width: '20%'}}>คะแนนเต็ม</th>
+                                            <th style={{width: '20%'}}>คะแนนที่ได้</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {sections.map(sec => sec.published !== false && (
+                                            <React.Fragment key={sec.id}>
+                                                <tr>
+                                                    <td colSpan="3" className="text-left font-bold" style={{backgroundColor: '#f9f9f9'}}>{sec.title}</td>
+                                                </tr>
+                                                {sec.groups?.map(grp => grp.published !== false && grp.columns?.map(col => { 
+                                                    if(col.published === false) return null; 
+                                                    let val = col.type === 'manual' ? getScore(studentViewData, col.id) : calculateAutoScore(studentViewData, grp, col); 
+                                                    let max = col.max; 
+                                                    return (
+                                                        <tr key={col.id}>
+                                                            <td className="text-left">{col.name}</td>
+                                                            <td>{max}</td>
+                                                            <td className="font-bold">{val || '-'}</td>
+                                                        </tr>
+                                                    ); 
+                                                }))}
+                                            </React.Fragment>
+                                        ))}
+                                        <tr>
+                                            <td className="text-right font-bold" style={{borderTop: '2px solid black'}}>รวมคะแนน</td>
+                                            <td style={{borderTop: '2px solid black'}}>100</td>
+                                            <td className="font-bold" style={{borderTop: '2px solid black'}}>{calculateTotalScore(studentViewData)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="text-right font-bold">เกรดที่ได้</td>
+                                            <td colSpan="2" className="font-bold text-center" style={{fontSize: '16pt'}}>{calculateGrade(calculateTotalScore(studentViewData))}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                
+                                {studentViewData.note && <div className="official-info mt-4"><strong>หมายเหตุ:</strong> {studentViewData.note}</div>}
+                                
+                                <div className="signature-area">
+                                    <div className="signature-box">
+                                        <div className="signature-line"></div>
+                                        <p>( {sysInfo.teacher} )</p>
+                                        <p>ครูผู้สอนประจำวิชา</p>
+                                    </div>
+                                    <div className="signature-box">
+                                        <div className="signature-line"></div>
+                                        <p>( ...................................................... )</p>
+                                        <p>ผู้ปกครอง</p>
+                                    </div>
+                                </div>
                             </div>
                         )}
                         {!studentViewData && teacherTab === 'scores' && (
-                            <div className="p-4 landscape-mode">
-                                <div className="report-header"><h1>ใบบันทึกคะแนน - ห้อง {selectedRoom}</h1><p>{sysInfo.subject} ({sysInfo.code}) | {sysInfo.school}</p></div>
+                            <div className="p-2 landscape-mode">
+                                <div className="text-center mb-6">
+                                    <h1 className="official-title">แบบบันทึกผลการประเมินคุณภาพผู้เรียน</h1>
+                                    <h2 className="official-subtitle">รายวิชา {sysInfo.subject} ({sysInfo.code}) ชั้น {selectedRoom} ปีการศึกษา {sysInfo.year} โรงเรียน{sysInfo.school}</h2>
+                                </div>
+                                
                                 <table>
                                     <thead>
                                         {/* Multi-row Header for Print */}
                                         <tr>
-                                            <th rowSpan="3" className="text-center" style={{width: '30px'}}>ที่</th>
-                                            <th rowSpan="3" style={{width: '60px'}}>รหัส</th>
-                                            <th rowSpan="3" style={{width: '150px'}}>ชื่อ-นามสกุล</th>
-                                            <th rowSpan="3" style={{width: '30px'}}>ห้อง</th>
+                                            <th rowSpan="3" className="text-center" style={{width: '40px'}}>ที่</th>
+                                            <th rowSpan="3" style={{width: '80px'}}>รหัส</th>
+                                            <th rowSpan="3" style={{width: '200px'}}>ชื่อ-นามสกุล</th>
+                                            <th rowSpan="3" style={{width: '50px'}}>ห้อง</th>
                                             {sections.map(sec => {
                                                 if (sec.published === false) return null;
                                                 let cols = 0;
@@ -1357,10 +1461,10 @@
                                                     }
                                                 });
                                                 if(cols===0) return null;
-                                                return <th key={sec.id} colSpan={cols} style={{backgroundColor: '#f0f9ff'}}>{sec.title}</th>;
+                                                return <th key={sec.id} colSpan={cols}>{sec.title}</th>;
                                             })}
-                                            <th rowSpan="3">รวม</th>
-                                            <th rowSpan="3">เกรด</th>
+                                            <th rowSpan="3" style={{width: '50px'}}>รวม</th>
+                                            <th rowSpan="3" style={{width: '50px'}}>เกรด</th>
                                         </tr>
                                         <tr>
                                             {sections.map(sec => {
@@ -1369,7 +1473,7 @@
                                                     if(g.published === false) return null;
                                                     return g.columns?.map(col => {
                                                         if (col.published === false) return null;
-                                                        return <th key={col.id} className="vertical-text-print" style={{height:'100px', fontSize:'9pt'}}>{col.name}</th>;
+                                                        return <th key={col.id} className="vertical-text-print">{col.name}</th>;
                                                     });
                                                 });
                                             })}
@@ -1381,7 +1485,7 @@
                                                     if(g.published === false) return null;
                                                     return g.columns?.map(col => {
                                                         if (col.published === false) return null;
-                                                        return <th key={col.id} style={{fontSize:'8pt'}}>{col.max}</th>;
+                                                        return <th key={col.id} style={{fontSize:'10pt'}}>{col.max}</th>;
                                                     });
                                                 });
                                             })}
@@ -1399,15 +1503,24 @@
                                                     {sections.map(sec => sec.groups?.map(g => g.columns?.map(c => { 
                                                         if (c.published === false) return null;
                                                         const val = c.type === 'manual' ? s.scores?.[c.id] : calculateAutoScore(s, g, c); 
-                                                        return <td key={c.id}>{val || ''}</td> 
+                                                        return <td key={c.id}>{val || '-'}</td> 
                                                     })))}
                                                     <td className="font-bold">{total}</td>
-                                                    <td className="font-bold bg-gray-100">{calculateGrade(total)}</td>
+                                                    <td className="font-bold">{calculateGrade(total)}</td>
                                                 </tr>
                                             ); 
                                         })}
                                     </tbody>
                                 </table>
+
+                                <div className="signature-area" style={{justifyContent: 'flex-end', paddingRight: '50px', marginTop: '40px'}}>
+                                    <div className="signature-box">
+                                        <div className="signature-line"></div>
+                                        <p>( {sysInfo.teacher} )</p>
+                                        <p>ครูผู้สอน</p>
+                                        <p style={{marginTop: '10px', fontSize: '12pt'}}>วันที่ ......../......../........</p>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
