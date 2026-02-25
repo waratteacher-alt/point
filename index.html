@@ -228,7 +228,8 @@
             Maximize: (p) => <Icon {...p} p={<><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></>} />,
             Target: (p) => <Icon {...p} p={<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>} />,
             Shuffle: (p) => <Icon {...p} p={<><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></>} />,
-            Aperture: (p) => <Icon {...p} p={<><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></>} />
+            Aperture: (p) => <Icon {...p} p={<><circle cx="12" cy="12" r="10"/><line x1="14.31" y1="8" x2="20.05" y2="17.94"/><line x1="9.69" y1="8" x2="21.17" y2="8"/><line x1="7.38" y1="12" x2="13.12" y2="2.06"/><line x1="9.69" y1="16" x2="3.95" y2="6.06"/><line x1="14.31" y1="16" x2="2.83" y2="16"/><line x1="16.62" y1="12" x2="10.88" y2="21.94"/></>} />,
+            CheckCircle: (p) => <Icon {...p} p={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />
         };
 
         const SECTION_COLORS = [
@@ -436,8 +437,7 @@
 
             // Randomizer State
             const [randomRoom, setRandomRoom] = useState('');
-            const [wheelStudents, setWheelStudents] = useState([]);
-            const [randomHistory, setRandomHistory] = useState([]);
+            const [drawnIds, setDrawnIds] = useState([]);
             const [isSpinning, setIsSpinning] = useState(false);
             const [wheelRotation, setWheelRotation] = useState(0);
             const [randomWinner, setRandomWinner] = useState(null);
@@ -509,15 +509,15 @@
                 return () => { unsubSections(); unsubStudents(); clearInterval(heartbeat); unsubLogs(); unsubPresence(); unsubSession(); };
             }, [user, view, studentViewData, sessionId]);
 
-            // Auto-select room for randomizer if empty
             const uniqueRooms = useMemo(() => [...new Set(students.map(s => s.room).filter(Boolean))].sort(), [students]);
             
+            // Auto-select room for randomizer if empty
             useEffect(() => {
                 if (teacherTab === 'random' && !randomRoom) {
                     if (selectedRoom !== 'All') {
-                        handleRandomRoomChange(selectedRoom);
+                        setRandomRoom(selectedRoom);
                     } else if (uniqueRooms.length > 0) {
-                        handleRandomRoomChange(uniqueRooms[0]);
+                        setRandomRoom(uniqueRooms[0]);
                     }
                 }
             }, [teacherTab, uniqueRooms, selectedRoom, randomRoom]);
@@ -744,12 +744,24 @@
             // Randomizer Logic
             const handleRandomRoomChange = (room) => {
                 setRandomRoom(room);
-                setWheelRotation(0);
                 setRandomWinner(null);
-                const roomStds = students.filter(s => s.room === room).sort((a,b) => (parseInt(a.no)||0)-(parseInt(b.no)||0));
-                setWheelStudents(roomStds);
-                setRandomHistory([]);
             };
+
+            // Calculate active students and history based on selected room and global drawnIds
+            const wheelStudents = useMemo(() => {
+                if (!randomRoom) return [];
+                return students
+                    .filter(s => s.room === randomRoom && !drawnIds.includes(s.id))
+                    .sort((a,b) => (parseInt(a.no)||0)-(parseInt(b.no)||0));
+            }, [students, randomRoom, drawnIds]);
+
+            const randomHistory = useMemo(() => {
+                if (!randomRoom) return [];
+                return drawnIds
+                    .map(id => students.find(s => s.id === id))
+                    .filter(s => s && s.room === randomRoom)
+                    .reverse(); // Newest first
+            }, [students, randomRoom, drawnIds]);
 
             const spinWheel = () => {
                 if (isSpinning || wheelStudents.length === 0) return;
@@ -762,8 +774,8 @@
                 // Target angle is the middle of the chosen slice
                 const landingAngle = winnerIndex * sliceAngle + (sliceAngle / 2);
                 
-                // We want the chosen slice to stop at 0 degrees (3 o'clock where the pointer is).
-                const extraSpins = 360 * 5; // 5 full rotations
+                // We want the chosen slice to stop at 0 degrees (12 o'clock where the pointer is).
+                const extraSpins = 360 * 6; // 6 full rotations
                 const currentMod = wheelRotation % 360;
                 // We need to rotate forward enough so that the landingAngle lands at 360 (or 0)
                 const offset = 360 - landingAngle - currentMod;
@@ -771,28 +783,20 @@
                 
                 setWheelRotation(targetRotation);
                 
-                // Play ticking sound if possible (optional, might be blocked by browser without interaction)
-                
                 setTimeout(() => {
                     setIsSpinning(false);
                     const winner = wheelStudents[winnerIndex];
                     setRandomWinner(winner);
-                    
-                    // Add to history and remove from wheel
-                    setRandomHistory(prev => [winner, ...prev]);
-                    setWheelStudents(prev => prev.filter(s => s.id !== winner.id));
-                    
+                    setDrawnIds(prev => [...prev, winner.id]);
                     showToast(`ผู้โชคดี: ${winner.name}`, 'success');
-                }, 3000); 
+                }, 5000); 
             };
 
             const restoreToWheel = (student) => {
-                setRandomHistory(prev => prev.filter(s => s.id !== student.id));
-                setWheelStudents(prev => {
-                    const next = [...prev, student];
-                    return next.sort((a,b) => (parseInt(a.no)||0)-(parseInt(b.no)||0));
-                });
-                setRandomWinner(null);
+                setDrawnIds(prev => prev.filter(id => id !== student.id));
+                if (randomWinner && randomWinner.id === student.id) {
+                    setRandomWinner(null);
+                }
             };
 
             const filteredStudents = useMemo(() => {
@@ -1074,58 +1078,78 @@
                                                 </select>
                                             </div>
 
-                                            <div className="relative w-64 h-64 sm:w-80 sm:h-80 my-4">
+                                            <div className="relative w-64 h-64 sm:w-80 sm:h-80 my-4 flex items-center justify-center p-2 rounded-full bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.2)] border-4 border-slate-700">
+                                                {/* Decorative Rim Dots */}
+                                                {[...Array(12)].map((_, i) => (
+                                                    <div key={i} className="absolute w-2 h-2 bg-slate-400 rounded-full shadow-inner" style={{
+                                                        top: `calc(50% - 4px - 47% * ${Math.cos(i * 30 * Math.PI / 180)})`,
+                                                        left: `calc(50% - 4px + 47% * ${Math.sin(i * 30 * Math.PI / 180)})`,
+                                                    }}></div>
+                                                ))}
+
                                                 {/* The Wheel */}
                                                 <div 
-                                                    className="w-full h-full rounded-full border-4 border-white shadow-xl relative overflow-hidden transition-transform duration-[3000ms] ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                                                    className="w-full h-full rounded-full relative overflow-hidden shadow-inner border-4 border-white"
                                                     style={{ 
+                                                        transitionProperty: 'transform',
+                                                        transitionDuration: '5000ms',
+                                                        transitionTimingFunction: 'cubic-bezier(0.1, 0.9, 0.2, 1)',
                                                         background: wheelStudents.length > 1 
-                                                            ? `conic-gradient(from -90deg, ${wheelStudents.map((s, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${(i / wheelStudents.length) * 100}% ${((i + 1) / wheelStudents.length) * 100}%`).join(', ')})`
+                                                            ? `conic-gradient(from 0deg, ${wheelStudents.map((s, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${(i / wheelStudents.length) * 100}% ${((i + 1) / wheelStudents.length) * 100}%`).join(', ')})`
                                                             : wheelStudents.length === 1 ? WHEEL_COLORS[0] : '#f1f5f9',
                                                         transform: `rotate(${wheelRotation}deg)`
                                                     }}
                                                 >
                                                     {wheelStudents.length > 1 && wheelStudents.map((s, i) => {
                                                         const n = wheelStudents.length;
+                                                        const angle = (i * 360) / n;
+                                                        return (
+                                                            <div key={`line-${s.id}`} className="absolute top-1/2 left-1/2 w-[2px] h-1/2 bg-black/10 origin-top -translate-x-1/2" style={{ transform: `rotate(${angle}deg)` }}></div>
+                                                        );
+                                                    })}
+                                                    {wheelStudents.length > 1 && wheelStudents.map((s, i) => {
+                                                        const n = wheelStudents.length;
                                                         const angle = (i * 360) / n + (360 / n) / 2;
                                                         return (
-                                                            <div key={s.id} style={{
-                                                                position: 'absolute', top: '50%', left: '50%', width: '50%', height: '24px', marginTop: '-12px',
-                                                                transformOrigin: '0% 50%', transform: `rotate(${angle}deg)`,
-                                                                textAlign: 'right', paddingRight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'flex-end'
+                                                            <div key={s.id} className="absolute top-1/2 left-1/2 w-[48%] h-6 origin-left flex items-center pl-6 sm:pl-8" style={{
+                                                                transform: `translate(0, -50%) rotate(${angle - 90}deg)`
                                                             }}>
-                                                                <span className="text-[10px] sm:text-xs font-bold text-slate-800 truncate" style={{maxWidth: '85%'}}>
+                                                                <span className="text-[10px] sm:text-sm font-bold text-slate-800 truncate bg-white/70 px-1.5 py-0.5 rounded shadow-sm">
                                                                     {s.name.split(' ')[0]}
                                                                 </span>
                                                             </div>
                                                         );
                                                     })}
                                                     {wheelStudents.length === 1 && (
-                                                        <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-800 text-lg">
+                                                        <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-800 text-2xl">
                                                             {wheelStudents[0].name.split(' ')[0]}
                                                         </div>
                                                     )}
                                                     {wheelStudents.length === 0 && (
-                                                        <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-400">
+                                                        <div className="absolute inset-0 flex flex-col items-center justify-center font-bold text-slate-400 bg-slate-100">
+                                                            <Icons.CheckCircle size={32} className="mb-2 text-green-400"/>
                                                             {randomRoom ? 'สุ่มครบทุกคนแล้ว' : 'กรุณาเลือกห้อง'}
                                                         </div>
                                                     )}
                                                 </div>
-                                                {/* Pointer */}
-                                                <div className="absolute top-1/2 -right-3 w-0 h-0 border-y-[12px] border-y-transparent border-r-[24px] border-r-slate-800 -translate-y-1/2 z-10 drop-shadow-md"></div>
-                                                {/* Center Dot */}
-                                                <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-white rounded-full shadow-inner transform -translate-x-1/2 -translate-y-1/2 border-2 border-slate-100 z-10"></div>
+                                                {/* Center Cap */}
+                                                <div className="absolute top-1/2 left-1/2 w-14 h-14 bg-slate-800 rounded-full shadow-2xl transform -translate-x-1/2 -translate-y-1/2 border-4 border-slate-200 z-10 flex items-center justify-center">
+                                                   <div className="w-4 h-4 bg-slate-300 rounded-full shadow-inner"></div>
+                                                </div>
+                                                {/* Pointer at 12 o'clock */}
+                                                <div className="absolute top-[-10px] left-1/2 w-0 h-0 border-x-[15px] border-x-transparent border-t-[30px] border-t-red-500 transform -translate-x-1/2 z-20 drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]"></div>
                                             </div>
-
-                                            <div className="h-20 flex items-center justify-center w-full mb-4">
+                                            
+                                            <div className="h-24 flex items-center justify-center w-full mb-2">
                                                 {randomWinner ? (
-                                                    <div className="text-center animate-scale">
+                                                    <div className="text-center animate-scale w-full">
                                                         <div className="text-sm text-slate-500 mb-1">ผู้โชคดีคือ (เลขที่ {randomWinner.no})</div>
-                                                        <div className="text-2xl font-bold text-primary-600 bg-primary-50 px-6 py-2 rounded-2xl border border-primary-100 shadow-sm">{randomWinner.name}</div>
+                                                        <div className="text-2xl font-bold text-primary-600 bg-primary-50 px-6 py-3 rounded-2xl border border-primary-100 shadow-sm truncate">{randomWinner.name}</div>
                                                     </div>
                                                 ) : (
-                                                    <div className="text-slate-400 text-sm">
-                                                        {wheelStudents.length > 0 ? `พร้อมสุ่มนักเรียนจำนวน ${wheelStudents.length} คน` : ''}
+                                                    <div className="text-slate-400 text-sm flex flex-col items-center">
+                                                        <span className="font-display font-bold text-lg text-slate-600 mb-1">พร้อมสุ่ม</span>
+                                                        <span>มีนักเรียนในวงล้อ {wheelStudents.length} คน</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -1133,7 +1157,7 @@
                                             <button 
                                                 onClick={spinWheel} 
                                                 disabled={isSpinning || wheelStudents.length === 0}
-                                                className={`w-full py-4 rounded-2xl font-bold text-lg text-white shadow-lg transition active:scale-95 ${isSpinning || wheelStudents.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-primary-200'}`}
+                                                className={`w-full py-4 rounded-2xl font-bold text-lg text-white shadow-lg transition transform active:scale-95 ${isSpinning || wheelStudents.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-primary-200'}`}
                                             >
                                                 {isSpinning ? 'กำลังสุ่ม...' : 'เริ่มสุ่ม (Spin)'}
                                             </button>
@@ -1142,34 +1166,41 @@
                                         {/* Right: History */}
                                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[600px] lg:h-auto">
                                             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                                <h3 className="font-bold text-lg text-slate-800">ประวัติการสุ่ม ({randomHistory.length})</h3>
+                                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Users className="text-slate-500"/> ประวัติการสุ่ม ({randomHistory.length})</h3>
                                                 {randomHistory.length > 0 && (
-                                                    <button onClick={() => handleRandomRoomChange(randomRoom)} className="text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 font-bold flex items-center gap-1 transition">
+                                                    <button onClick={() => {
+                                                        if(confirm('ต้องการคืนค่าผู้ที่ถูกสุ่มไปแล้วของห้องนี้ กลับเข้าสู่วงล้อทั้งหมดหรือไม่?')) {
+                                                            const roomIds = randomHistory.map(s => s.id);
+                                                            setDrawnIds(prev => prev.filter(id => !roomIds.includes(id)));
+                                                            setRandomWinner(null);
+                                                        }
+                                                    }} className="text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 font-bold flex items-center gap-1 transition">
                                                         <Icons.Refresh size={12}/> คืนค่าทั้งหมด
                                                     </button>
                                                 )}
                                             </div>
-                                            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                                                 {randomHistory.length === 0 && (
                                                     <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60">
-                                                        <Icons.Users size={48} className="mb-4 opacity-50"/>
-                                                        <div>ยังไม่มีประวัติการสุ่ม</div>
+                                                        <Icons.Aperture size={48} className="mb-4 opacity-50"/>
+                                                        <div>ยังไม่มีประวัติการสุ่มในห้องนี้</div>
                                                     </div>
                                                 )}
                                                 {randomHistory.map((s, i) => (
-                                                    <div key={i + '-' + s.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl animate-fade-in hover:border-slate-200 transition group">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-xs shadow-inner">{s.no}</div>
-                                                            <div>
-                                                                <div className="font-bold text-sm text-slate-700">{s.name}</div>
+                                                    <div key={s.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl animate-fade-in hover:border-primary-200 hover:shadow-sm transition group">
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm shadow-inner flex-shrink-0">{s.no}</div>
+                                                            <div className="truncate">
+                                                                <div className="font-bold text-sm text-slate-700 truncate group-hover:text-primary-700 transition-colors">{s.name}</div>
                                                                 <div className="text-[10px] text-slate-400 font-mono">รหัส: {s.id}</div>
                                                             </div>
                                                         </div>
                                                         <button 
                                                             onClick={() => restoreToWheel(s)}
-                                                            className="text-xs text-primary-600 bg-white border border-primary-200 hover:bg-primary-50 px-3 py-1.5 rounded-lg font-bold transition shadow-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+                                                            className="text-xs text-slate-500 hover:text-green-600 bg-white border border-slate-200 hover:border-green-300 hover:bg-green-50 px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition shadow-sm flex-shrink-0"
+                                                            title="นำกลับไปสุ่ม"
                                                         >
-                                                            นำกลับไปสุ่ม
+                                                            <Icons.Refresh size={14}/> คืนค่า
                                                         </button>
                                                     </div>
                                                 ))}
