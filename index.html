@@ -441,6 +441,7 @@
             const [isSpinning, setIsSpinning] = useState(false);
             const [wheelRotation, setWheelRotation] = useState(0);
             const [randomWinner, setRandomWinner] = useState(null);
+            const [spinDuration, setSpinDuration] = useState(5); // New State for Spin Duration
 
             // Init
             useEffect(() => {
@@ -775,7 +776,7 @@
                 const landingAngle = winnerIndex * sliceAngle + (sliceAngle / 2);
                 
                 // We want the chosen slice to stop at 0 degrees (12 o'clock where the pointer is).
-                const extraSpins = 360 * 6; // 6 full rotations
+                const extraSpins = 360 * Math.floor(spinDuration * 1.2); 
                 const currentMod = wheelRotation % 360;
                 // We need to rotate forward enough so that the landingAngle lands at 360 (or 0)
                 const offset = 360 - landingAngle - currentMod;
@@ -789,7 +790,7 @@
                     setRandomWinner(winner);
                     setDrawnIds(prev => [...prev, winner.id]);
                     showToast(`ผู้โชคดี: ${winner.name}`, 'success');
-                }, 5000); 
+                }, spinDuration * 1000); 
             };
 
             const restoreToWheel = (student) => {
@@ -1072,10 +1073,18 @@
                                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
                                             <div className="w-full flex justify-between items-center mb-6">
                                                 <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Shuffle size={20} className="text-primary-600"/> วงล้อสุ่ม</h3>
-                                                <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none" value={randomRoom} onChange={e => handleRandomRoomChange(e.target.value)}>
-                                                    <option value="" disabled hidden>เลือกห้องเรียน</option>
-                                                    {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
-                                                </select>
+                                                <div className="flex gap-2">
+                                                    <select className="bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-sm font-bold text-slate-600 outline-none" value={spinDuration} onChange={e => setSpinDuration(Number(e.target.value))} disabled={isSpinning}>
+                                                        <option value={3}>3 วิ</option>
+                                                        <option value={5}>5 วิ</option>
+                                                        <option value={8}>8 วิ</option>
+                                                        <option value={10}>10 วิ</option>
+                                                    </select>
+                                                    <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none" value={randomRoom} onChange={e => handleRandomRoomChange(e.target.value)} disabled={isSpinning}>
+                                                        <option value="" disabled hidden>เลือกห้องเรียน</option>
+                                                        {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                                    </select>
+                                                </div>
                                             </div>
 
                                             <div className="relative w-64 h-64 sm:w-80 sm:h-80 my-4 flex items-center justify-center p-2 rounded-full bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.2)] border-4 border-slate-700">
@@ -1092,7 +1101,7 @@
                                                     className="w-full h-full rounded-full relative overflow-hidden shadow-inner border-4 border-white"
                                                     style={{ 
                                                         transitionProperty: 'transform',
-                                                        transitionDuration: '5000ms',
+                                                        transitionDuration: `${spinDuration * 1000}ms`,
                                                         transitionTimingFunction: 'cubic-bezier(0.1, 0.9, 0.2, 1)',
                                                         background: wheelStudents.length > 1 
                                                             ? `conic-gradient(from 0deg, ${wheelStudents.map((s, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${(i / wheelStudents.length) * 100}% ${((i + 1) / wheelStudents.length) * 100}%`).join(', ')})`
