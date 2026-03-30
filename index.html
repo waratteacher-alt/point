@@ -107,8 +107,9 @@
           appId: "1:220294944319:web:9e0be166b93e5e348aca8a",
           measurementId: "G-2H24FMY9BB"
         };
-        const firebaseConfig = envConfig || userConfig;
-        const app = initializeApp(firebaseConfig);
+        // FIXED: เปลี่ยนชื่อตัวแปรจาก firebaseConfig เป็น appFirebaseConfig เพื่อแก้ปัญหา Identifier has already been declared
+        const appFirebaseConfig = envConfig || userConfig;
+        const app = initializeApp(appFirebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'gradepro-v8-multi'; 
@@ -984,7 +985,6 @@
                                         <p className="text-slate-500">โปรดคลิกเลือก "โฟลเดอร์รายวิชา" ที่ต้องการจัดการ หรือสร้างวิชาใหม่</p>
                                     </div>
                                     <div className="flex gap-2 w-full md:w-auto">
-                                        {/* เรายังคงหน้าต่างการตั้งค่าหลัก (global setting) เอาไว้โดยใช้ activeCourseId ปกติ แต่จะปรับแค่ tab ให้ไปที่ settings */}
                                         <button onClick={() => { 
                                             if(!activeCourseId && masterData.courses?.length > 0) setActiveCourseId(masterData.courses[0].id); 
                                             setView('teacher'); setTeacherTab('settings'); 
@@ -1058,7 +1058,6 @@
                                                 {uniqueRooms.map(r => <option key={r} value={r}>{r}</option>)}
                                             </select>
                                             <div className="relative flex-1 md:flex-none"><Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/><input className="w-full md:w-40 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหา..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
-                                            <button onClick={() => setScannerOpen(true)} className="bg-primary-600 text-white p-2.5 rounded-xl hover:bg-primary-700 shadow-md transition hidden sm:block"><Icons.Camera/></button>
                                             <button onClick={() => window.print()} className="bg-white border border-slate-200 text-slate-600 p-2.5 rounded-xl hover:bg-slate-50 transition hidden sm:block"><Icons.Print/></button>
                                         </div>
                                     )}
@@ -1457,7 +1456,7 @@
                                                                     </button>
                                                                     <div className="w-px h-6 bg-slate-300 mx-1"></div>
                                                                     <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups = [...(newSecs[sIdx].groups || []), { id: Date.now(), title: '', columns: [] }]; setSections(newSecs); saveCourseConfigData(newSecs, null, null); }} className="text-xs bg-white text-slate-700 hover:bg-slate-50 px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 transition shadow-sm border border-slate-200"><Icons.Plus size={14}/> เพิ่มกลุ่ม</button>
-                                                                    <button onClick={() => { setModal({ type: 'confirm', title: 'ลบบทเรียน', message: 'ยืนยัน?', onConfirm: () => { const newSecs = sections.filter((_, i) => i !== sIdx); setSections(newSecs); saveCourseConfigData(newSecs, null, null); setModal(null); }}); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Icons.Trash size={18}/></button>
+                                                                    <button onClick={() => { setModal({ type: 'confirm', title: 'ลบบบทเรียน', message: 'ยืนยัน?', onConfirm: () => { const newSecs = sections.filter((_, i) => i !== sIdx); setSections(newSecs); saveCourseConfigData(newSecs, null, null); setModal(null); }}); }} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Icons.Trash size={18}/></button>
                                                                 </div>
                                                             </div>
                                                             <div className="p-6 space-y-6 bg-white">
