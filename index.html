@@ -98,13 +98,14 @@
 
         // --- CONFIG ---
         const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const userConfig = {
-              apiKey: "AIzaSyDeUTSyXJoA6NyokBwSqm6_3CdN-AjBeBk",
-              authDomain: "gradepro-af890.firebaseapp.com",
-              projectId: "gradepro-af890",
-              storageBucket: "gradepro-af890.firebasestorage.app",
-              messagingSenderId: "578599330773",
-              appId: "1:578599330773:web:b934f11e632350842a135c"
+        const firebaseConfig = {
+          apiKey: "AIzaSyAA9PKaYeOdUGkIFX_6fT_m7EY5a4ChP-I",
+          authDomain: "gradepro-52382.firebaseapp.com",
+          projectId: "gradepro-52382",
+          storageBucket: "gradepro-52382.firebasestorage.app",
+          messagingSenderId: "220294944319",
+          appId: "1:220294944319:web:9e0be166b93e5e348aca8a",
+          measurementId: "G-2H24FMY9BB"
         };
         const firebaseConfig = envConfig || userConfig;
         const app = initializeApp(firebaseConfig);
