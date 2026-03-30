@@ -94,7 +94,7 @@
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, addDoc, onSnapshot, writeBatch, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, writeBatch, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIG ---
         const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
@@ -107,7 +107,6 @@
           appId: "1:220294944319:web:9e0be166b93e5e348aca8a",
           measurementId: "G-2H24FMY9BB"
         };
-        // FIXED: เปลี่ยนชื่อตัวแปรจาก firebaseConfig เป็น appFirebaseConfig เพื่อแก้ปัญหา Identifier has already been declared
         const appFirebaseConfig = envConfig || userConfig;
         const app = initializeApp(appFirebaseConfig);
         const auth = getAuth(app);
@@ -170,7 +169,8 @@
             CheckCircle: (p) => <Icon {...p} p={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
             BookOpen: (p) => <Icon {...p} p={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />,
             Folder: (p) => <Icon {...p} p={<><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></>} />,
-            LayoutGrid: (p) => <Icon {...p} p={<><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></>} />
+            LayoutGrid: (p) => <Icon {...p} p={<><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></>} />,
+            ChevronUp: (p) => <Icon {...p} p={<><polyline points="18 15 12 9 6 15"/></>} />
         };
 
         const SECTION_COLORS = [
@@ -326,7 +326,14 @@
             const [accessLogs, setAccessLogs] = useState([]);
             const [searchQuery, setSearchQuery] = useState('');
             const [selectedRoom, setSelectedRoom] = useState('All');
+            
+            // NEW: Student Portal State
+            const [studentSearchInput, setStudentSearchInput] = useState('');
+            const [isSearchingStudent, setIsSearchingStudent] = useState(false);
+            const [foundStudentCourses, setFoundStudentCourses] = useState([]);
+            const [selectedStudentCourse, setSelectedStudentCourse] = useState(null);
             const [studentViewData, setStudentViewData] = useState(null);
+            
             const [teacherTab, setTeacherTab] = useState('scores');
             const [modal, setModal] = useState({ type: null, data: null });
             const [scannerOpen, setScannerOpen] = useState(false);
@@ -371,8 +378,8 @@
                     if (d.exists()) {
                         const data = d.data();
                         setMasterData(data);
-                        // Auto select first course if none selected
-                        if (!activeCourseId && data.courses && data.courses.length > 0) {
+                        // Auto select first course if none selected (for teachers)
+                        if (!activeCourseId && view !== 'student' && data.courses && data.courses.length > 0) {
                             setActiveCourseId(data.courses[0].id);
                         }
                         setLoading(false);
@@ -382,7 +389,7 @@
                     }
                 });
                 return unsubMaster;
-            }, [user, activeCourseId]);
+            }, [user, view]); // activeCourseId removed from dependency to avoid loop
 
             // 3. Load Course Specific Data when activeCourseId changes
             useEffect(() => {
@@ -391,8 +398,6 @@
                 // Clear old course data while loading new one
                 setStudents([]); 
                 setSections([]);
-                setStudentViewData(null);
-                setSearchQuery('');
                 
                 // Config
                 const unsubConfig = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', `config_${activeCourseId}`, 'main'), (d) => {
@@ -539,20 +544,72 @@
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', `students_${activeCourseId}`, id)); setModal(null); showToast('ลบแล้ว', 'success');
                 }});
             };
-
-            const handleScan = (txt) => {
-                const s = students.find(x => x.id === txt || x.name === txt);
-                if (s) { 
-                    showToast(`พบ: ${s.name}`, 'success'); 
-                    if (view === 'student') { setStudentViewData(s); setSearchQuery(''); logAccess(s); }
-                    else { setSearchQuery(s.id); } 
-                } else showToast('ไม่พบข้อมูลในวิชานี้', 'error');
-            };
             
-            const logAccess = (s) => {
-                addDoc(collection(db, 'artifacts', appId, 'public', 'data', `logs_${activeCourseId}`), {
+            const logAccess = (s, courseIdOverride) => {
+                const cid = courseIdOverride || activeCourseId;
+                if(!cid) return;
+                addDoc(collection(db, 'artifacts', appId, 'public', 'data', `logs_${cid}`), {
                     student: s.name, id: s.id, room: s.room, time: Date.now()
                 });
+            };
+
+            // NEW: Multi-Course Student Search Logic
+            const handleStudentSearch = async () => {
+                if (!studentSearchInput.trim()) {
+                    showToast('กรุณากรอกรหัสประจำตัวนักเรียน', 'error');
+                    return;
+                }
+                
+                setIsSearchingStudent(true);
+                setFoundStudentCourses([]);
+                setSelectedStudentCourse(null);
+                setStudentViewData(null);
+                setActiveCourseId('');
+
+                const results = [];
+                const searchVal = studentSearchInput.trim();
+
+                for (const course of (masterData.courses || [])) {
+                    try {
+                        // 1. Try direct document ID matching (fastest, exact match)
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', `students_${course.id}`, searchVal);
+                        const docSnap = await getDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            results.push({ course, studentData: { id: docSnap.id, ...docSnap.data() } });
+                        } else {
+                            // 2. Fallback: Search by name across documents
+                            const q = query(collection(db, 'artifacts', appId, 'public', 'data', `students_${course.id}`));
+                            const snap = await getDocs(q);
+                            let found = false;
+                            snap.forEach(d => {
+                                const s = d.data();
+                                if (!found && (s.id === searchVal || s.name === searchVal)) {
+                                    results.push({ course, studentData: { id: d.id, ...s } });
+                                    found = true;
+                                }
+                            });
+                        }
+                    } catch (e) { 
+                        console.error("Search error in course", course.id, e); 
+                    }
+                }
+
+                setFoundStudentCourses(results);
+                setIsSearchingStudent(false);
+                
+                if (results.length === 0) {
+                    showToast('ไม่พบข้อมูลของคุณในรายวิชาใดๆ', 'error');
+                } else {
+                    showToast(`พบข้อมูลใน ${results.length} รายวิชา`, 'success');
+                }
+            };
+
+            const handleSelectCourse = (res) => {
+                setActiveCourseId(res.course.id);
+                setStudentViewData(res.studentData);
+                setSelectedStudentCourse(res);
+                logAccess(res.studentData, res.course.id);
             };
 
             const handleExportCSV = () => {
@@ -757,7 +814,14 @@
                     
                     <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm glass-panel no-print">
                         <div className="w-full px-4 h-16 flex justify-between items-center max-w-7xl mx-auto">
-                            <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setView('student'); setStudentViewData(null); setSearchQuery(''); }}>
+                            <div className="flex items-center gap-3 cursor-pointer" onClick={() => { 
+                                setView('student'); 
+                                setStudentViewData(null); 
+                                setSearchQuery(''); 
+                                setStudentSearchInput('');
+                                setFoundStudentCourses([]);
+                                setSelectedStudentCourse(null);
+                            }}>
                                 <div className="bg-gradient-to-tr from-primary-600 to-primary-400 text-white p-2 rounded-lg shadow-glow"><Icons.BookOpen size={20}/></div>
                                 <div className="leading-tight">
                                     <div className="font-display font-bold text-xl text-slate-800 tracking-tight">GradePro <span className="text-primary-600 text-sm">Multi</span></div>
@@ -774,7 +838,11 @@
                                     <div className="relative flex-1">
                                         <select 
                                             value={activeCourseId} 
-                                            onChange={e => setActiveCourseId(e.target.value)}
+                                            onChange={e => {
+                                                setActiveCourseId(e.target.value);
+                                                setStudentViewData(null);
+                                                setSearchQuery('');
+                                            }}
                                             className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-2 pl-4 pr-10 rounded-full font-bold text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 transition cursor-pointer"
                                         >
                                             {masterData.courses?.map(c => <option key={c.id} value={c.id}>{c.code} {c.name}</option>)}
@@ -791,7 +859,11 @@
                                             <Icons.LayoutGrid size={18}/>
                                         </button>
                                         <div className="relative">
-                                            <select value={activeCourseId} onChange={e => setActiveCourseId(e.target.value)} className="appearance-none bg-slate-100 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg font-bold text-xs">
+                                            <select value={activeCourseId} onChange={e => {
+                                                setActiveCourseId(e.target.value);
+                                                setStudentViewData(null);
+                                                setSearchQuery('');
+                                            }} className="appearance-none bg-slate-100 text-slate-700 py-1.5 pl-3 pr-8 rounded-lg font-bold text-xs">
                                                 {masterData.courses?.map(c => <option key={c.id} value={c.id}>{c.code}</option>)}
                                             </select>
                                             <Icons.ChevronDown className="absolute right-2 top-2 text-slate-400 pointer-events-none" size={12}/>
@@ -800,7 +872,14 @@
                                 )}
                                 <button onClick={() => { navigator.clipboard.writeText(window.location.href); showToast('คัดลอกลิงก์แล้ว'); }} className="text-slate-500 hover:text-primary-600 px-2 py-2 rounded-full transition hidden sm:block"><Icons.Share size={20}/></button>
                                 {(view === 'teacher' || view === 'teacher_dashboard') ? 
-                                    <button onClick={() => { setView('student'); setStudentViewData(null); setSearchQuery(''); }} className="text-sm font-medium text-slate-500 hover:text-red-500 px-3 py-2 flex items-center gap-1"><Icons.LogOut size={16}/> <span className="hidden sm:inline">ออก</span></button> : 
+                                    <button onClick={() => { 
+                                        setView('student'); 
+                                        setStudentViewData(null); 
+                                        setSearchQuery(''); 
+                                        setStudentSearchInput('');
+                                        setFoundStudentCourses([]);
+                                        setSelectedStudentCourse(null);
+                                    }} className="text-sm font-medium text-slate-500 hover:text-red-500 px-3 py-2 flex items-center gap-1"><Icons.LogOut size={16}/> <span className="hidden sm:inline">ออก</span></button> : 
                                     <button onClick={() => setView('teacher_login')} className="bg-slate-800 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-slate-900 shadow-lg flex items-center gap-2"><Icons.Lock size={14}/> ครูผู้สอน</button>
                                 }
                             </div>
@@ -812,49 +891,79 @@
                         {view === 'student' && (
                             <div className="max-w-md mx-auto mt-10 animate-slide-up">
                                 <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-                                    <div className="bg-gradient-to-r from-primary-600 to-primary-500 p-8 text-center text-white relative">
+                                    <div className="bg-gradient-to-r from-primary-600 to-primary-500 p-8 text-center text-white relative rounded-t-3xl">
                                         <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                                         <h2 className="text-3xl font-bold mb-1 font-display relative z-10">ตรวจสอบคะแนน</h2>
-                                        <p className="text-primary-100 text-sm relative z-10">{masterData.teacher}</p>
+                                        <p className="text-primary-100 text-sm relative z-10">
+                                            {selectedStudentCourse ? `${selectedStudentCourse.course.code} ${selectedStudentCourse.course.name}` : masterData.teacher}
+                                        </p>
                                     </div>
                                     <div className="p-6">
-                                        {/* Course Selector for Students */}
-                                        <div className="mb-6 relative">
-                                            <label className="block text-xs font-bold text-slate-500 uppercase mb-2">เลือกรายวิชาที่ต้องการตรวจสอบ</label>
-                                            <div className="relative">
-                                                <select 
-                                                    value={activeCourseId} 
-                                                    onChange={e => { setActiveCourseId(e.target.value); setStudentViewData(null); setSearchQuery(''); }}
-                                                    className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-700 py-3 pl-4 pr-10 rounded-xl font-bold focus:outline-none focus:ring-2 focus:ring-primary-500 transition cursor-pointer"
-                                                >
-                                                    <option value="" disabled hidden>-- กรุณาเลือกรายวิชา --</option>
-                                                    {masterData.courses?.map(c => <option key={c.id} value={c.id}>{c.code} {c.name}</option>)}
-                                                </select>
-                                                <Icons.ChevronDown className="absolute right-4 top-3.5 text-slate-400 pointer-events-none"/>
-                                            </div>
-                                        </div>
-
-                                        {activeCourseId && (
-                                            <div className="relative mb-6 animate-fade-in">
-                                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Icons.Search/></div>
-                                                <input type="text" placeholder="รหัส หรือ ชื่อนักเรียน..." className="w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition font-medium text-lg" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); setStudentViewData(null); setIsSimulateMode(false); setSimulatedScores({}); }} />
-                                            </div>
-                                        )}
-                                        
-                                        {searchQuery.length > 1 && !studentViewData && activeCourseId && (
-                                            <div className="space-y-2">
-                                                {filteredStudents.slice(0, 5).map(s => (
-                                                    <button key={s.id} onClick={() => { setStudentViewData(s); setSearchQuery(''); logAccess(s); setIsSimulateMode(false); setSimulatedScores({}); }} className="w-full text-left p-4 rounded-xl border border-slate-100 hover:border-primary-200 hover:bg-primary-50 transition flex items-center justify-between group">
-                                                        <div><div className="font-bold text-slate-700 group-hover:text-primary-700">{s.name}</div><div className="text-xs text-slate-400 font-mono">ID: {s.id}</div></div>
-                                                        <span className="bg-white text-slate-500 px-2 py-1 rounded text-xs border group-hover:border-primary-200">{s.room}</span>
-                                                    </button>
-                                                ))}
-                                                {filteredStudents.length === 0 && <div className="text-center text-slate-400 py-4">ไม่พบข้อมูลในวิชานี้</div>}
-                                            </div>
-                                        )}
-
-                                        {studentViewData && activeStudentData && (
+                                        {/* Step 1: Search by Student ID */}
+                                        {!selectedStudentCourse && (
                                             <div className="animate-fade-in">
+                                                <div className="mb-6 relative">
+                                                    <label className="block text-sm font-bold text-slate-700 mb-2">กรอกรหัสประจำตัวเพื่อดูรายวิชา</label>
+                                                    <div className="flex gap-2">
+                                                        <div className="relative flex-1">
+                                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400"><Icons.User size={18}/></div>
+                                                            <input 
+                                                                type="text" 
+                                                                placeholder="รหัสประจำตัว..." 
+                                                                className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition font-medium text-lg" 
+                                                                value={studentSearchInput} 
+                                                                onChange={e => setStudentSearchInput(e.target.value)} 
+                                                                onKeyDown={e => e.key === 'Enter' && handleStudentSearch()}
+                                                            />
+                                                        </div>
+                                                        <button 
+                                                            onClick={handleStudentSearch}
+                                                            disabled={isSearchingStudent}
+                                                            className={`px-6 rounded-2xl font-bold text-white shadow-md transition ${isSearchingStudent ? 'bg-slate-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'}`}
+                                                        >
+                                                            {isSearchingStudent ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'ค้นหา'}
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Step 2: List of Found Courses */}
+                                                {foundStudentCourses.length > 0 && (
+                                                    <div className="mt-8 animate-slide-up">
+                                                        <h3 className="text-sm font-bold text-slate-500 mb-3 border-b border-slate-100 pb-2">รายวิชาของคุณ ({foundStudentCourses.length})</h3>
+                                                        <div className="grid gap-3">
+                                                            {foundStudentCourses.map((res, i) => (
+                                                                <button 
+                                                                    key={i} 
+                                                                    onClick={() => handleSelectCourse(res)} 
+                                                                    className="w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary-300 hover:shadow-md hover:bg-primary-50 transition flex items-center justify-between group bg-white"
+                                                                >
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-xl flex items-center justify-center group-hover:bg-primary-600 group-hover:text-white transition-colors">
+                                                                            <Icons.BookOpen size={24}/>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="font-bold text-slate-800 text-lg group-hover:text-primary-700 transition-colors">{res.course.name}</div>
+                                                                            <div className="text-xs text-slate-500 font-mono">{res.course.code} • เทอม {res.course.semester}/{res.course.year}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="text-slate-300 group-hover:text-primary-500 transition-colors">
+                                                                        <Icons.ChevronRight size={24}/>
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* Step 3: Viewing Grades for a selected course */}
+                                        {selectedStudentCourse && studentViewData && activeStudentData && (
+                                            <div className="animate-slide-up">
+                                                <button onClick={() => { setSelectedStudentCourse(null); setStudentViewData(null); setActiveCourseId(''); }} className="mb-4 text-slate-500 hover:text-primary-600 flex items-center gap-1 text-sm font-bold transition px-3 py-1.5 bg-slate-50 rounded-lg hover:bg-primary-50 w-fit">
+                                                    <Icons.ChevronLeft size={16}/> กลับไปหน้ารายวิชา
+                                                </button>
+
                                                 <div className="flex items-center gap-4 mb-4">
                                                     <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center text-primary-600 shadow-inner"><Icons.User size={32}/></div>
                                                     <div><h3 className="text-xl font-bold text-slate-800">{studentViewData.name}</h3><p className="text-slate-500 text-sm">ชั้น {studentViewData.room} เลขที่ {studentViewData.no}</p></div>
@@ -999,7 +1108,7 @@
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {masterData.courses?.map(c => (
-                                        <button key={c.id} onClick={() => { setActiveCourseId(c.id); setView('teacher'); setTeacherTab('scores'); }} className="bg-white p-6 rounded-3xl shadow-soft border border-slate-200 hover:border-primary-400 hover:shadow-lg transition-all transform hover:-translate-y-1 group text-left flex flex-col h-full relative overflow-hidden min-h-[180px]">
+                                        <button key={c.id} onClick={() => { setActiveCourseId(c.id); setView('teacher'); setTeacherTab('scores'); setStudentViewData(null); setSearchQuery(''); }} className="bg-white p-6 rounded-3xl shadow-soft border border-slate-200 hover:border-primary-400 hover:shadow-lg transition-all transform hover:-translate-y-1 group text-left flex flex-col h-full relative overflow-hidden min-h-[180px]">
                                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-50 to-transparent rounded-bl-full opacity-50 pointer-events-none group-hover:from-primary-100 transition-colors"></div>
                                             
                                             <div className="flex justify-between items-start mb-4 relative z-10">
