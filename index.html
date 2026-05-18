@@ -94,15 +94,16 @@
 
         const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const firebaseConfig = {
-          apiKey: "AIzaSyAA9PKaYeOdUGkIFX_6fT_m7EY5a4ChP-I",
-          authDomain: "gradepro-52382.firebaseapp.com",
-          projectId: "gradepro-52382",
-          storageBucket: "gradepro-52382.firebasestorage.app",
-          messagingSenderId: "220294944319",
-          appId: "1:220294944319:web:9e0be166b93e5e348aca8a",
-          measurementId: "G-2H24FMY9BB"
-        };
-        const firebaseConfigObj = envConfig || userConfig;
+            const firebaseConfig = {
+              apiKey: "AIzaSyAA9PKaYeOdUGkIFX_6fT_m7EY5a4ChP-I",
+              authDomain: "gradepro-52382.firebaseapp.com",
+              projectId: "gradepro-52382",
+              storageBucket: "gradepro-52382.firebasestorage.app",
+              messagingSenderId: "220294944319",
+              appId: "1:220294944319:web:9e0be166b93e5e348aca8a",
+              measurementId: "G-2H24FMY9BB"
+            };
+        const firebaseConfigObj = envConfig || firebaseConfig;
         const app = initializeApp(firebaseConfigObj);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -1221,7 +1222,6 @@
                             </div>
                         )}
 
-                        {/* ---------------- LOGIN VIEW ---------------- */}
                         {view === 'login' && (
                             <div className="min-h-[70vh] flex items-center justify-center py-12 px-4 relative overflow-hidden">
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary-300/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -1316,7 +1316,6 @@
                             </div>
                         )}
 
-                        {/* ---------------- ADMIN DASHBOARD VIEW ---------------- */}
                         {view === 'admin_dashboard' && loggedUser?.role === 'admin' && (
                             <div className="max-w-6xl mx-auto mt-8 animate-slide-up pb-10">
                                 <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-[2rem] p-8 sm:p-12 mb-8 shadow-xl relative overflow-hidden text-white">
@@ -1470,7 +1469,6 @@
                             </div>
                         )}
 
-                        {/* ---------------- TEACHER DASHBOARD VIEW ---------------- */}
                         {view === 'teacher_dashboard' && loggedUser?.role === 'teacher' && (
                             <div className="max-w-6xl mx-auto mt-8 animate-slide-up">
                                 <div className="bg-gradient-to-r from-primary-900 via-primary-800 to-purple-900 rounded-[2rem] p-8 sm:p-12 mb-8 shadow-xl relative overflow-hidden text-white">
@@ -1562,7 +1560,6 @@
                             </div>
                         )}
 
-                        {/* ---------------- HOMEROOM TEACHER VIEW (READ ONLY) ---------------- */}
                         {view === 'homeroom_view' && (
                             <div className="animate-fade-in max-w-[100%] mx-auto pb-10">
                                 <div className="flex justify-between items-center mb-6 no-print">
@@ -1651,7 +1648,6 @@
                             </div>
                         )}
 
-                        {/* ---------------- TEACHER WORKSPACE VIEW ---------------- */}
                         {view === 'teacher_view' && activeCourseId && (
                             <div className="animate-fade-in w-full">
                                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-2xl shadow-soft border border-slate-100 sticky top-20 z-30">
