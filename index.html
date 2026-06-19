@@ -12,8 +12,15 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18",
+          "react-dom/client": "https://esm.sh/react-dom@18/client",
+          "react/jsx-runtime": "https://esm.sh/react@18/jsx-runtime"
+        }
+      }
+    </script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -87,11 +94,17 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel" data-type="module">
+        <script type="text/babel" data-type="module">
+        // 1. เพิ่ม 2 บรรทัดนี้เข้ามาเพื่อเรียกใช้ React ผ่าน ES Modules
+        import React from "react";
+        import * as ReactDOM from "react-dom/client";
+    
+        // 2. ส่วนนี้คือโค้ด Firebase ของเดิมของคุณ (ไม่ต้องแก้)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, writeBatch, deleteDoc, query, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, writeBatch, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    
+        // ... โค้ดอื่นๆ ของคุณทั้งหมดอยู่ต่อจากตรงนี้ตามปกติ ...
         const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const firebaseConfig = {
             apiKey: "AIzaSyAA9PKaYeOdUGkIFX_6fT_m7EY5a4ChP-I",
