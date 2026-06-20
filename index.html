@@ -543,6 +543,15 @@
             }, []);
 
             useEffect(() => {
+                const savedUserData = localStorage.getItem('gradeProUser');
+                if (savedUserData) {
+                    const parsedUser = JSON.parse(savedUserData);
+                    setLoggedUser(parsedUser);
+                    setView(parsedUser.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard');
+                }
+            }, []);
+            
+            useEffect(() => {
                 const init = async () => {
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
@@ -861,7 +870,9 @@
             const handleLogin = () => {
                 if (loginTab === 'admin') {
                     if (loginAdminPassword === masterData.adminPassword) {
-                        setLoggedUser({ role: 'admin' });
+                        const userData = { role: 'admin' };
+                        setLoggedUser(userData);
+                        localStorage.setItem('gradeProUser', JSON.stringify(userData)); // เพิ่มบรรทัดนี้
                         setView('admin_dashboard');
                         showToast('เข้าสู่ระบบผู้ดูแลระบบสำเร็จ', 'success');
                     } else {
@@ -871,7 +882,9 @@
                     if (!loginTeacherId) return showToast('กรุณาเลือกชื่อครูผู้สอน', 'error');
                     const teacher = masterData.teachers?.find(t => t.id === loginTeacherId);
                     if (teacher && teacher.pin === loginTeacherPin) {
-                        setLoggedUser({ role: 'teacher', id: teacher.id, name: teacher.name, homeroom: teacher.homeroom });
+                        const userData = { role: 'teacher', id: teacher.id, name: teacher.name, homeroom: teacher.homeroom };
+                        setLoggedUser(userData);
+                        localStorage.setItem('gradeProUser', JSON.stringify(userData)); // เพิ่มบรรทัดนี้
                         setView('teacher_dashboard');
                         showToast(`ยินดีต้อนรับ ${teacher.name}`, 'success');
                     } else {
@@ -882,6 +895,7 @@
 
             const handleLogout = () => {
                 setLoggedUser(null);
+                localStorage.removeItem('gradeProUser'); // เพิ่มบรรทัดนี้
                 setView('student');
                 setStudentViewData(null);
                 setSearchQuery('');
@@ -1872,6 +1886,7 @@
                                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-2xl shadow-soft border border-slate-100 sticky top-20 z-30">
                                     <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto hide-scrollbar">
                                         {[
+                                            {id:'overview', icon:Icons.LayoutGrid, label:'ภาพรวมวิชา'},
                                             {id:'attendance', icon:Icons.CheckCircle, label:'เช็คชื่อ'},
                                             {id:'scores', icon:Icons.FileText, label:'คะแนน'},
                                             {id:'random', icon:Icons.Shuffle, label:'สุ่มรายชื่อ'},
@@ -2158,7 +2173,13 @@
                                                                 <td className={`p-1 text-center sticky-col sticky-left-1 transition font-mono font-bold text-slate-500 text-[10px] border-r border-slate-100 hidden sm:table-cell ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.id}</td>
                                                                 <td className={`p-2 sticky-col sm:sticky-left-2 left-[40px] transition font-medium text-slate-700 truncate border-r border-slate-100 max-w-[180px] text-sm shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)] ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
                                                                     <div className="flex items-center justify-between w-full overflow-hidden">
-                                                                        <span className="truncate" title={s.name}>{s.name}</span>
+                                                                        <span 
+                                                                            className="truncate cursor-pointer hover:text-primary-600 transition flex items-center gap-1.5" 
+                                                                            title="คลิกเพื่อดูสรุปคะแนน/งานที่ขาด" 
+                                                                            onClick={() => setScannerModalData(s)}
+                                                                        >
+                                                                            {s.name} <Icons.Eye size={14} className="text-slate-300 hover:text-primary-500 shrink-0"/>
+                                                                        </span>
                                                                         {s.note && <div className="text-[9px] bg-yellow-100 text-yellow-700 px-1 rounded ml-1 flex-shrink-0" title={s.note}>!</div>}
                                                                     </div>
                                                                 </td>
@@ -2235,7 +2256,183 @@
                                         </div>
                                     </div>
                                 )}
+                                {teacherTab === 'overview' && (
+                                    <div className="animate-fade-in space-y-6">
+                                        {/* แถบสรุปตัวเลขสถิติ (Stats Cards) */}
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="text-xs font-bold text-slate-500 uppercase">นักเรียนทั้งหมด</div>
+                                                    <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg"><Icons.Users size={18}/></div>
+                                                </div>
+                                                <div className="text-3xl font-display font-bold text-slate-800">{filteredStudents.length} <span className="text-sm text-slate-400 font-normal">คน</span></div>
+                                            </div>
+                                            
+                                            {(() => {
+                                                // คำนวณงานทั้งหมด และคนที่ขาดงาน
+                                                let totalAssignments = 0;
+                                                let studentsWithMissing = 0;
+                                                let missingDetails = [];
+                                                
+                                                // คำนวณวันเช็คชื่อทั้งหมด
+                                                let allDates = new Set();
+                                                filteredStudents.forEach(s => {
+                                                    if(s.attendance) Object.keys(s.attendance).forEach(d => allDates.add(d));
+                                                });
+                                                const totalClasses = allDates.size;
+                                                
+                                                const gradableCols = [];
+                                                sections.forEach(sec => sec.published !== false && sec.groups?.forEach(g => g.published !== false && g.columns?.forEach(c => {
+                                                    if (c.published !== false && (c.type === 'manual' || c.type === 'check')) gradableCols.push({ sec: sec.title, col: c });
+                                                })));
+                                                totalAssignments = gradableCols.length;
 
+                                                filteredStudents.forEach(s => {
+                                                    let missingCount = 0;
+                                                    let missingTaskNames = [];
+                                                    gradableCols.forEach(({col}) => {
+                                                        if (s.scores?.[col.id] === undefined || s.scores?.[col.id] === '') {
+                                                            missingCount++;
+                                                            missingTaskNames.push(col.name);
+                                                        }
+                                                    });
+                                                    if (missingCount > 0) {
+                                                        studentsWithMissing++;
+                                                        missingDetails.push({ student: s, count: missingCount, tasks: missingTaskNames });
+                                                    }
+                                                });
+                                                
+                                                // เรียงตามคนที่ค้างงานเยอะสุด
+                                                missingDetails.sort((a,b) => b.count - a.count);
+
+                                                return (
+                                                    <>
+                                                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="text-xs font-bold text-slate-500 uppercase">งานที่สั่งทั้งหมด</div>
+                                                                <div className="bg-primary-100 text-primary-600 p-1.5 rounded-lg"><Icons.Folder size={18}/></div>
+                                                            </div>
+                                                            <div className="text-3xl font-display font-bold text-slate-800">{totalAssignments} <span className="text-sm text-slate-400 font-normal">ชิ้น</span></div>
+                                                        </div>
+                                                        
+                                                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="text-xs font-bold text-slate-500 uppercase">เปิดเรียนแล้ว</div>
+                                                                <div className="bg-emerald-100 text-emerald-600 p-1.5 rounded-lg"><Icons.CheckCircle size={18}/></div>
+                                                            </div>
+                                                            <div className="text-3xl font-display font-bold text-slate-800">{totalClasses} <span className="text-sm text-slate-400 font-normal">ครั้ง</span></div>
+                                                        </div>
+
+                                                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-rose-200 flex flex-col justify-between relative overflow-hidden">
+                                                            <div className="absolute right-0 top-0 w-16 h-16 bg-rose-50 rounded-bl-full -z-0"></div>
+                                                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                                                <div className="text-xs font-bold text-rose-600 uppercase">นร. ที่มีงานค้าง!</div>
+                                                                <div className="bg-rose-100 text-rose-600 p-1.5 rounded-lg"><Icons.Alert size={18}/></div>
+                                                            </div>
+                                                            <div className="text-3xl font-display font-bold text-rose-600 relative z-10">{studentsWithMissing} <span className="text-sm text-rose-400 font-normal">คน</span></div>
+                                                        </div>
+
+                                                        {/* รายงานละเอียด 2 คอลัมน์ */}
+                                                        <div className="col-span-2 md:col-span-4 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                                                            
+                                                            {/* การบ้านที่ค้าง */}
+                                                            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[500px]">
+                                                                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-center gap-2">
+                                                                    <Icons.Target size={20} className="text-rose-500"/>
+                                                                    <h3 className="font-bold text-slate-800 text-lg">รายงานค้างส่งงาน</h3>
+                                                                </div>
+                                                                <div className="p-0 overflow-y-auto flex-1 custom-scrollbar">
+                                                                    {missingDetails.length === 0 ? (
+                                                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                                                            <Icons.CheckCircle size={48} className="text-emerald-300 mb-2"/>
+                                                                            <p>ยอดเยี่ยม! ไม่มีนักเรียนค้างงานเลย</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <ul className="divide-y divide-slate-50">
+                                                                            {missingDetails.map((md, i) => (
+                                                                                <li key={i} className="p-4 hover:bg-slate-50 transition flex items-start gap-4">
+                                                                                    <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold font-mono text-sm shrink-0">
+                                                                                        {md.student.no}
+                                                                                    </div>
+                                                                                    <div className="flex-1">
+                                                                                        <div className="flex justify-between items-start mb-1">
+                                                                                            <div className="font-bold text-slate-800 cursor-pointer hover:text-primary-600" onClick={() => setScannerModalData(md.student)} title="คลิกเพื่อดู/กรอกคะแนน">{md.student.name}</div>
+                                                                                            <span className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-1 rounded">ค้าง {md.count} งาน</span>
+                                                                                        </div>
+                                                                                        <div className="text-xs text-slate-500 font-medium">
+                                                                                            {md.tasks.join(', ')}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* รายงานการมาเรียน */}
+                                                            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[500px]">
+                                                                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-center gap-2">
+                                                                    <Icons.CheckCircle size={20} className="text-emerald-500"/>
+                                                                    <h3 className="font-bold text-slate-800 text-lg">รายงานการเข้าเรียน (รวม {totalClasses} ครั้ง)</h3>
+                                                                </div>
+                                                                <div className="p-0 overflow-y-auto flex-1 custom-scrollbar">
+                                                                    {totalClasses === 0 ? (
+                                                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                                                            <Icons.Info size={48} className="text-slate-300 mb-2"/>
+                                                                            <p>ยังไม่มีการเช็คชื่อในระบบ</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <table className="w-full text-sm text-left">
+                                                                            <thead className="bg-white border-b border-slate-100 text-slate-400 text-xs font-mono sticky top-0 z-10 shadow-sm">
+                                                                                <tr>
+                                                                                    <th className="p-3">ชื่อ-นามสกุล</th>
+                                                                                    <th className="p-3 text-center">มา</th>
+                                                                                    <th className="p-3 text-center">สาย</th>
+                                                                                    <th className="p-3 text-center">ลา</th>
+                                                                                    <th className="p-3 text-center">ขาด</th>
+                                                                                    <th className="p-3 text-right">เปอร์เซ็นต์</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody className="divide-y divide-slate-50">
+                                                                                {filteredStudents.map((s, i) => {
+                                                                                    let p=0, l=0, lv=0, a=0;
+                                                                                    if (s.attendance) {
+                                                                                        Object.values(s.attendance).forEach(val => {
+                                                                                            if(val==='present') p++; else if(val==='late') l++; else if(val==='leave') lv++; else if(val==='absent') a++;
+                                                                                        });
+                                                                                    }
+                                                                                    // นับการมาสายเป็นมาเรียน 100% หรือหักออก สามารถปรับสูตรได้
+                                                                                    const attendRate = totalClasses > 0 ? Math.round(((p + l) / totalClasses) * 100) : 0;
+                                                                                    
+                                                                                    return (
+                                                                                        <tr key={s.id} className="hover:bg-slate-50 transition">
+                                                                                            <td className="p-3 font-medium text-slate-700 max-w-[150px] truncate" title={s.name}>{s.no}. {s.name}</td>
+                                                                                            <td className="p-3 text-center text-emerald-600 font-bold">{p || '-'}</td>
+                                                                                            <td className="p-3 text-center text-yellow-600 font-bold">{l || '-'}</td>
+                                                                                            <td className="p-3 text-center text-blue-600 font-bold">{lv || '-'}</td>
+                                                                                            <td className="p-3 text-center text-rose-600 font-bold">{a || '-'}</td>
+                                                                                            <td className="p-3 text-right">
+                                                                                                <span className={`px-2 py-1 rounded text-xs font-bold ${attendRate >= 80 ? 'bg-emerald-50 text-emerald-600' : attendRate >= 60 ? 'bg-yellow-50 text-yellow-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                                                                    {attendRate}%
+                                                                                                </span>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    )
+                                                                                })}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </>
+                                                )
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
                                 {teacherTab === 'analysis' && (
                                     <div className="space-y-6 animate-fade-in">
                                         <div className="bg-primary-50 border border-primary-200 text-primary-800 p-5 rounded-2xl text-sm mb-6 flex items-start gap-4 shadow-sm">
