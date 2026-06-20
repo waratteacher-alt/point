@@ -246,6 +246,120 @@
             );
         }
 
+        function ScannerScoreModal({ isOpen, student, sections, onClose, updateStudent }) {
+            if (!isOpen || !student) return null;
+
+            const [localScores, setLocalScores] = React.useState(student.scores || {});
+
+            React.useEffect(() => {
+                setLocalScores(student.scores || {});
+            }, [student]);
+
+            const handleScoreChange = (col, val) => {
+                // ป้องกันการกรอกเกินคะแนนเต็ม
+                if (val !== '' && (!isNaN(val) && parseFloat(val) > parseFloat(col.max))) return;
+                
+                const newScores = { ...localScores, [col.id]: val };
+                setLocalScores(newScores);
+                updateStudent({ ...student, scores: newScores });
+            };
+
+            // ดึงเฉพาะคอลัมน์ที่ต้องกรอกคะแนน
+            const gradableCols = [];
+            sections.forEach(sec => {
+                if (sec.published === false) return;
+                sec.groups?.forEach(g => {
+                    if (g.published === false) return;
+                    g.columns?.forEach(c => {
+                        if (c.published !== false && (c.type === 'manual' || c.type === 'check')) {
+                            gradableCols.push({ secTitle: sec.title, col: c });
+                        }
+                    });
+                });
+            });
+
+            // คำนวณงานที่ขาด
+            const missingCount = gradableCols.filter(({ col }) => localScores[col.id] === undefined || localScores[col.id] === '').length;
+
+            return (
+                <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale flex flex-col max-h-[90vh]">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-primary-600 to-primary-800 p-6 text-white flex justify-between items-start relative shrink-0">
+                            <div>
+                                <div className="text-primary-100 text-sm font-mono mb-1 flex items-center gap-2">
+                                    <Icons.Barcode size={16}/> สแกนสำเร็จ: รหัส {student.id}
+                                </div>
+                                <h2 className="text-2xl font-bold font-display">{student.name}</h2>
+                                <p className="text-primary-100 text-sm mt-1">ห้อง {student.room} เลขที่ {student.no}</p>
+                            </div>
+                            <button onClick={onClose} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition"><Icons.X size={20}/></button>
+                        </div>
+
+                        {/* Body - รายการคะแนน */}
+                        <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
+                            {missingCount > 0 && (
+                                <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
+                                    <Icons.Alert size={24} className="text-rose-500 shrink-0"/>
+                                    <div>
+                                        <div className="font-bold">งานที่ยังขาดส่ง ({missingCount} รายการ)</div>
+                                        <div className="text-xs text-rose-600">กรุณาตรวจสอบและกรอกคะแนนในช่องที่มีกรอบสีแดงด้านล่าง</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {gradableCols.map(({ secTitle, col }) => {
+                                    const isMissing = localScores[col.id] === undefined || localScores[col.id] === '';
+                                    const val = localScores[col.id];
+
+                                    return (
+                                        <div key={col.id} className={`bg-white p-4 rounded-2xl border-2 transition-all ${isMissing ? 'border-rose-300 shadow-sm' : 'border-slate-200 focus-within:border-primary-400'}`}>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <div className="text-[10px] text-slate-400 font-bold uppercase">{secTitle}</div>
+                                                    <div className="font-bold text-slate-700 text-sm leading-tight">{col.name}</div>
+                                                </div>
+                                                {isMissing && <span className="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">ขาดส่ง</span>}
+                                            </div>
+                                            
+                                            <div className="flex items-center gap-2 mt-3">
+                                                {col.type === 'manual' ? (
+                                                    <div className="relative flex-1">
+                                                        <input 
+                                                            type="number" 
+                                                            className={`w-full bg-slate-50 border rounded-xl px-3 py-2 text-lg font-bold text-center outline-none transition ${isMissing ? 'border-rose-200 focus:border-rose-500' : 'border-slate-200 focus:border-primary-500 text-primary-700'}`}
+                                                            value={val || ''}
+                                                            placeholder="-"
+                                                            onChange={(e) => handleScoreChange(col, e.target.value)}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <button 
+                                                        onClick={() => handleScoreChange(col, !val)}
+                                                        className={`w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition border ${val ? 'bg-green-50 border-green-200 text-green-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'}`}
+                                                    >
+                                                        {val ? <><Icons.CheckCircle size={18}/> ส่งแล้ว</> : <><Icons.X size={18}/> ยังไม่ส่ง</>}
+                                                    </button>
+                                                )}
+                                                <span className="text-slate-400 font-bold font-mono">/{col.max}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="bg-white p-4 border-t border-slate-200 text-center shrink-0 flex items-center justify-between">
+                            <span className="text-sm text-slate-500 font-medium">💡 คุณสามารถสแกนบาร์โค้ดคนต่อไปได้ทันทีโดยไม่ต้องปิดหน้านี้</span>
+                            <button onClick={onClose} className="px-6 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">เสร็จสิ้น</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }   
+
         function VirtualNumpad({ isOpen, onInput, onClose }) {
             const { useState, useRef, useEffect } = React;
             if (!isOpen) return null;
@@ -317,6 +431,54 @@
             const [numpadOpen, setNumpadOpen] = useState(false);
             const [isPopupMode, setIsPopupMode] = useState(false);
             const [activeScoreEntry, setActiveScoreEntry] = useState(null);
+            // State สำหรับ Popup เครื่องสแกน
+            const [scannerModalData, setScannerModalData] = useState(null);
+            const barcodeBuffer = useRef('');
+            const barcodeTimeout = useRef(null);
+
+            // Effect จับการยิงบาร์โค้ด
+            useEffect(() => {
+                if (view !== 'teacher_view') return; // ทำงานเฉพาะหน้าจัดการวิชา
+
+                const handleGlobalKeyDown = (e) => {
+                    // ป้องกันไม่ให้ไปดักจับตอนกำลังพิมพ์อธิบายหมายเหตุยาวๆ (แต่ยอมให้ดักจับในช่องกรอกคะแนนได้)
+                    if (e.target.tagName === 'TEXTAREA') return;
+
+                    // ถ้าเป็นการพิมพ์ตัวอักษรเดียว (ไม่ใช่ปุ่ม Shift, Ctrl, ฯลฯ)
+                    if (e.key.length === 1) {
+                        barcodeBuffer.current += e.key;
+                        
+                        // เครื่องสแกนจะพิมพ์เร็วมาก (มักจะต่ำกว่า 50ms ต่อตัวอักษร)
+                        clearTimeout(barcodeTimeout.current);
+                        barcodeTimeout.current = setTimeout(() => {
+                            barcodeBuffer.current = ''; // ถ้าพิมพ์ช้าแปลว่าเป็นคนพิมพ์ ให้เคลียร์ทิ้ง
+                        }, 50); 
+                    }
+
+                    // เมื่อเครื่องสแกนพิมพ์เสร็จ มักจะส่งปุ่ม Enter มาด้วย
+                    if (e.key === 'Enter' && barcodeBuffer.current.length > 2) {
+                        const scannedId = barcodeBuffer.current;
+                        barcodeBuffer.current = ''; // เคลียร์ buffer ทันที
+                        
+                        // ป้องกันไม่ให้ Enter ไปกดปุ่มอื่นในหน้าจอ
+                        e.preventDefault(); 
+                        
+                        // ค้นหานักเรียนจากรหัสที่สแกนได้
+                        const foundStudent = students.find(s => s.id === scannedId);
+                        if (foundStudent) {
+                            setScannerModalData(foundStudent);
+                            showToast(`สแกนพบ: ${foundStudent.name}`, 'success');
+                            
+                            // ถ้าอยากให้ช่องแรก focus อัตโนมัติ สามารถเขียน logic เพิ่มได้ที่นี่
+                        } else {
+                            showToast(`ไม่พบนักเรียนรหัส: ${scannedId} ในวิชานี้`, 'error');
+                        }
+                    }
+                };
+
+                window.addEventListener('keydown', handleGlobalKeyDown);
+                return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+            }, [students, view]);
             
             const [loginAdminPassword, setLoginAdminPassword] = useState('');
             const [loginTeacherId, setLoginTeacherId] = useState('');
@@ -1790,6 +1952,18 @@
                                         }} />
                                         <ScoreEntryModal isOpen={!!activeScoreEntry} data={activeScoreEntry} onClose={() => setActiveScoreEntry(null)} onSave={handleScoreSave} onNavigate={navigateScoreEntry} />
 
+                                        <ScannerScoreModal 
+                                            isOpen={!!scannerModalData} 
+                                            student={scannerModalData} 
+                                            sections={sections} 
+                                            onClose={() => setScannerModalData(null)} 
+                                            updateStudent={(updatedData) => {
+                                                setStudents(prev => prev.map(p => p.id === updatedData.id ? updatedData : p));
+                                                updateStudent(updatedData); // บันทึกลง Firebase ทันที
+                                                setScannerModalData(updatedData); // อัปเดตข้อมูลใน Modal
+                                            }} 
+                                        />
+                                                                                
                                         <div className="overflow-x-auto max-h-[75vh]">
                                             <table className="min-w-full w-max text-sm text-left border-separate table-fixed" style={{borderSpacing: 0}}>
                                                 <thead className="bg-white text-slate-700 font-display z-50 sticky top-0 shadow-sm">
