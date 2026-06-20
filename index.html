@@ -945,6 +945,24 @@
                 return data;
             }, [filteredStudents, sections]);
 
+            // คำนวณรายชื่อนักเรียนที่จะแสดงในวงล้อ (คนที่ยังไม่ได้ถูกสุ่ม)
+            const wheelStudents = useMemo(() => {
+                if (!randomRoom) return [];
+                return students.filter(s => 
+                    s.room === randomRoom && 
+                    !(courseConfig.drawnIds || []).includes(s.id)
+                );
+            }, [students, randomRoom, courseConfig.drawnIds]);
+
+            // คำนวณรายชื่อนักเรียนที่ถูกสุ่มไปแล้ว (ประวัติการสุ่ม)
+            const randomHistory = useMemo(() => {
+                if (!randomRoom) return [];
+                return students.filter(s => 
+                    s.room === randomRoom && 
+                    (courseConfig.drawnIds || []).includes(s.id)
+                );
+            }, [students, randomRoom, courseConfig.drawnIds]);
+            
             const activeStudentData = useMemo(() => {
                 if (!studentViewData) return null;
                 if (!isSimulateMode) return studentViewData;
