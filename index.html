@@ -1894,12 +1894,6 @@
                                                 <option value="All">ทุกห้องเรียน</option>
                                                 {uniqueRooms.map(r => <option key={r} value={r}>{r}</option>)}
                                             </select>
-                                            <button 
-                                                onClick={() => window.print()} 
-                                                className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 transition hidden sm:flex items-center gap-2 shadow-sm font-bold text-sm"
-                                            >
-                                                <Icons.Print size={18}/> พิมพ์รายงาน
-                                            </button>
                                             <div className="relative flex-1 md:flex-none"><Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/><input className="w-full md:w-40 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหา..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
                                             <button onClick={() => window.print()} className="bg-white border border-slate-200 text-slate-600 p-2.5 rounded-xl hover:bg-slate-50 transition hidden sm:block"><Icons.Print/></button>
                                         </div>
@@ -1929,6 +1923,12 @@
                                                     <option value="All">ทุกห้องเรียน</option>
                                                     {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
                                                 </select>
+                                                <button 
+                                                    onClick={() => window.print()} 
+                                                    className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 transition hidden sm:flex items-center gap-2 shadow-sm font-bold text-sm"
+                                                >
+                                                    <Icons.Print size={18}/> พิมพ์รายงาน
+                                                </button>
                                             </div>
                                         </div>
                                 
