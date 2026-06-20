@@ -102,8 +102,7 @@
         // 2. ส่วนนี้คือโค้ด Firebase ของเดิมของคุณ (ไม่ต้องแก้)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, writeBatch, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-    
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, writeBatch, deleteDoc, query, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         // ... โค้ดอื่นๆ ของคุณทั้งหมดอยู่ต่อจากตรงนี้ตามปกติ ...
         const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const firebaseConfig = {
