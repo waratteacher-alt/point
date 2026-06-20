@@ -430,6 +430,7 @@
             const [toast, setToast] = useState(null);
             const [numpadOpen, setNumpadOpen] = useState(false);
             const [isPopupMode, setIsPopupMode] = useState(false);
+            const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
             const [activeScoreEntry, setActiveScoreEntry] = useState(null);
             // State สำหรับ Popup เครื่องสแกน
             const [scannerModalData, setScannerModalData] = useState(null);
@@ -470,6 +471,32 @@
                             showToast(`สแกนพบ: ${foundStudent.name}`, 'success');
                             
                             // ถ้าอยากให้ช่องแรก focus อัตโนมัติ สามารถเขียน logic เพิ่มได้ที่นี่
+                        } else {
+                            showToast(`ไม่พบนักเรียนรหัส: ${scannedId} ในวิชานี้`, 'error');
+                        }
+                    }
+
+                    // ... โค้ดจับบาร์โค้ดเดิม ...
+                    if (e.key === 'Enter' && barcodeBuffer.current.length > 2) {
+                        const scannedId = barcodeBuffer.current;
+                        barcodeBuffer.current = ''; 
+                        e.preventDefault(); 
+                        
+                        const foundStudent = students.find(s => s.id === scannedId);
+                        if (foundStudent) {
+                            // ตรวจสอบว่าเปิดแท็บไหนอยู่
+                            if (teacherTab === 'attendance') {
+                                // โหมดเช็คชื่อ: สแกนปุ๊บให้สถานะเป็น "มาเรียน"
+                                const newAttendance = { ...(foundStudent.attendance || {}), [attendanceDate]: 'present' };
+                                const updatedStudent = { ...foundStudent, attendance: newAttendance };
+                                setStudents(prev => prev.map(p => p.id === updatedStudent.id ? updatedStudent : p));
+                                updateStudent(updatedStudent);
+                                showToast(`เช็คชื่อ (มา): ${foundStudent.name}`, 'success');
+                            } else {
+                                // โหมดคะแนน: เปิดหน้าต่างกรอกคะแนน
+                                setScannerModalData(foundStudent);
+                                showToast(`สแกนพบ: ${foundStudent.name}`, 'success');
+                            }
                         } else {
                             showToast(`ไม่พบนักเรียนรหัส: ${scannedId} ในวิชานี้`, 'error');
                         }
@@ -1845,6 +1872,7 @@
                                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6 bg-white p-4 rounded-2xl shadow-soft border border-slate-100 sticky top-20 z-30">
                                     <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto hide-scrollbar">
                                         {[
+                                            {id:'attendance', icon:Icons.CheckCircle, label:'เช็คชื่อ'},
                                             {id:'scores', icon:Icons.FileText, label:'คะแนน'},
                                             {id:'random', icon:Icons.Shuffle, label:'สุ่มรายชื่อ'},
                                             {id:'analysis', icon:Icons.Chart, label:'วิเคราะห์'},
@@ -1866,11 +1894,109 @@
                                                 <option value="All">ทุกห้องเรียน</option>
                                                 {uniqueRooms.map(r => <option key={r} value={r}>{r}</option>)}
                                             </select>
+                                            <button 
+                                                onClick={() => window.print()} 
+                                                className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 transition hidden sm:flex items-center gap-2 shadow-sm font-bold text-sm"
+                                            >
+                                                <Icons.Print size={18}/> พิมพ์รายงาน
+                                            </button>
                                             <div className="relative flex-1 md:flex-none"><Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/><input className="w-full md:w-40 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหา..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
                                             <button onClick={() => window.print()} className="bg-white border border-slate-200 text-slate-600 p-2.5 rounded-xl hover:bg-slate-50 transition hidden sm:block"><Icons.Print/></button>
                                         </div>
                                     )}
                                 </div>
+
+                                {teacherTab === 'attendance' && (
+                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative p-4 md:p-6 animate-fade-in w-full">
+                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                                            <div>
+                                                <h3 className="font-bold text-xl text-slate-800 flex items-center gap-2 font-display">
+                                                    <Icons.CheckCircle className="text-primary-500" size={24}/> 
+                                                    ระบบเช็คชื่อเข้าเรียน
+                                                </h3>
+                                                <p className="text-sm text-slate-500 mt-1">
+                                                    เลือกวันที่และคลิกสถานะ หรือใช้ <b>เครื่องสแกนบาร์โค้ด</b> เพื่อเช็ค "มา" อัตโนมัติ
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                                                <input 
+                                                    type="date" 
+                                                    className="flex-1 md:flex-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 font-bold text-slate-700 outline-none focus:border-primary-500 transition"
+                                                    value={attendanceDate}
+                                                    onChange={e => setAttendanceDate(e.target.value)}
+                                                />
+                                                <select className="flex-1 md:flex-none bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none transition" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+                                                    <option value="All">ทุกห้องเรียน</option>
+                                                    {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left min-w-[700px]">
+                                                <thead className="bg-slate-50 text-slate-500 font-display text-sm">
+                                                    <tr>
+                                                        <th className="p-3 w-16 text-center border-b border-slate-100">เลขที่</th>
+                                                        <th className="p-3 w-24 border-b border-slate-100">รหัส</th>
+                                                        <th className="p-3 border-b border-slate-100">ชื่อ-นามสกุล</th>
+                                                        <th className="p-3 w-20 text-center border-b border-slate-100">ห้อง</th>
+                                                        <th className="p-3 text-center w-[300px] border-b border-slate-100">สถานะการเข้าเรียน</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {filteredStudents.map((s, idx) => {
+                                                        // อ่านสถานะของวันนี้
+                                                        const status = s.attendance?.[attendanceDate];
+                                                        
+                                                        // ฟังก์ชันบันทึกสถานะ
+                                                        const handleStatus = (val) => {
+                                                            const newAtt = { ...(s.attendance || {}) };
+                                                            if (val === null) delete newAtt[attendanceDate];
+                                                            else newAtt[attendanceDate] = val;
+                                                            
+                                                            const updated = { ...s, attendance: newAtt };
+                                                            setStudents(prev => prev.map(p => p.id === s.id ? updated : p));
+                                                            updateStudent(updated);
+                                                        };
+                                
+                                                        return (
+                                                            <tr key={s.id} className={`hover:bg-slate-50 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
+                                                                <td className="p-3 text-center font-mono text-slate-500">{s.no}</td>
+                                                                <td className="p-3 font-mono font-bold text-slate-400">{s.id}</td>
+                                                                <td className="p-3 font-medium text-slate-700">{s.name}</td>
+                                                                <td className="p-3 text-center"><span className="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold">{s.room}</span></td>
+                                                                <td className="p-3">
+                                                                    <div className="flex gap-2 justify-center">
+                                                                        <button onClick={() => handleStatus('present')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition border ${status === 'present' ? 'bg-green-500 text-white border-green-600 shadow-sm' : 'bg-white text-green-600 border-green-200 hover:bg-green-50'}`}>มา</button>
+                                                                        <button onClick={() => handleStatus('late')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition border ${status === 'late' ? 'bg-yellow-500 text-white border-yellow-600 shadow-sm' : 'bg-white text-yellow-600 border-yellow-200 hover:bg-yellow-50'}`}>สาย</button>
+                                                                        <button onClick={() => handleStatus('leave')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition border ${status === 'leave' ? 'bg-blue-500 text-white border-blue-600 shadow-sm' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'}`}>ลา</button>
+                                                                        <button onClick={() => handleStatus('absent')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition border ${status === 'absent' ? 'bg-red-500 text-white border-red-600 shadow-sm' : 'bg-white text-red-600 border-red-200 hover:bg-red-50'}`}>ขาด</button>
+                                                                        
+                                                                        {/* ปุ่มลบสถานะ (เคลียร์ค่า) */}
+                                                                        <button 
+                                                                            onClick={() => handleStatus(null)} 
+                                                                            disabled={!status}
+                                                                            className={`py-1.5 px-2 rounded-lg transition ${status ? 'text-slate-400 hover:bg-slate-200 hover:text-slate-600' : 'text-slate-200 cursor-not-allowed'}`}
+                                                                            title="ลบสถานะ"
+                                                                        >
+                                                                            <Icons.X size={14}/>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                            
+                                            {filteredStudents.length === 0 && (
+                                                <div className="text-center py-10 text-slate-400">
+                                                    ไม่พบข้อมูลนักเรียน
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
 
                                 {teacherTab === 'random' && (
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto animate-scale">
@@ -2585,6 +2711,93 @@
 
                     {/* PRINT LAYOUT */}
                     <div className="print-only">
+                        {teacherTab === 'attendance' && activeCourseObj && (
+                            <div className="p-4">
+                                <div className="text-center mb-6">
+                                    <h1 className="official-title">แบบบันทึกเวลาเรียน (เช็คชื่อเข้าเรียน)</h1>
+                                    <h2 className="official-subtitle">
+                                        รายวิชา {activeCourseObj.name} ({activeCourseObj.code}) 
+                                        ชั้น {selectedRoom === 'All' ? 'ทั้งหมด' : selectedRoom} 
+                                        ปีการศึกษา {activeCourseObj.year}
+                                    </h2>
+                                </div>
+                                
+                                <div className="official-info flex justify-between mb-4">
+                                    <div>
+                                        <p>
+                                            <strong>วันที่:</strong> {new Date(attendanceDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                        </p>
+                                        <p><strong>โรงเรียน:</strong> {masterData.school}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p><strong>ครูผู้สอน:</strong> {masterData.teachers?.find(t => t.id === activeCourseObj.teacherId)?.name || 'ครูผู้สอน'}</p>
+                                    </div>
+                                </div>
+                                
+                                {/* สรุปยอดการมาเรียน */}
+                                {(() => {
+                                    let present = 0, late = 0, leave = 0, absent = 0;
+                                    filteredStudents.forEach(s => {
+                                        const status = s.attendance?.[attendanceDate];
+                                        if (status === 'present') present++;
+                                        else if (status === 'late') late++;
+                                        else if (status === 'leave') leave++;
+                                        else if (status === 'absent') absent++;
+                                    });
+                                    return (
+                                        <div className="flex justify-between mb-4 text-sm font-bold border border-slate-300 p-3 rounded" style={{ backgroundColor: '#f8fafc' }}>
+                                            <span>✅ มา: {present} คน</span>
+                                            <span>⚠️ สาย: {late} คน</span>
+                                            <span>📝 ลา: {leave} คน</span>
+                                            <span>❌ ขาด: {absent} คน</span>
+                                            <span>👥 รวม: {filteredStudents.length} คน</span>
+                                        </div>
+                                    );
+                                })()}
+                        
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ width: '50px' }}>ที่</th>
+                                            <th style={{ width: '100px' }}>รหัสประจำตัว</th>
+                                            <th className="text-left" style={{ paddingLeft: '15px' }}>ชื่อ-นามสกุล</th>
+                                            <th style={{ width: '80px' }}>ห้อง</th>
+                                            <th style={{ width: '150px' }}>สถานะการเข้าเรียน</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredStudents.map(s => {
+                                            const status = s.attendance?.[attendanceDate];
+                                            let statusText = '-';
+                                            if (status === 'present') statusText = 'มา';
+                                            if (status === 'late') statusText = 'สาย';
+                                            if (status === 'leave') statusText = 'ลา';
+                                            if (status === 'absent') statusText = 'ขาด';
+                                            
+                                            return (
+                                                <tr key={s.id}>
+                                                    <td className="text-center">{s.no}</td>
+                                                    <td className="text-center">{s.id}</td>
+                                                    <td className="text-left" style={{ paddingLeft: '15px' }}>{s.name}</td>
+                                                    <td className="text-center">{s.room}</td>
+                                                    <td className="text-center font-bold">{statusText}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                                
+                                <div className="signature-area" style={{ justifyContent: 'flex-end', paddingRight: '50px', marginTop: '40px' }}>
+                                    <div className="signature-box">
+                                        <div className="signature-line"></div>
+                                        <p>( {masterData.teachers?.find(t => t.id === activeCourseObj.teacherId)?.name || 'ครูผู้สอน'} )</p>
+                                        <p>ครูผู้สอน / ผู้บันทึก</p>
+                                        <p style={{ marginTop: '10px', fontSize: '12pt' }}>วันที่ ......../......../........</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
                         {studentViewData && activeCourseObj && (
                             <div className="p-4 landscape-mode:hidden">
                                 <div className="text-center mb-6">
