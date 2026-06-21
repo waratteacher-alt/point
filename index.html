@@ -375,7 +375,8 @@
                 });
             });
 
-            const missingCount = gradableCols.filter(({ col }) => localScores[col.id] === undefined || localScores[col.id] === '').length;
+            // คำนวณงานที่ขาด (ไม่นับช่องที่ไม่บังคับส่ง เช่น จิตพิสัย)
+            const missingCount = gradableCols.filter(({ col }) => col.required !== false && (localScores[col.id] === undefined || localScores[col.id] === '')).length;
 
             return (
                 <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -395,23 +396,29 @@
                                 <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
                                     <Icons.Alert size={24} className="text-rose-500 shrink-0"/>
                                     <div>
-                                        <div className="font-bold">งานที่ยังขาดส่ง ({missingCount} รายการ)</div>
-                                        <div className="text-xs text-rose-600">กรุณาตรวจสอบและกรอกคะแนนในช่องที่มีกรอบสีแดงด้านล่าง</div>
+                                        <div className="font-bold">งานบังคับที่ยังขาดส่ง ({missingCount} รายการ)</div>
+                                        <div className="text-xs text-rose-600">กรุณาตรวจสอบและกรอกคะแนนในช่องที่มีกรอบสีแดง</div>
                                     </div>
                                 </div>
                             )}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {gradableCols.map(({ secTitle, col }) => {
-                                    const isMissing = localScores[col.id] === undefined || localScores[col.id] === '';
+                                    const isValEmpty = localScores[col.id] === undefined || localScores[col.id] === '';
+                                    const isOptional = col.required === false;
+                                    const isMissing = isValEmpty && !isOptional; // จะแดงก็ต่อเมื่อว่าง และ เป็นงานบังคับ
                                     const val = localScores[col.id];
+
                                     return (
-                                        <div key={col.id} className={`bg-white p-4 rounded-2xl border-2 transition-all ${isMissing ? 'border-rose-300 shadow-sm' : 'border-slate-200 focus-within:border-primary-400'}`}>
+                                        <div key={col.id} className={`bg-white p-4 rounded-2xl border-2 transition-all ${isMissing ? 'border-rose-300 shadow-sm' : isOptional ? 'border-slate-200 border-dashed' : 'border-slate-200 focus-within:border-primary-400'}`}>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
                                                     <div className="text-[10px] text-slate-400 font-bold uppercase">{secTitle}</div>
-                                                    <div className="font-bold text-slate-700 text-sm leading-tight">{col.name}</div>
+                                                    <div className="font-bold text-slate-700 text-sm leading-tight flex items-center gap-1">
+                                                        {col.name}
+                                                        {isOptional && <span className="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded-full font-normal whitespace-nowrap">ไม่บังคับ</span>}
+                                                    </div>
                                                 </div>
-                                                {isMissing && <span className="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">ขาดส่ง</span>}
+                                                {isMissing && <span className="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase shrink-0">ขาดส่ง</span>}
                                             </div>
                                             <div className="flex items-center gap-2 mt-3">
                                                 {col.type === 'manual' ? (
@@ -431,7 +438,7 @@
                                                         {val ? <><Icons.CheckCircle size={18}/> ส่งแล้ว</> : <><Icons.X size={18}/> ยังไม่ส่ง</>}
                                                     </button>
                                                 )}
-                                                <span className="text-slate-400 font-bold font-mono">/{col.max}</span>
+                                                <span className="text-slate-400 font-bold font-mono shrink-0">/{col.max}</span>
                                             </div>
                                         </div>
                                     );
@@ -439,7 +446,7 @@
                             </div>
                         </div>
                         <div className="bg-white p-4 border-t border-slate-200 text-center shrink-0 flex items-center justify-between">
-                            <span className="text-sm text-slate-500 font-medium">💡 คุณสามารถสแกนบาร์โค้ดคนต่อไปได้ทันทีโดยไม่ต้องปิดหน้านี้</span>
+                            <span className="text-sm text-slate-500 font-medium">💡 สแกนบาร์โค้ดคนต่อไปได้ทันทีโดยไม่ต้องปิดหน้านี้</span>
                             <button onClick={onClose} className="px-6 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">เสร็จสิ้น</button>
                         </div>
                     </div>
@@ -1998,7 +2005,7 @@
                                                 
                                                 const gradableCols = [];
                                                 sections.forEach(sec => sec.published !== false && sec.groups?.forEach(g => g.published !== false && g.columns?.forEach(c => {
-                                                    if (c.published !== false && (c.type === 'manual' || c.type === 'check')) gradableCols.push({ sec: sec.title, col: c });
+                                                    if (c.published !== false && c.required !== false && (c.type === 'manual' || c.type === 'check')) gradableCols.push({ sec: sec.title, col: c });
                                                 })));
                                                 totalAssignments = gradableCols.length;
 
@@ -2720,9 +2727,14 @@
                                                                                                 <span className="text-[10px] font-bold text-slate-400 uppercase">Max</span>
                                                                                                 <input className="w-8 text-center text-sm font-mono font-bold outline-none text-primary-600" value={col.max} onChange={e => { const newSecs = [...sections]; newSecs[sIdx].groups[gIdx].columns[cIdx].max = e.target.value; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} />
                                                                                             </div>
-                                                                                            <button onClick={() => { const newSecs = [...sections]; const types = ['manual', 'check', 'sum', 'percent']; const nextType = types[(types.indexOf(col.type) + 1) % types.length]; newSecs[sIdx].groups[gIdx].columns[cIdx].type = nextType; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className={`text-[10px] font-bold px-2 py-1.5 rounded-lg border shadow-sm transition-colors ${col.type === 'manual' ? 'bg-white border-slate-200 text-slate-500 hover:bg-slate-100' : col.type === 'check' ? 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100' : col.type === 'sum' ? 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100' : 'bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100'}`} title="คลิกเพื่อเปลี่ยนประเภท (ตัวเลข/เช็คส่ง/ผลรวม/เปอร์เซ็นต์)">
-                                                                                                {col.type === 'manual' ? 'MANUAL' : col.type === 'check' ? 'CHECK' : col.type === 'sum' ? 'SUM' : 'PERCENT'}
-                                                                                            </button>
+                                                                                            <div className="flex gap-1">
+                                                                                                <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups[gIdx].columns[cIdx].required = col.required === false ? true : false; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className={`text-[10px] font-bold px-2 py-1.5 rounded-lg border shadow-sm transition-colors ${col.required === false ? 'bg-slate-100 border-slate-200 text-slate-400' : 'bg-rose-50 border-rose-200 text-rose-600'}`} title="คลิกเพื่อสลับ (ถ้าไม่บังคับ จะไม่แจ้งเตือนขาดส่ง)">
+                                                                                                    {col.required === false ? 'ไม่บังคับ' : 'บังคับส่ง'}
+                                                                                                </button>
+                                                                                                <button onClick={() => { const newSecs = [...sections]; const types = ['manual', 'check', 'sum', 'percent']; const nextType = types[(types.indexOf(col.type) + 1) % types.length]; newSecs[sIdx].groups[gIdx].columns[cIdx].type = nextType; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className={`text-[10px] font-bold px-2 py-1.5 rounded-lg border shadow-sm transition-colors ${col.type === 'manual' ? 'bg-white border-slate-200 text-slate-600' : col.type === 'check' ? 'bg-green-50 border-green-200 text-green-700' : col.type === 'sum' ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`} title="คลิกเพื่อสลับประเภทคะแนน">
+                                                                                                    {col.type === 'manual' ? 'คะแนนดิบ' : col.type === 'check' ? 'เช็คส่ง' : col.type === 'sum' ? 'รวมดิบ' : 'น้ำหนัก %'}
+                                                                                                </button>
+                                                                                            </div>
                                                                                         </div>
                                                                                         
                                                                                         <div className="absolute -top-3 -right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white border border-slate-200 shadow-lg rounded-lg p-1 z-10">
