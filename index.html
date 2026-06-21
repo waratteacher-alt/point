@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradePro Cloud - ระบบจัดการผลการเรียน</title>
+    <title>GradePro - ระบบจัดการผลการเรียน</title>
     <link rel="icon" href="data:,">
     
-    <!-- นำเข้าฟอนต์ Sarabun (มาตรฐานเว็บ) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -26,48 +25,55 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- ปรับแต่งโครงสร้าง Tailwind ให้เป็น "ทางการ (Official)" -->
     <script>
         tailwind.config = {
             theme: {
-                // ปรับขนาดฟอนต์ทั้งระบบให้เล็กลงตามสัดส่วน (อิงจากขนาดเทียบเท่า 10pt)
-                fontSize: {
-                    'xs': '10px',
-                    'sm': '11px',
-                    'base': '13px',  // ขนาดพื้นฐาน
-                    'lg': '15px',
-                    'xl': '18px',
-                    '2xl': '20px',
-                    '3xl': '24px',
-                    '4xl': '28px',
-                    '5xl': '32px',
-                    '6xl': '36px',
-                },
-                // ลดความโค้งมนของขอบให้ดูเป็นเอกสารราชการ/ทางการมากขึ้น
-                borderRadius: {
-                    'none': '0',
-                    'sm': '2px',
-                    DEFAULT: '4px',
-                    'md': '4px',
-                    'lg': '4px',
-                    'xl': '6px',
-                    '2xl': '6px',
-                    '3xl': '8px',
-                    'full': '9999px',
-                },
                 extend: {
+                    // ขนาดฟอนต์สำหรับหน้าจอ (อิงจากฐาน 10pt)
+                    fontSize: {
+                        'xs': ['12px', '1.4'],
+                        'sm': ['13px', '1.5'],
+                        'base': ['14px', '1.5'],  // ขนาดบนจอเทียบเท่า 10pt 
+                        'lg': ['16px', '1.5'],
+                        'xl': ['18px', '1.5'],
+                        '2xl': ['22px', '1.4'],
+                        '3xl': ['26px', '1.3'],
+                        '4xl': ['32px', '1.2'],
+                        '5xl': ['38px', '1.1'],
+                        '6xl': ['44px', '1.1'],
+                    },
                     fontFamily: { 
-                        sans: ['Sarabun', 'sans-serif'], 
-                        display: ['Sarabun', 'sans-serif'] 
+                        // ใช้ฟอนต์ Sarabun เป็นหลักทั้งระบบเพื่อความคงเส้นคงวา
+                        sans: ['"TH Sarabun New"', '"TH Sarabun PSK"', 'Sarabun', 'sans-serif'], 
+                        display: ['"TH Sarabun New"', '"TH Sarabun PSK"', 'Sarabun', 'sans-serif'] 
                     },
                     colors: { 
-                        // เปลี่ยนโทนสีหลักเป็น สีน้ำเงินกรมท่า (Navy) สไตล์ราชการ
-                        primary: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' },
-                        slate: { 850: '#151f32' }
+                        // โทนสี Pastel Periwinkle (ฟ้าอมม่วงพาสเทล สบายตา น่ารักแต่ยังดูสุภาพ)
+                        primary: { 50:'#f5f7ff', 100:'#ebf0fe', 200:'#dce4fd', 300:'#c4d2fc', 400:'#a3bbf9', 500:'#86a4f6', 600:'#6680e6', 700:'#4d61cc', 800:'#4251a6', 900:'#384585' },
+                        slate: { 850: '#1e293b' }
                     },
                     boxShadow: { 
-                        'soft': '0 2px 5px -1px rgba(0, 0, 0, 0.05)', 
-                        'glow': '0 0 10px rgba(14, 165, 233, 0.2)' 
+                        // เงาแบบฟุ้งๆ นุ่มนวล
+                        'soft': '0 10px 25px -5px rgba(134, 164, 246, 0.15)', 
+                        'glow': '0 0 15px rgba(134, 164, 246, 0.4)' 
+                    },
+                    borderRadius: {
+                        // ปรับมุมให้โค้งมนเป็นมิตรขึ้น
+                        'none': '0', 'sm': '4px', DEFAULT: '8px', 'md': '10px', 'lg': '12px', 'xl': '16px', '2xl': '20px', '3xl': '24px', 'full': '9999px',
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-soft': 'pulseSoft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        },
+                        pulseSoft: {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.7 },
+                        }
                     }
                 }
             }
@@ -76,53 +82,72 @@
 
     <style>
         :root { 
-            --color-primary-50: #f0f9ff; --color-primary-100: #e0f2fe; --color-primary-200: #bae6fd; --color-primary-300: #7dd3fc; --color-primary-400: #38bdf8; --color-primary-500: #0ea5e9; --color-primary-600: #0284c7; --color-primary-700: #0369a1; --color-primary-800: #075985; --color-primary-900: #0c4a6e; --color-primary-500-rgb: 14, 165, 233; 
+            --color-primary-50: #f5f7ff; --color-primary-100: #ebf0fe; --color-primary-200: #dce4fd; --color-primary-300: #c4d2fc; --color-primary-400: #a3bbf9; --color-primary-500: #86a4f6; --color-primary-600: #6680e6; --color-primary-700: #4d61cc; --color-primary-800: #4251a6; --color-primary-900: #384585; --color-primary-500-rgb: 134, 164, 246; 
         }
         
         body { 
             background-color: #f8fafc; 
+            /* เพิ่มลวดลายจุดบางๆ (Dot Pattern) บนพื้นหลังให้ดูทันสมัย */
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 20px 20px;
             color: #1e293b; 
             -webkit-font-smoothing: antialiased; 
-            font-family: 'Sarabun', sans-serif; 
+            font-family: "TH Sarabun New", "TH Sarabun PSK", 'Sarabun', sans-serif; 
             line-height: 1.5;
         }
         
-        /* สไตล์ Scrollbar แบบทางการ */
+        /* สไตล์ Scrollbar ให้เข้ากับธีมพาสเทล */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dce4fd; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a3bbf9; }
         
-        /* Animations */
-        .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-        .animate-scale { animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+        /* Animations พื้นฐาน */
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .animate-scale { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* Table Styles - ปรับเส้นตารางให้ชัดและเป็นทางการ */
-        .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; height: 120px; padding: 4px 0px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-        .sticky-col { position: sticky; background-color: #ffffff; z-index: 40; border-right: 1px solid #cbd5e1 !important; } 
+        /* สไตล์ตาราง - ซอฟต์ลงแต่มองง่าย */
+        .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; height: 130px; padding: 4px 0px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: #4251a6; }
+        .sticky-col { position: sticky; background-color: #ffffff; z-index: 40; border-right: 1px solid #e2e8f0; } 
         .sticky-left-0 { left: 0; width: 35px; min-width: 35px; max-width: 35px; }
         .sticky-left-1 { left: 35px; width: 55px; min-width: 55px; max-width: 55px; }
-        .sticky-left-2 { left: 90px; width: 160px; min-width: 160px; max-width: 160px; box-shadow: 4px 0 6px -4px rgba(0,0,0,0.1); }
-        thead { z-index: 50; position: sticky; top: 0; border-bottom: 2px solid #64748b; }
-        thead th { background-color: #f8fafc; font-weight: bold; border: 1px solid #e2e8f0; }
-        thead .sticky-col { z-index: 60; background-color: #f8fafc; border-bottom: 2px solid #64748b; } 
+        .sticky-left-2 { left: 90px; width: 160px; min-width: 160px; max-width: 160px; box-shadow: 4px 0 6px -4px rgba(134, 164, 246, 0.15); }
         
+        /* ตกแต่งหัวตารางเป็นสีพาสเทลอ่อนๆ */
+        thead { z-index: 50; position: sticky; top: 0; }
+        thead th { background-color: #f5f7ff; color: #4251a6; border: 1px solid #ebf0fe; }
+        thead .sticky-col { z-index: 60; background-color: #f5f7ff; border-bottom: 2px solid #a3bbf9; } 
+        
+        /* เอฟเฟกต์ตอนชี้เมาส์ที่ตาราง ให้มีสีฟ้าระเรื่อ */
+        tr { transition: background-color 0.3s ease; }
         tr:nth-child(even) .sticky-col { background-color: #ffffff; }
         tr:nth-child(odd) .sticky-col { background-color: #f8fafc; } 
-        tr:hover .sticky-col { background-color: #eff6ff; } 
-        td, th { border: 1px solid #e2e8f0; } /* ขีดเส้นตารางให้ชัดเจน */
+        tr:hover .sticky-col, tr:hover td { background-color: #ebf0fe !important; } 
+        td, th { border: 1px solid #f1f5f9; } 
         
-        .unpublished-col { background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(200, 200, 200, 0.1) 5px, rgba(200, 200, 200, 0.1) 10px); background-color: #f9fafb; }
+        .unpublished-col { background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(134, 164, 246, 0.05) 5px, rgba(134, 164, 246, 0.05) 10px); background-color: #f8fafc; }
         
-        /* PRINT STYLES - สำหรับเอกสารทางการ ขนาด 10pt เป๊ะๆ */
+        /* ========================================= */
+        /* PRINT STYLES - สำหรับเอกสารทางการ 100%    */
+        /* (ปิดความพาสเทลทั้งหมด คืนความน่าเกรงขาม)  */
+        /* ========================================= */
         @media print {
-            body { background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; font-family: 'Sarabun', sans-serif !important; font-size: 10pt !important; }
+            body { 
+                background: white; 
+                background-image: none !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+                margin: 0; 
+                font-family: "TH Sarabun New", "TH Sarabun PSK", 'Sarabun', sans-serif !important; 
+                font-size: 10pt !important; 
+                color: black !important;
+            }
             .no-print, nav, button, .fixed-ui, ::-webkit-scrollbar, .toast-container, .virtual-numpad { display: none !important; }
-            .print-only { display: block !important; width: 100%; height: auto; overflow: visible; font-family: 'Sarabun', sans-serif !important; color: #000; }
+            .print-only { display: block !important; width: 100%; height: auto; overflow: visible; font-family: "TH Sarabun New", "TH Sarabun PSK", 'Sarabun', sans-serif !important; color: #000; }
             #root, main, .overflow-x-auto, .max-h-\[75vh\], .bg-white { overflow: visible !important; height: auto !important; max-height: none !important; width: 100% !important; position: static !important; box-shadow: none !important; border: none !important; }
             
             .official-title { font-size: 16pt !important; font-weight: bold; text-align: center; margin-bottom: 4px; line-height: 1.2; }
@@ -130,10 +155,17 @@
             .official-info { font-size: 10pt !important; line-height: 1.5; margin-bottom: 12px; }
             
             .print-only table { width: 100%; border-collapse: collapse; margin-bottom: 20px; page-break-inside: auto; table-layout: auto !important; border: 1px solid #000 !important; }
-            .print-only tr { page-break-inside: avoid; page-break-after: auto; }
+            .print-only tr { page-break-inside: avoid; page-break-after: auto; background-color: transparent !important; }
             .print-only thead { display: table-header-group; }
             .print-only tfoot { display: table-footer-group; }
-            .print-only th, .print-only td { border: 1px solid #000 !important; padding: 4px 6px; text-align: center; vertical-align: middle; font-size: 10pt !important; }
+            .print-only th, .print-only td { 
+                border: 1px solid #000 !important; /* บังคับเส้นตารางสีดำ 1px */
+                padding: 4px 6px; 
+                text-align: center; 
+                vertical-align: middle; 
+                font-size: 10pt !important; 
+                color: black !important;
+            }
             .print-only th { background-color: #f2f2f2 !important; font-weight: bold; }
             .print-only td.text-left { text-align: left !important; padding-left: 8px !important; }
             
@@ -144,7 +176,7 @@
             @page { margin: 15mm; size: A4 portrait; } 
             .landscape-mode { page-break-before: always; }
             @page :landscape { size: A4 landscape; margin: 12mm; }
-            .vertical-text-print { writing-mode: vertical-rl; transform: rotate(180deg); height: 100px; white-space: nowrap; text-align: left; margin: 0 auto; font-size: 9pt !important; padding: 2px; }
+            .vertical-text-print { writing-mode: vertical-rl; transform: rotate(180deg); height: 100px; white-space: nowrap; text-align: left; margin: 0 auto; font-size: 9pt !important; padding: 2px; color: black !important; }
         }
         .print-only { display: none; }
     </style>
