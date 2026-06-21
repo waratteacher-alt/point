@@ -554,6 +554,30 @@
             const [randomWinner, setRandomWinner] = useState(null);
             const [winnerModal, setWinnerModal] = useState(null);
             const [spinDuration, setSpinDuration] = useState(5);
+            // State สำหรับระบบบัตรนักเรียน
+            const [printMode, setPrintMode] = useState(''); // ใช้แยกโหมดพิมพ์ปกติ กับพิมพ์บัตร
+            const [idCardModal, setIdCardModal] = useState(false);
+            const [studentsToPrint, setStudentsToPrint] = useState([]);
+            const [idCardRoom, setIdCardRoom] = useState('All');
+            const [idCardSearch, setIdCardSearch] = useState('');
+
+            // ฟังก์ชันกรองนักเรียนสำหรับหน้าบัตร
+            const idCardFilteredStudents = useMemo(() => {
+                let res = students;
+                if (idCardRoom !== 'All') res = res.filter(s => s.room === idCardRoom);
+                if (idCardSearch) { const q = idCardSearch.toLowerCase(); res = res.filter(s => s.id.includes(q) || s.name.toLowerCase().includes(q)); }
+                return res.sort((a,b) => (a.room === b.room ? (parseInt(a.no)||0)-(parseInt(b.no)||0) : a.room.localeCompare(b.room)));
+            }, [students, idCardRoom, idCardSearch]);
+
+            // ฟังก์ชันสั่งพิมพ์บัตร
+            const handlePrintIDCard = (studentList) => {
+                setStudentsToPrint(studentList);
+                setPrintMode('idcards');
+                setTimeout(() => {
+                    window.print();
+                    setPrintMode(''); // คืนค่ากลับหลังพิมพ์เสร็จ
+                }, 500); // รอให้ React Render รูปบาร์โค้ดให้เสร็จก่อนสั่งพิมพ์
+            };
 
             useEffect(() => {
                 const handleOnline = () => setIsOnline(true);
@@ -1792,6 +1816,9 @@
                                             <button onClick={() => setModal({ type: 'course_edit', data: { id: 'course_' + Date.now(), code: '', name: '', semester: '1', year: new Date().getFullYear() + 543, teacherId: loggedUser.id } })} className="flex-1 sm:flex-none justify-center bg-white text-primary-700 hover:bg-primary-50 hover:text-primary-800 px-6 py-4 rounded-2xl text-sm font-bold shadow-lg shadow-black/10 flex items-center gap-2 transition active:scale-95">
                                                 <Icons.Plus size={20} className="text-primary-600"/> สร้างวิชาใหม่
                                             </button>
+                                            <button onClick={() => setIdCardModal(true)} className="flex-1 sm:flex-none justify-center bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 px-6 py-4 rounded-2xl text-sm font-bold shadow-sm flex items-center gap-2 transition active:scale-95 border border-indigo-200">
+                                                <Icons.IdentificationCard size={20} className="text-indigo-600"/> สร้างบัตรนักเรียน
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -2814,6 +2841,53 @@
                     </main>
 
                     {/* MODALS */}
+                    <Modal isOpen={idCardModal} title="จัดการบัตรประจำตัวนักเรียน" onClose={() => setIdCardModal(false)}>
+                            <div className="space-y-4">
+                                <div className="bg-primary-50 p-4 rounded-xl border border-primary-200 flex gap-3">
+                                    <Icons.IdentificationCard size={28} className="text-primary-600 shrink-0"/>
+                                    <div className="text-sm text-primary-800">
+                                        <strong>ระบบสร้างบัตรนักเรียนอัจฉริยะ</strong><br/>
+                                        บัตรจะมี Barcode และ QR Code สำหรับใช้สแกนผ่านระบบเช็คชื่อและกรอกคะแนน (พิมพ์ลงกระดาษ A4 หรือสติ๊กเกอร์ได้ทันที)
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <select className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 outline-none w-1/3" value={idCardRoom} onChange={e => setIdCardRoom(e.target.value)}>
+                                        <option value="All">ทุกห้องเรียน</option>
+                                        {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                    </select>
+                                    <div className="relative flex-1">
+                                        <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/>
+                                        <input className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหาชื่อ หรือ รหัส..." value={idCardSearch} onChange={e => setIdCardSearch(e.target.value)} />
+                                    </div>
+                                </div>
+
+                                <button onClick={() => handlePrintIDCard(idCardFilteredStudents)} disabled={idCardFilteredStudents.length === 0} className="w-full py-3 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition flex items-center justify-center gap-2 shadow-md disabled:bg-slate-300 disabled:cursor-not-allowed">
+                                    <Icons.Print size={18}/> พิมพ์บัตรทั้งหมด ({idCardFilteredStudents.length} ใบ)
+                                </button>
+
+                                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                                    <div className="bg-slate-50 border-b border-slate-200 px-4 py-2 text-xs font-bold text-slate-500 uppercase">รายชื่อนักเรียน (พิมพ์รายบุคคล)</div>
+                                    <div className="max-h-[300px] overflow-y-auto p-0">
+                                        <ul className="divide-y divide-slate-100">
+                                            {idCardFilteredStudents.map(s => (
+                                                <li key={s.id} className="p-3 hover:bg-slate-50 flex items-center justify-between transition">
+                                                    <div>
+                                                        <div className="font-bold text-slate-700 text-sm">{s.name}</div>
+                                                        <div className="text-[10px] text-slate-400 font-mono">รหัส: {s.id} | ห้อง: {s.room} | เลขที่: {s.no}</div>
+                                                    </div>
+                                                    <button onClick={() => handlePrintIDCard([s])} className="text-xs bg-white border border-primary-200 text-primary-600 hover:bg-primary-50 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1">
+                                                        <Icons.Printer size={14}/> พิมพ์
+                                                    </button>
+                                                </li>
+                                            ))}
+                                            {idCardFilteredStudents.length === 0 && <div className="p-4 text-center text-sm text-slate-400">ไม่พบนักเรียน</div>}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </Modal>
+                        
                     <div className="no-print">
                         <Modal isOpen={modal?.type === 'import'} title="นำเข้านักเรียน (CSV)" onClose={() => setModal(null)}>
                             <div className="space-y-4">
@@ -2986,7 +3060,52 @@
                     </div>
 
                     {/* PRINT LAYOUT */}
-                    <div className="hidden print:block print:w-full">
+                    <div className={`hidden print:block print:w-full ${printMode === 'idcards' ? 'print:hidden' : ''}`}>
+                        {/* --- PRINT LAYOUT: บัตรประจำตัวนักเรียน --- */}
+                    <div className={`hidden ${printMode === 'idcards' ? 'print:block' : ''} w-full`}>
+                        <div className="grid grid-cols-2 gap-4" style={{ padding: '10mm', gap: '15mm 10mm' }}>
+                            {studentsToPrint.map((s, i) => (
+                                <div key={i} className="break-inside-avoid relative overflow-hidden" style={{ width: '8.6cm', height: '5.4cm', borderRadius: '12px', border: '2px solid #cbd5e1', backgroundColor: '#ffffff', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+                                    {/* ลวดลายและแถบสีด้านบน */}
+                                    <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '35%', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', zIndex: 0 }}></div>
+                                    <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: '#bae6fd', opacity: '0.4', zIndex: 0 }}></div>
+                                    
+                                    {/* ส่วนหัว: ชื่อโรงเรียน และ รายวิชา */}
+                                    <div style={{ zIndex: 1, padding: '12px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                        <div>
+                                            <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#0369a1', lineHeight: '1.2' }}>{masterData.school}</div>
+                                            <div style={{ fontSize: '8pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {activeCourseObj?.code}</div>
+                                        </div>
+                                        <div style={{ background: '#0284c7', color: 'white', fontSize: '8pt', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', letterSpacing: '1px' }}>STUDENT</div>
+                                    </div>
+
+                                    {/* ส่วนกลาง: ชื่อนักเรียน และ ข้อมูล */}
+                                    <div style={{ zIndex: 1, padding: '8px 16px', flex: 1, marginTop: '5px' }}>
+                                        <div style={{ fontSize: '14pt', fontWeight: 'bold', color: '#1e293b', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                                        <div style={{ display: 'flex', gap: '15px', marginTop: '4px' }}>
+                                            <div style={{ fontSize: '9pt', color: '#64748b' }}>รหัส: <span style={{ color: '#0f172a', fontWeight: 'bold', fontFamily: 'monospace' }}>{s.id}</span></div>
+                                            <div style={{ fontSize: '9pt', color: '#64748b' }}>ชั้น: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.room}</span></div>
+                                            <div style={{ fontSize: '9pt', color: '#64748b' }}>เลขที่: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.no}</span></div>
+                                        </div>
+                                    </div>
+
+                                    {/* ส่วนท้าย: บาร์โค้ดและคิวอาร์โค้ด */}
+                                    <div style={{ zIndex: 1, padding: '8px 16px 12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px dashed #e2e8f0', backgroundColor: '#f8fafc' }}>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                            {/* ใช้บริการ API แปลงรหัสเป็น 1D Barcode (Code128) */}
+                                            <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=10&includetext=false`} alt="barcode" style={{ height: '24px', objectFit: 'contain' }} />
+                                            <div style={{ fontSize: '7pt', color: '#94a3b8', marginTop: '2px' }}>ID: {s.id}</div>
+                                        </div>
+                                        <div>
+                                            {/* ใช้บริการ API แปลงรหัสเป็น QR Code (2D) */}
+                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${s.id}`} alt="qrcode" style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                        
                         {teacherTab === 'attendance' && activeCourseObj && (
                             <div className="p-4 landscape-mode:hidden">
                                 <div className="text-center mb-6">
