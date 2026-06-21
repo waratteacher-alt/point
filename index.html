@@ -3091,53 +3091,10 @@
                     </div>
 
                     {/* PRINT LAYOUT */}
-                    <div className={`hidden print:block print:w-full ${printMode === 'idcards' ? 'print:hidden' : ''}`}>
-                        {/* --- PRINT LAYOUT: บัตรประจำตัวนักเรียน --- */}
-                    <div className={`hidden ${printMode === 'idcards' ? 'print:block' : ''} w-full`}>
-                        <div className="grid grid-cols-2 gap-4" style={{ padding: '10mm', gap: '15mm 10mm' }}>
-                            {studentsToPrint.map((s, i) => (
-                                <div key={i} className="break-inside-avoid relative overflow-hidden" style={{ width: '8.6cm', height: '5.4cm', borderRadius: '12px', border: '2px solid #cbd5e1', backgroundColor: '#ffffff', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
-                                    {/* ลวดลายและแถบสีด้านบน */}
-                                    <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '35%', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', zIndex: 0 }}></div>
-                                    <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: '#bae6fd', opacity: '0.4', zIndex: 0 }}></div>
-                                    
-                                    {/* ส่วนหัว: ชื่อโรงเรียน และ รายวิชา */}
-                                    <div style={{ zIndex: 1, padding: '12px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                        <div>
-                                            <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#0369a1', lineHeight: '1.2' }}>{masterData.school}</div>
-                                            <div style={{ fontSize: '8pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
-                                        </div>
-                                        <div style={{ background: '#0284c7', color: 'white', fontSize: '8pt', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', letterSpacing: '1px' }}>STUDENT</div>
-                                    </div>
-
-                                    {/* ส่วนกลาง: ชื่อนักเรียน และ ข้อมูล */}
-                                    <div style={{ zIndex: 1, padding: '8px 16px', flex: 1, marginTop: '5px' }}>
-                                        <div style={{ fontSize: '14pt', fontWeight: 'bold', color: '#1e293b', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
-                                        <div style={{ display: 'flex', gap: '15px', marginTop: '4px' }}>
-                                            <div style={{ fontSize: '9pt', color: '#64748b' }}>รหัส: <span style={{ color: '#0f172a', fontWeight: 'bold', fontFamily: 'monospace' }}>{s.id}</span></div>
-                                            <div style={{ fontSize: '9pt', color: '#64748b' }}>ชั้น: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.room}</span></div>
-                                            <div style={{ fontSize: '9pt', color: '#64748b' }}>เลขที่: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.no}</span></div>
-                                        </div>
-                                    </div>
-
-                                    {/* ส่วนท้าย: บาร์โค้ดและคิวอาร์โค้ด */}
-                                    <div style={{ zIndex: 1, padding: '8px 16px 12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px dashed #e2e8f0', backgroundColor: '#f8fafc' }}>
-                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                            {/* ใช้บริการ API แปลงรหัสเป็น 1D Barcode (Code128) */}
-                                            <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=10&includetext=false`} alt="barcode" style={{ height: '24px', objectFit: 'contain' }} />
-                                            <div style={{ fontSize: '7pt', color: '#94a3b8', marginTop: '2px' }}>ID: {s.id}</div>
-                                        </div>
-                                        <div>
-                                            {/* ใช้บริการ API แปลงรหัสเป็น QR Code (2D) */}
-                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${s.id}`} alt="qrcode" style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    <div className="print-only">
                         
-                        {teacherTab === 'attendance' && activeCourseObj && (
+                        {/* 1. พิมพ์ใบเช็คชื่อ */}
+                        {printMode !== 'idcards' && teacherTab === 'attendance' && activeCourseObj && (
                             <div className="p-4 landscape-mode:hidden">
                                 <div className="text-center mb-6">
                                     <h1 className="official-title">แบบบันทึกเวลาเรียน (เช็คชื่อเข้าเรียน)</h1>
@@ -3147,19 +3104,15 @@
                                         ปีการศึกษา {activeCourseObj.year}
                                     </h2>
                                 </div>
-                                
                                 <div className="official-info flex justify-between mb-4">
                                     <div>
-                                        <p>
-                                            <strong>วันที่:</strong> {new Date(attendanceDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                        </p>
+                                        <p><strong>วันที่:</strong> {new Date(attendanceDate).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                         <p><strong>โรงเรียน:</strong> {masterData.school}</p>
                                     </div>
                                     <div className="text-right">
                                         <p><strong>ครูผู้สอน:</strong> {masterData.teachers?.find(t => t.id === activeCourseObj.teacherId)?.name || 'ครูผู้สอน'}</p>
                                     </div>
                                 </div>
-                                
                                 {(() => {
                                     let present = 0, late = 0, leave = 0, absent = 0;
                                     filteredStudents.forEach(s => {
@@ -3179,16 +3132,9 @@
                                         </div>
                                     );
                                 })()}
-                        
                                 <table>
                                     <thead>
-                                        <tr>
-                                            <th style={{ width: '50px' }}>ที่</th>
-                                            <th style={{ width: '100px' }}>รหัสประจำตัว</th>
-                                            <th className="text-left" style={{ paddingLeft: '15px' }}>ชื่อ-นามสกุล</th>
-                                            <th style={{ width: '80px' }}>ห้อง</th>
-                                            <th style={{ width: '150px' }}>สถานะการเข้าเรียน</th>
-                                        </tr>
+                                        <tr><th style={{ width: '50px' }}>ที่</th><th style={{ width: '100px' }}>รหัสประจำตัว</th><th className="text-left" style={{ paddingLeft: '15px' }}>ชื่อ-นามสกุล</th><th style={{ width: '80px' }}>ห้อง</th><th style={{ width: '150px' }}>สถานะการเข้าเรียน</th></tr>
                                     </thead>
                                     <tbody>
                                         {filteredStudents.map(s => {
@@ -3198,7 +3144,6 @@
                                             if (status === 'late') statusText = 'สาย';
                                             if (status === 'leave') statusText = 'ลา';
                                             if (status === 'absent') statusText = 'ขาด';
-                                            
                                             return (
                                                 <tr key={s.id}>
                                                     <td className="text-center">{s.no}</td>
@@ -3211,7 +3156,6 @@
                                         })}
                                     </tbody>
                                 </table>
-                                
                                 <div className="signature-area" style={{ justifyContent: 'flex-end', paddingRight: '50px', marginTop: '40px' }}>
                                     <div className="signature-box">
                                         <div className="signature-line"></div>
@@ -3223,7 +3167,8 @@
                             </div>
                         )}
                         
-                        {studentViewData && activeCourseObj && (
+                        {/* 2. พิมพ์ผลการเรียนรายบุคคล */}
+                        {printMode !== 'idcards' && studentViewData && activeCourseObj && (
                             <div className="p-4 landscape-mode:hidden">
                                 <div className="text-center mb-6">
                                     <h1 className="official-title">รายงานผลการพัฒนาคุณภาพผู้เรียนรายวิชา</h1>
@@ -3249,9 +3194,7 @@
                                                     if(col.published === false) return null; 
                                                     let val = col.type === 'manual' || col.type === 'check' ? getScore(studentViewData, col.id) : calculateAutoScore(studentViewData, grp, col);
                                                     if(col.type === 'check') val = val ? col.max : '0';
-                                                    return (
-                                                        <tr key={col.id}><td className="text-left">{col.name}</td><td>{col.max}</td><td className="font-bold">{val || '-'}</td></tr>
-                                                    ); 
+                                                    return <tr key={col.id}><td className="text-left">{col.name}</td><td>{col.max}</td><td className="font-bold">{val || '-'}</td></tr>; 
                                                 }))}
                                             </React.Fragment>
                                         ))}
@@ -3266,7 +3209,8 @@
                             </div>
                         )}
                         
-                        {!studentViewData && teacherTab === 'scores' && activeCourseObj && (
+                        {/* 3. พิมพ์ตารางคะแนนรวมทั้งห้อง */}
+                        {printMode !== 'idcards' && !studentViewData && teacherTab === 'scores' && activeCourseObj && (
                             <div className="p-2 landscape-mode">
                                 <div className="text-center mb-6">
                                     <h1 className="official-title">แบบบันทึกผลการประเมินคุณภาพผู้เรียน</h1>
@@ -3344,7 +3288,8 @@
                             </div>
                         )}
 
-                        {view === 'homeroom_view' && loggedUser?.homeroom && (
+                        {/* 4. พิมพ์สรุปห้องประจำชั้น */}
+                        {printMode !== 'idcards' && view === 'homeroom_view' && loggedUser?.homeroom && (
                             <div className="p-2 landscape-mode">
                                 <div className="text-center mb-6">
                                     <h1 className="official-title">แบบสรุปผลการเรียนนักเรียนชั้น {loggedUser.homeroom}</h1>
@@ -3376,10 +3321,60 @@
                                 </table>
                             </div>
                         )}
+
+                        {/* 5. พิมพ์บัตรประจำตัวนักเรียน (ID Cards) แบบจัดเรียง Grid */}
+                        {printMode === 'idcards' && (
+                            <div className="w-full">
+                                <div className="text-center mb-6">
+                                    <h1 className="official-title">บัตรประจำตัวนักเรียน</h1>
+                                    <h2 className="official-subtitle">วิชา {idCardSelectedCourseObj?.name} ({idCardSelectedCourseObj?.code}) โรงเรียน{masterData.school}</h2>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15mm 10mm', padding: '5mm' }}>
+                                    {studentsToPrint.map((s, i) => (
+                                        <div key={i} className="break-inside-avoid relative overflow-hidden" style={{ width: '8.6cm', height: '5.4cm', borderRadius: '12px', border: '2px solid #cbd5e1', backgroundColor: '#ffffff', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
+                                            {/* ลวดลายและแถบสีด้านบน */}
+                                            <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '35%', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', zIndex: 0 }}></div>
+                                            <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: '#bae6fd', opacity: '0.4', zIndex: 0 }}></div>
+                                            
+                                            {/* ส่วนหัว: ชื่อโรงเรียน และ รายวิชา */}
+                                            <div style={{ zIndex: 1, padding: '12px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div>
+                                                    <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#0369a1', lineHeight: '1.2' }}>{masterData.school}</div>
+                                                    <div style={{ fontSize: '8pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
+                                                </div>
+                                                <div style={{ background: '#0284c7', color: 'white', fontSize: '8pt', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', letterSpacing: '1px' }}>STUDENT</div>
+                                            </div>
+
+                                            {/* ส่วนกลาง: ชื่อนักเรียน และ ข้อมูล */}
+                                            <div style={{ zIndex: 1, padding: '8px 16px', flex: 1, marginTop: '5px' }}>
+                                                <div style={{ fontSize: '14pt', fontWeight: 'bold', color: '#1e293b', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                                                <div style={{ display: 'flex', gap: '15px', marginTop: '4px' }}>
+                                                    <div style={{ fontSize: '9pt', color: '#64748b' }}>รหัส: <span style={{ color: '#0f172a', fontWeight: 'bold', fontFamily: 'monospace' }}>{s.id}</span></div>
+                                                    <div style={{ fontSize: '9pt', color: '#64748b' }}>ชั้น: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.room}</span></div>
+                                                    <div style={{ fontSize: '9pt', color: '#64748b' }}>เลขที่: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.no}</span></div>
+                                                </div>
+                                            </div>
+
+                                            {/* ส่วนท้าย: บาร์โค้ดและคิวอาร์โค้ด */}
+                                            <div style={{ zIndex: 1, padding: '8px 16px 12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px dashed #e2e8f0', backgroundColor: '#f8fafc' }}>
+                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                                    {/* บาร์โค้ด 1D */}
+                                                    <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=10&includetext=false`} alt="barcode" style={{ height: '24px', objectFit: 'contain' }} />
+                                                    <div style={{ fontSize: '7pt', color: '#94a3b8', marginTop: '2px' }}>ID: {s.id}</div>
+                                                </div>
+                                                <div>
+                                                    {/* คิวอาร์โค้ด 2D */}
+                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${s.id}`} alt="qrcode" style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="fixed bottom-0 left-0 w-full h-9 sm:h-10 bg-[#1e293b] text-slate-400 text-[10px] sm:text-xs flex justify-between items-center px-1 sm:px-3 z-[400] font-mono shadow-[0_-10px_30px_rgba(0,0,0,0.3)] no-print border-t border-slate-700 select-none">
-                        <div className="flex items-center h-full">
                             <div className="flex items-center gap-2 px-2 sm:px-3 hover:bg-slate-700 h-full transition-colors cursor-default" title="Network Status">
                                 <span className="relative flex h-2 w-2">
                                     {isOnline && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
