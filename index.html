@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradePro Cloud v9.0 </title>
+    <title>GradePro Cloud v9.0</title>
     <link rel="icon" href="data:,">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -94,16 +94,14 @@
 <body>
     <div id="root"></div>
 
-        <script type="text/babel" data-type="module">
-        // 1. เพิ่ม 2 บรรทัดนี้เข้ามาเพื่อเรียกใช้ React ผ่าน ES Modules
+    <script type="text/babel" data-type="module">
         import React from "react";
         import * as ReactDOM from "react-dom/client";
     
-        // 2. ส่วนนี้คือโค้ด Firebase ของเดิมของคุณ (ไม่ต้องแก้)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, onSnapshot, writeBatch, deleteDoc, query, where, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // ... โค้ดอื่นๆ ของคุณทั้งหมดอยู่ต่อจากตรงนี้ตามปกติ ...
+        
         const envConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
         const firebaseConfig = {
             apiKey: "AIzaSyAA9PKaYeOdUGkIFX_6fT_m7EY5a4ChP-I",
@@ -143,7 +141,8 @@
             <i onClick={onClick} title={title} className={`ph ph-${name} ${className}`} style={{ fontSize: size, cursor: onClick ? 'pointer' : 'inherit' }}></i>
         );
         const Icons = {
-            Barcode: p => <Icon name="barcode" {...p} />,Cloud: p => <Icon name="cloud" {...p} />, Search: p => <Icon name="magnifying-glass" {...p} />, User: p => <Icon name="user" {...p} />, Lock: p => <Icon name="lock" {...p} />, LogOut: p => <Icon name="sign-out" {...p} />, Edit: p => <Icon name="pencil-simple" {...p} />, Trash: p => <Icon name="trash" {...p} />, Plus: p => <Icon name="plus" {...p} />, Camera: p => <Icon name="camera" {...p} />, Settings: p => <Icon name="gear" {...p} />, Alert: p => <Icon name="warning-circle" {...p} />, X: p => <Icon name="x" {...p} />, ChevronDown: p => <Icon name="caret-down" {...p} />, ChevronRight: p => <Icon name="caret-right" {...p} />, ChevronLeft: p => <Icon name="caret-left" {...p} />, Print: p => <Icon name="printer" {...p} />, Users: p => <Icon name="users" {...p} />, FileText: p => <Icon name="file-text" {...p} />, Upload: p => <Icon name="upload-simple" {...p} />, Eye: p => <Icon name="eye" {...p} />, EyeOff: p => <Icon name="eye-slash" {...p} />, Share: p => <Icon name="share-network" {...p} />, Chart: p => <Icon name="chart-bar" {...p} />, Activity: p => <Icon name="activity" {...p} />, QrCode: p => <Icon name="qr-code" {...p} />, Calculator: p => <Icon name="calculator" {...p} />, Download: p => <Icon name="download-simple" {...p} />, Backspace: p => <Icon name="backspace" {...p} />, Note: p => <Icon name="info" {...p} />, Refresh: p => <Icon name="arrows-clockwise" {...p} />, Database: p => <Icon name="database" {...p} />, Save: p => <Icon name="floppy-disk" {...p} />, Popup: p => <Icon name="browsers" {...p} />, Maximize: p => <Icon name="corners-out" {...p} />, Target: p => <Icon name="crosshair" {...p} />, Shuffle: p => <Icon name="shuffle" {...p} />, Aperture: p => <Icon name="aperture" {...p} />, CheckCircle: p => <Icon name="check-circle" {...p} />, BookOpen: p => <Icon name="book-open" {...p} />, Folder: p => <Icon name="folder" {...p} />, LayoutGrid: p => <Icon name="squares-four" {...p} />, ChevronUp: p => <Icon name="caret-up" {...p} />, WifiHigh: p => <Icon name="wifi-high" {...p} />, WifiSlash: p => <Icon name="wifi-slash" {...p} />, Headset: p => <Icon name="headset" {...p} />, ShieldCheck: p => <Icon name="shield-check" {...p} />, Lightning: p => <Icon name="lightning" {...p} />, Code: p => <Icon name="code" {...p} />, Bug: p => <Icon name="bug" {...p} />, Info: p => <Icon name="info" {...p} />, EnvelopeSimple: p => <Icon name="envelope-simple" {...p} />, Desktop: p => <Icon name="desktop" {...p} />, Copy: p => <Icon name="copy" {...p} />, PaperPlaneRight: p => <Icon name="paper-plane-right" {...p} />, Question: p => <Icon name="question" {...p} />, Browser: p => <Icon name="browser" {...p} />, UserCircle: p => <Icon name="user-circle" {...p} />, IdentificationCard: p => <Icon name="identification-card" {...p} />, Key: p => <Icon name="key" {...p} />, ArrowLeft: p => <Icon name="arrow-left" {...p} />
+            Barcode: p => <Icon name="barcode" {...p} />,
+            Cloud: p => <Icon name="cloud" {...p} />, Search: p => <Icon name="magnifying-glass" {...p} />, User: p => <Icon name="user" {...p} />, Lock: p => <Icon name="lock" {...p} />, LogOut: p => <Icon name="sign-out" {...p} />, Edit: p => <Icon name="pencil-simple" {...p} />, Trash: p => <Icon name="trash" {...p} />, Plus: p => <Icon name="plus" {...p} />, Camera: p => <Icon name="camera" {...p} />, Settings: p => <Icon name="gear" {...p} />, Alert: p => <Icon name="warning-circle" {...p} />, X: p => <Icon name="x" {...p} />, ChevronDown: p => <Icon name="caret-down" {...p} />, ChevronRight: p => <Icon name="caret-right" {...p} />, ChevronLeft: p => <Icon name="caret-left" {...p} />, Print: p => <Icon name="printer" {...p} />, Users: p => <Icon name="users" {...p} />, FileText: p => <Icon name="file-text" {...p} />, Upload: p => <Icon name="upload-simple" {...p} />, Eye: p => <Icon name="eye" {...p} />, EyeOff: p => <Icon name="eye-slash" {...p} />, Share: p => <Icon name="share-network" {...p} />, Chart: p => <Icon name="chart-bar" {...p} />, Activity: p => <Icon name="activity" {...p} />, QrCode: p => <Icon name="qr-code" {...p} />, Calculator: p => <Icon name="calculator" {...p} />, Download: p => <Icon name="download-simple" {...p} />, Backspace: p => <Icon name="backspace" {...p} />, Note: p => <Icon name="info" {...p} />, Refresh: p => <Icon name="arrows-clockwise" {...p} />, Database: p => <Icon name="database" {...p} />, Save: p => <Icon name="floppy-disk" {...p} />, Popup: p => <Icon name="browsers" {...p} />, Maximize: p => <Icon name="corners-out" {...p} />, Target: p => <Icon name="crosshair" {...p} />, Shuffle: p => <Icon name="shuffle" {...p} />, Aperture: p => <Icon name="aperture" {...p} />, CheckCircle: p => <Icon name="check-circle" {...p} />, BookOpen: p => <Icon name="book-open" {...p} />, Folder: p => <Icon name="folder" {...p} />, LayoutGrid: p => <Icon name="squares-four" {...p} />, ChevronUp: p => <Icon name="caret-up" {...p} />, WifiHigh: p => <Icon name="wifi-high" {...p} />, WifiSlash: p => <Icon name="wifi-slash" {...p} />, Headset: p => <Icon name="headset" {...p} />, ShieldCheck: p => <Icon name="shield-check" {...p} />, Lightning: p => <Icon name="lightning" {...p} />, Code: p => <Icon name="code" {...p} />, Bug: p => <Icon name="bug" {...p} />, Info: p => <Icon name="info" {...p} />, EnvelopeSimple: p => <Icon name="envelope-simple" {...p} />, Desktop: p => <Icon name="desktop" {...p} />, Copy: p => <Icon name="copy" {...p} />, PaperPlaneRight: p => <Icon name="paper-plane-right" {...p} />, Question: p => <Icon name="question" {...p} />, Browser: p => <Icon name="browser" {...p} />, UserCircle: p => <Icon name="user-circle" {...p} />, IdentificationCard: p => <Icon name="identification-card" {...p} />, Key: p => <Icon name="key" {...p} />, ArrowLeft: p => <Icon name="arrow-left" {...p} />
         };
 
         const SECTION_COLORS = [
@@ -248,7 +247,6 @@
 
         function ScannerScoreModal({ isOpen, student, sections, onClose, updateStudent }) {
             if (!isOpen || !student) return null;
-
             const [localScores, setLocalScores] = React.useState(student.scores || {});
 
             React.useEffect(() => {
@@ -256,15 +254,12 @@
             }, [student]);
 
             const handleScoreChange = (col, val) => {
-                // ป้องกันการกรอกเกินคะแนนเต็ม
                 if (val !== '' && (!isNaN(val) && parseFloat(val) > parseFloat(col.max))) return;
-                
                 const newScores = { ...localScores, [col.id]: val };
                 setLocalScores(newScores);
                 updateStudent({ ...student, scores: newScores });
             };
 
-            // ดึงเฉพาะคอลัมน์ที่ต้องกรอกคะแนน
             const gradableCols = [];
             sections.forEach(sec => {
                 if (sec.published === false) return;
@@ -278,25 +273,21 @@
                 });
             });
 
-            // คำนวณงานที่ขาด
             const missingCount = gradableCols.filter(({ col }) => localScores[col.id] === undefined || localScores[col.id] === '').length;
 
             return (
                 <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden animate-scale flex flex-col max-h-[90vh]">
-                        {/* Header */}
                         <div className="bg-gradient-to-r from-primary-600 to-primary-800 p-6 text-white flex justify-between items-start relative shrink-0">
                             <div>
                                 <div className="text-primary-100 text-sm font-mono mb-1 flex items-center gap-2">
-                                    <Icons.Barcode size={16}/> สแกนสำเร็จ: รหัส {student.id}
+                                    <Icons.Barcode size={16}/> สแกนสำเร็จ/เรียกดูข้อมูล: รหัส {student.id}
                                 </div>
                                 <h2 className="text-2xl font-bold font-display">{student.name}</h2>
                                 <p className="text-primary-100 text-sm mt-1">ห้อง {student.room} เลขที่ {student.no}</p>
                             </div>
                             <button onClick={onClose} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition"><Icons.X size={20}/></button>
                         </div>
-
-                        {/* Body - รายการคะแนน */}
                         <div className="p-6 overflow-y-auto flex-1 bg-slate-50">
                             {missingCount > 0 && (
                                 <div className="mb-4 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl flex items-center gap-3 animate-fade-in">
@@ -307,12 +298,10 @@
                                     </div>
                                 </div>
                             )}
-
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {gradableCols.map(({ secTitle, col }) => {
                                     const isMissing = localScores[col.id] === undefined || localScores[col.id] === '';
                                     const val = localScores[col.id];
-
                                     return (
                                         <div key={col.id} className={`bg-white p-4 rounded-2xl border-2 transition-all ${isMissing ? 'border-rose-300 shadow-sm' : 'border-slate-200 focus-within:border-primary-400'}`}>
                                             <div className="flex justify-between items-start mb-2">
@@ -322,15 +311,13 @@
                                                 </div>
                                                 {isMissing && <span className="bg-rose-100 text-rose-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">ขาดส่ง</span>}
                                             </div>
-                                            
                                             <div className="flex items-center gap-2 mt-3">
                                                 {col.type === 'manual' ? (
                                                     <div className="relative flex-1">
                                                         <input 
                                                             type="number" 
                                                             className={`w-full bg-slate-50 border rounded-xl px-3 py-2 text-lg font-bold text-center outline-none transition ${isMissing ? 'border-rose-200 focus:border-rose-500' : 'border-slate-200 focus:border-primary-500 text-primary-700'}`}
-                                                            value={val || ''}
-                                                            placeholder="-"
+                                                            value={val || ''} placeholder="-"
                                                             onChange={(e) => handleScoreChange(col, e.target.value)}
                                                         />
                                                     </div>
@@ -349,8 +336,6 @@
                                 })}
                             </div>
                         </div>
-
-                        {/* Footer */}
                         <div className="bg-white p-4 border-t border-slate-200 text-center shrink-0 flex items-center justify-between">
                             <span className="text-sm text-slate-500 font-medium">💡 คุณสามารถสแกนบาร์โค้ดคนต่อไปได้ทันทีโดยไม่ต้องปิดหน้านี้</span>
                             <button onClick={onClose} className="px-6 py-2 bg-slate-800 text-white rounded-xl font-bold hover:bg-slate-900 transition">เสร็จสิ้น</button>
@@ -358,7 +343,7 @@
                     </div>
                 </div>
             );
-        }   
+        }
 
         function VirtualNumpad({ isOpen, onInput, onClose }) {
             const { useState, useRef, useEffect } = React;
@@ -421,7 +406,7 @@
             const [homeroomData, setHomeroomData] = useState({ students: [], courses: [] });
             const [isHomeroomLoading, setIsHomeroomLoading] = useState(false);
 
-            const [teacherTab, setTeacherTab] = useState('scores');
+            const [teacherTab, setTeacherTab] = useState('overview');
             const [settingSubTab, setSettingSubTab] = useState('general'); 
             const [loginTab, setLoginTab] = useState('teacher'); 
             
@@ -430,82 +415,12 @@
             const [toast, setToast] = useState(null);
             const [numpadOpen, setNumpadOpen] = useState(false);
             const [isPopupMode, setIsPopupMode] = useState(false);
+            
             const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
             const [activeScoreEntry, setActiveScoreEntry] = useState(null);
-            // State สำหรับ Popup เครื่องสแกน
             const [scannerModalData, setScannerModalData] = useState(null);
             const barcodeBuffer = useRef('');
             const barcodeTimeout = useRef(null);
-
-            // Effect จับการยิงบาร์โค้ด
-            useEffect(() => {
-                if (view !== 'teacher_view') return; // ทำงานเฉพาะหน้าจัดการวิชา
-
-                const handleGlobalKeyDown = (e) => {
-                    // ป้องกันไม่ให้ไปดักจับตอนกำลังพิมพ์อธิบายหมายเหตุยาวๆ (แต่ยอมให้ดักจับในช่องกรอกคะแนนได้)
-                    if (e.target.tagName === 'TEXTAREA') return;
-
-                    // ถ้าเป็นการพิมพ์ตัวอักษรเดียว (ไม่ใช่ปุ่ม Shift, Ctrl, ฯลฯ)
-                    if (e.key.length === 1) {
-                        barcodeBuffer.current += e.key;
-                        
-                        // เครื่องสแกนจะพิมพ์เร็วมาก (มักจะต่ำกว่า 50ms ต่อตัวอักษร)
-                        clearTimeout(barcodeTimeout.current);
-                        barcodeTimeout.current = setTimeout(() => {
-                            barcodeBuffer.current = ''; // ถ้าพิมพ์ช้าแปลว่าเป็นคนพิมพ์ ให้เคลียร์ทิ้ง
-                        }, 50); 
-                    }
-
-                    // เมื่อเครื่องสแกนพิมพ์เสร็จ มักจะส่งปุ่ม Enter มาด้วย
-                    if (e.key === 'Enter' && barcodeBuffer.current.length > 2) {
-                        const scannedId = barcodeBuffer.current;
-                        barcodeBuffer.current = ''; // เคลียร์ buffer ทันที
-                        
-                        // ป้องกันไม่ให้ Enter ไปกดปุ่มอื่นในหน้าจอ
-                        e.preventDefault(); 
-                        
-                        // ค้นหานักเรียนจากรหัสที่สแกนได้
-                        const foundStudent = students.find(s => s.id === scannedId);
-                        if (foundStudent) {
-                            setScannerModalData(foundStudent);
-                            showToast(`สแกนพบ: ${foundStudent.name}`, 'success');
-                            
-                            // ถ้าอยากให้ช่องแรก focus อัตโนมัติ สามารถเขียน logic เพิ่มได้ที่นี่
-                        } else {
-                            showToast(`ไม่พบนักเรียนรหัส: ${scannedId} ในวิชานี้`, 'error');
-                        }
-                    }
-
-                    // ... โค้ดจับบาร์โค้ดเดิม ...
-                    if (e.key === 'Enter' && barcodeBuffer.current.length > 2) {
-                        const scannedId = barcodeBuffer.current;
-                        barcodeBuffer.current = ''; 
-                        e.preventDefault(); 
-                        
-                        const foundStudent = students.find(s => s.id === scannedId);
-                        if (foundStudent) {
-                            // ตรวจสอบว่าเปิดแท็บไหนอยู่
-                            if (teacherTab === 'attendance') {
-                                // โหมดเช็คชื่อ: สแกนปุ๊บให้สถานะเป็น "มาเรียน"
-                                const newAttendance = { ...(foundStudent.attendance || {}), [attendanceDate]: 'present' };
-                                const updatedStudent = { ...foundStudent, attendance: newAttendance };
-                                setStudents(prev => prev.map(p => p.id === updatedStudent.id ? updatedStudent : p));
-                                updateStudent(updatedStudent);
-                                showToast(`เช็คชื่อ (มา): ${foundStudent.name}`, 'success');
-                            } else {
-                                // โหมดคะแนน: เปิดหน้าต่างกรอกคะแนน
-                                setScannerModalData(foundStudent);
-                                showToast(`สแกนพบ: ${foundStudent.name}`, 'success');
-                            }
-                        } else {
-                            showToast(`ไม่พบนักเรียนรหัส: ${scannedId} ในวิชานี้`, 'error');
-                        }
-                    }
-                };
-
-                window.addEventListener('keydown', handleGlobalKeyDown);
-                return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-            }, [students, view]);
             
             const [loginAdminPassword, setLoginAdminPassword] = useState('');
             const [loginTeacherId, setLoginTeacherId] = useState('');
@@ -542,6 +457,7 @@
                 };
             }, []);
 
+            // โหลดข้อมูลการล็อกอิน
             useEffect(() => {
                 const savedUserData = localStorage.getItem('gradeProUser');
                 if (savedUserData) {
@@ -550,7 +466,7 @@
                     setView(parsedUser.role === 'admin' ? 'admin_dashboard' : 'teacher_dashboard');
                 }
             }, []);
-            
+
             useEffect(() => {
                 const init = async () => {
                     try {
@@ -561,6 +477,46 @@
                 init();
                 return onAuthStateChanged(auth, (u) => { setUser(u); if (!u) setLoading(false); });
             }, []);
+
+            // จับการยิงบาร์โค้ด
+            useEffect(() => {
+                if (view !== 'teacher_view') return; 
+
+                const handleGlobalKeyDown = (e) => {
+                    if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+
+                    if (e.key.length === 1) {
+                        barcodeBuffer.current += e.key;
+                        clearTimeout(barcodeTimeout.current);
+                        barcodeTimeout.current = setTimeout(() => { barcodeBuffer.current = ''; }, 50); 
+                    }
+
+                    if (e.key === 'Enter' && barcodeBuffer.current.length > 2) {
+                        const scannedId = barcodeBuffer.current;
+                        barcodeBuffer.current = ''; 
+                        e.preventDefault(); 
+                        
+                        const foundStudent = students.find(s => s.id === scannedId);
+                        if (foundStudent) {
+                            if (teacherTab === 'attendance') {
+                                const newAttendance = { ...(foundStudent.attendance || {}), [attendanceDate]: 'present' };
+                                const updatedStudent = { ...foundStudent, attendance: newAttendance };
+                                setStudents(prev => prev.map(p => p.id === updatedStudent.id ? updatedStudent : p));
+                                updateStudent(updatedStudent);
+                                showToast(`เช็คชื่อ (มา): ${foundStudent.name}`, 'success');
+                            } else {
+                                setScannerModalData(foundStudent);
+                                showToast(`สแกนพบ: ${foundStudent.name}`, 'success');
+                            }
+                        } else {
+                            showToast(`ไม่พบนักเรียนรหัส: ${scannedId} ในวิชานี้`, 'error');
+                        }
+                    }
+                };
+
+                window.addEventListener('keydown', handleGlobalKeyDown);
+                return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+            }, [students, view, teacherTab, attendanceDate]);
 
             useEffect(() => {
                 if (!user) return;
@@ -872,7 +828,7 @@
                     if (loginAdminPassword === masterData.adminPassword) {
                         const userData = { role: 'admin' };
                         setLoggedUser(userData);
-                        localStorage.setItem('gradeProUser', JSON.stringify(userData)); // เพิ่มบรรทัดนี้
+                        localStorage.setItem('gradeProUser', JSON.stringify(userData));
                         setView('admin_dashboard');
                         showToast('เข้าสู่ระบบผู้ดูแลระบบสำเร็จ', 'success');
                     } else {
@@ -884,7 +840,7 @@
                     if (teacher && teacher.pin === loginTeacherPin) {
                         const userData = { role: 'teacher', id: teacher.id, name: teacher.name, homeroom: teacher.homeroom };
                         setLoggedUser(userData);
-                        localStorage.setItem('gradeProUser', JSON.stringify(userData)); // เพิ่มบรรทัดนี้
+                        localStorage.setItem('gradeProUser', JSON.stringify(userData));
                         setView('teacher_dashboard');
                         showToast(`ยินดีต้อนรับ ${teacher.name}`, 'success');
                     } else {
@@ -895,7 +851,7 @@
 
             const handleLogout = () => {
                 setLoggedUser(null);
-                localStorage.removeItem('gradeProUser'); // เพิ่มบรรทัดนี้
+                localStorage.removeItem('gradeProUser');
                 setView('student');
                 setStudentViewData(null);
                 setSearchQuery('');
@@ -1148,7 +1104,6 @@
                 return data;
             }, [filteredStudents, sections]);
 
-            // คำนวณรายชื่อนักเรียนที่จะแสดงในวงล้อ (คนที่ยังไม่ได้ถูกสุ่ม)
             const wheelStudents = useMemo(() => {
                 if (!randomRoom) return [];
                 return students.filter(s => 
@@ -1157,7 +1112,6 @@
                 );
             }, [students, randomRoom, courseConfig.drawnIds]);
 
-            // คำนวณรายชื่อนักเรียนที่ถูกสุ่มไปแล้ว (ประวัติการสุ่ม)
             const randomHistory = useMemo(() => {
                 if (!randomRoom) return [];
                 return students.filter(s => 
@@ -1258,7 +1212,7 @@
                         </div>
                     </nav>
 
-                    <main className="w-full p-4 md:p-6 no-print max-w-[96%] mx-auto">
+                    <main className={`w-full p-3 md:p-6 no-print mx-auto transition-all duration-300 ${view === 'teacher_view' || view === 'homeroom_view' ? 'max-w-full 2xl:max-w-[96%]' : 'max-w-7xl'}`}>
                         
                         {view === 'student' && (
                             <div className="max-w-md mx-auto mt-10 animate-slide-up">
@@ -1752,7 +1706,7 @@
                                         <div key={c.id} className="bg-white rounded-3xl shadow-soft border border-slate-200 hover:border-primary-400 hover:shadow-lg transition-all transform hover:-translate-y-1 group relative overflow-hidden min-h-[180px] flex flex-col">
                                             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-50 to-transparent rounded-bl-full opacity-50 pointer-events-none group-hover:from-primary-100 transition-colors"></div>
                                             
-                                            <button onClick={() => { setActiveCourseId(c.id); setView('teacher_view'); setTeacherTab('scores'); setStudentViewData(null); setSearchQuery(''); setSettingSubTab(null); }} className="flex-1 p-6 text-left flex flex-col relative z-10 w-full outline-none">
+                                            <button onClick={() => { setActiveCourseId(c.id); setView('teacher_view'); setTeacherTab('overview'); setStudentViewData(null); setSearchQuery(''); setSettingSubTab(null); }} className="flex-1 p-6 text-left flex flex-col relative z-10 w-full outline-none">
                                                 <div className="flex justify-between items-start mb-4">
                                                     <div className="w-14 h-14 bg-primary-50 rounded-2xl flex items-center justify-center text-primary-500 group-hover:bg-primary-600 group-hover:text-white transition-colors shadow-sm">
                                                         <Icons.Folder size={28} />
@@ -1882,22 +1836,22 @@
                         )}
 
                         {view === 'teacher_view' && activeCourseId && (
-                            <div className="animate-fade-in flex flex-col md:flex-row gap-6 w-full items-start">
+                            <div className="animate-fade-in flex flex-col lg:flex-row gap-6 w-full items-start">
                                 
                                 {/* --- เริ่มต้น SIDEBAR ด้านซ้าย --- */}
-                                <div className="w-full md:w-64 shrink-0 flex flex-col gap-4 sticky top-20 z-30">
-                                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-lg hidden md:block border border-slate-700">
+                                <div className="w-full lg:w-64 shrink-0 flex flex-col gap-4 sticky top-20 z-30">
+                                    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-5 text-white shadow-lg hidden lg:block border border-slate-700">
                                         <div className="text-xs text-slate-400 font-mono mb-1">{activeCourseObj.code}</div>
                                         <h3 className="font-bold font-display leading-tight text-lg mb-2">{activeCourseObj.name}</h3>
                                         <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 rounded-lg text-xs font-bold text-slate-300"><Icons.Users size={14}/> {filteredStudents.length} นักเรียน</div>
                                     </div>
                                     
-                                    <div className="bg-white p-3 rounded-2xl shadow-soft border border-slate-200 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-visible hide-scrollbar">
-                                        <div className="hidden md:block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3 pt-1">เมนูการจัดการ</div>
+                                    <div className="bg-white p-3 rounded-2xl shadow-soft border border-slate-200 flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible hide-scrollbar">
+                                        <div className="hidden lg:block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-3 pt-1">เมนูการจัดการ</div>
                                         {[
                                             {id:'overview', icon:Icons.LayoutGrid, label:'ภาพรวมวิชา'},
-                                            {id:'scores', icon:Icons.FileText, label:'ตารางคะแนน'},
                                             {id:'attendance', icon:Icons.CheckCircle, label:'เช็คชื่อเข้าเรียน'},
+                                            {id:'scores', icon:Icons.FileText, label:'ตารางคะแนน'},
                                             {id:'random', icon:Icons.Shuffle, label:'สุ่มรายชื่อนักเรียน'},
                                             {id:'analysis', icon:Icons.Chart, label:'วิเคราะห์เกรด'},
                                             {id:'activity', icon:Icons.Activity, label:'ความเคลื่อนไหว'},
@@ -1907,13 +1861,13 @@
                                             <button 
                                                 key={t.id} 
                                                 onClick={() => { setTeacherTab(t.id); if(t.id==='settings') setSettingSubTab('course'); }} 
-                                                className={`px-4 py-3 md:py-3.5 rounded-xl font-bold text-sm transition-all flex items-center gap-3 whitespace-nowrap md:w-full group ${teacherTab === t.id ? 'bg-primary-50 text-primary-700 shadow-sm border border-primary-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'}`}
+                                                className={`px-4 py-3 lg:py-3.5 rounded-xl font-bold text-sm transition-all flex items-center gap-3 whitespace-nowrap lg:w-full group ${teacherTab === t.id ? 'bg-primary-50 text-primary-700 shadow-sm border border-primary-200' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700 border border-transparent'}`}
                                             >
                                                 <div className={`p-1.5 rounded-lg transition-colors ${teacherTab === t.id ? 'bg-primary-600 text-white shadow-sm' : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'}`}>
                                                     <t.icon size={18} weight={teacherTab === t.id ? "fill" : "regular"} /> 
                                                 </div>
-                                                <span className="hidden md:inline">{t.label}</span>
-                                                <span className="md:hidden">{t.label}</span>
+                                                <span className="hidden lg:inline">{t.label}</span>
+                                                <span className="lg:hidden">{t.label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -1922,20 +1876,169 @@
 
                                 {/* --- พื้นที่ CONTENT ตรงกลาง --- */}
                                 <div className="flex-1 min-w-0 w-full flex flex-col gap-6">
-                                    
-                                    {teacherTab === 'scores' && (
-                                        <div className="flex items-center gap-2 w-full md:w-auto">
-                                            <button onClick={() => setNumpadOpen(!numpadOpen)} className={`p-2.5 rounded-xl transition ${numpadOpen ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`} title="Virtual Keypad"><Icons.Calculator size={20}/></button>
-                                            <button onClick={() => setIsPopupMode(!isPopupMode)} className={`p-2.5 rounded-xl transition ${isPopupMode ? 'bg-primary-100 text-primary-600' : 'bg-slate-100 text-slate-500'}`} title="Popup Mode"><Icons.Popup size={20}/></button>
-                                            <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none hidden sm:block" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
-                                                <option value="All">ทุกห้องเรียน</option>
-                                                {uniqueRooms.map(r => <option key={r} value={r}>{r}</option>)}
-                                            </select>
-                                            <div className="relative flex-1 md:flex-none"><Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/><input className="w-full md:w-40 pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหา..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} /></div>
-                                            <button onClick={() => window.print()} className="bg-white border border-slate-200 text-slate-600 p-2.5 rounded-xl hover:bg-slate-50 transition hidden sm:block"><Icons.Print/></button>
+
+                                {teacherTab === 'overview' && (
+                                    <div className="animate-fade-in space-y-6">
+                                        <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
+                                            <div className="col-span-1 bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="text-xs font-bold text-slate-500 uppercase">นักเรียนทั้งหมด</div>
+                                                    <div className="bg-blue-100 text-blue-600 p-2 rounded-xl"><Icons.Users size={20}/></div>
+                                                </div>
+                                                <div className="text-4xl font-display font-bold text-slate-800">{filteredStudents.length} <span className="text-sm text-slate-400 font-normal">คน</span></div>
+                                            </div>
+                                            
+                                            {(() => {
+                                                let totalAssignments = 0; let studentsWithMissing = 0; let missingDetails = [];
+                                                let allDates = new Set();
+                                                filteredStudents.forEach(s => { if(s.attendance) Object.keys(s.attendance).forEach(d => allDates.add(d)); });
+                                                const totalClasses = allDates.size;
+                                                
+                                                const gradableCols = [];
+                                                sections.forEach(sec => sec.published !== false && sec.groups?.forEach(g => g.published !== false && g.columns?.forEach(c => {
+                                                    if (c.published !== false && (c.type === 'manual' || c.type === 'check')) gradableCols.push({ sec: sec.title, col: c });
+                                                })));
+                                                totalAssignments = gradableCols.length;
+
+                                                filteredStudents.forEach(s => {
+                                                    let missingCount = 0; let missingTaskNames = [];
+                                                    gradableCols.forEach(({col}) => {
+                                                        if (s.scores?.[col.id] === undefined || s.scores?.[col.id] === '') { missingCount++; missingTaskNames.push(col.name); }
+                                                    });
+                                                    if (missingCount > 0) { studentsWithMissing++; missingDetails.push({ student: s, count: missingCount, tasks: missingTaskNames }); }
+                                                });
+                                                missingDetails.sort((a,b) => b.count - a.count);
+
+                                                return (
+                                                    <>
+                                                        <div className="col-span-1 bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="text-xs font-bold text-slate-500 uppercase">งานที่สั่ง</div>
+                                                                <div className="bg-primary-100 text-primary-600 p-2 rounded-xl"><Icons.Folder size={20}/></div>
+                                                            </div>
+                                                            <div className="text-4xl font-display font-bold text-slate-800">{totalAssignments} <span className="text-sm text-slate-400 font-normal">ชิ้น</span></div>
+                                                        </div>
+                                                        
+                                                        <div className="col-span-1 bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between hover:shadow-md transition">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="text-xs font-bold text-slate-500 uppercase">คาบเรียน</div>
+                                                                <div className="bg-emerald-100 text-emerald-600 p-2 rounded-xl"><Icons.CheckCircle size={20}/></div>
+                                                            </div>
+                                                            <div className="text-4xl font-display font-bold text-slate-800">{totalClasses} <span className="text-sm text-slate-400 font-normal">ครั้ง</span></div>
+                                                        </div>
+
+                                                        <div className="col-span-2 bg-gradient-to-br from-rose-50 to-white p-6 rounded-3xl shadow-sm border-2 border-rose-200 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition cursor-pointer" onClick={() => document.getElementById('missing-work-panel')?.scrollIntoView({behavior:'smooth'})}>
+                                                            <div className="absolute right-[-5%] top-[-10%] opacity-10 pointer-events-none group-hover:scale-110 transition-transform"><Icons.Alert size={150} className="text-rose-500"/></div>
+                                                            <div className="flex justify-between items-start mb-2 relative z-10">
+                                                                <div>
+                                                                    <div className="text-sm font-bold text-rose-600 uppercase tracking-widest mb-1 flex items-center gap-1"><Icons.WarningCircle size={16}/> นักเรียนมีงานค้าง!</div>
+                                                                    <div className="text-xs text-rose-500/80">ระบบคัดกรองข้อมูลค้างส่งล่าสุด</div>
+                                                                </div>
+                                                                <div className="bg-rose-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-md animate-pulse">คลิกดูรายละเอียด</div>
+                                                            </div>
+                                                            <div className="text-5xl font-display font-black text-rose-600 relative z-10 mt-2">{studentsWithMissing} <span className="text-lg text-rose-400 font-bold">คน</span></div>
+                                                        </div>
+
+                                                        {/* รายงานละเอียด 2 คอลัมน์ */}
+                                                        <div className="col-span-2 md:col-span-5 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                                                            
+                                                            {/* การบ้านที่ค้าง */}
+                                                            <div id="missing-work-panel" className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[500px]">
+                                                                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-center gap-2">
+                                                                    <Icons.Target size={20} className="text-rose-500"/>
+                                                                    <h3 className="font-bold text-slate-800 text-lg">รายงานค้างส่งงาน</h3>
+                                                                </div>
+                                                                <div className="p-0 overflow-y-auto flex-1 custom-scrollbar">
+                                                                    {missingDetails.length === 0 ? (
+                                                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                                                            <Icons.CheckCircle size={48} className="text-emerald-300 mb-2"/>
+                                                                            <p>ยอดเยี่ยม! ไม่มีนักเรียนค้างงานเลย</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <ul className="divide-y divide-slate-50">
+                                                                            {missingDetails.map((md, i) => (
+                                                                                <li key={i} className="p-4 hover:bg-slate-50 transition flex items-start gap-4">
+                                                                                    <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold font-mono text-sm shrink-0">
+                                                                                        {md.student.no}
+                                                                                    </div>
+                                                                                    <div className="flex-1">
+                                                                                        <div className="flex justify-between items-start mb-1">
+                                                                                            <div className="font-bold text-slate-800 cursor-pointer hover:text-primary-600" onClick={() => setScannerModalData(md.student)} title="คลิกเพื่อดู/กรอกคะแนน">{md.student.name}</div>
+                                                                                            <span className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-1 rounded">ค้าง {md.count} งาน</span>
+                                                                                        </div>
+                                                                                        <div className="text-xs text-slate-500 font-medium">
+                                                                                            {md.tasks.join(', ')}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* รายงานการมาเรียน */}
+                                                            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[500px]">
+                                                                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-center gap-2">
+                                                                    <Icons.CheckCircle size={20} className="text-emerald-500"/>
+                                                                    <h3 className="font-bold text-slate-800 text-lg">รายงานการเข้าเรียน (รวม {totalClasses} ครั้ง)</h3>
+                                                                </div>
+                                                                <div className="p-0 overflow-y-auto flex-1 custom-scrollbar">
+                                                                    {totalClasses === 0 ? (
+                                                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                                                                            <Icons.Info size={48} className="text-slate-300 mb-2"/>
+                                                                            <p>ยังไม่มีการเช็คชื่อในระบบ</p>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <table className="w-full text-sm text-left">
+                                                                            <thead className="bg-white border-b border-slate-100 text-slate-400 text-xs font-mono sticky top-0 z-10 shadow-sm">
+                                                                                <tr>
+                                                                                    <th className="p-3">ชื่อ-นามสกุล</th>
+                                                                                    <th className="p-3 text-center">มา</th>
+                                                                                    <th className="p-3 text-center">สาย</th>
+                                                                                    <th className="p-3 text-center">ลา</th>
+                                                                                    <th className="p-3 text-center">ขาด</th>
+                                                                                    <th className="p-3 text-right">เปอร์เซ็นต์</th>
+                                                                                </tr>
+                                                                            </thead>
+                                                                            <tbody className="divide-y divide-slate-50">
+                                                                                {filteredStudents.map((s, i) => {
+                                                                                    let p=0, l=0, lv=0, a=0;
+                                                                                    if (s.attendance) {
+                                                                                        Object.values(s.attendance).forEach(val => {
+                                                                                            if(val==='present') p++; else if(val==='late') l++; else if(val==='leave') lv++; else if(val==='absent') a++;
+                                                                                        });
+                                                                                    }
+                                                                                    const attendRate = totalClasses > 0 ? Math.round(((p + l) / totalClasses) * 100) : 0;
+                                                                                    
+                                                                                    return (
+                                                                                        <tr key={s.id} className="hover:bg-slate-50 transition">
+                                                                                            <td className="p-3 font-medium text-slate-700 max-w-[150px] truncate" title={s.name}>{s.no}. {s.name}</td>
+                                                                                            <td className="p-3 text-center text-emerald-600 font-bold">{p || '-'}</td>
+                                                                                            <td className="p-3 text-center text-yellow-600 font-bold">{l || '-'}</td>
+                                                                                            <td className="p-3 text-center text-blue-600 font-bold">{lv || '-'}</td>
+                                                                                            <td className="p-3 text-center text-rose-600 font-bold">{a || '-'}</td>
+                                                                                            <td className="p-3 text-right">
+                                                                                                <span className={`px-2 py-1 rounded text-xs font-bold ${attendRate >= 80 ? 'bg-emerald-50 text-emerald-600' : attendRate >= 60 ? 'bg-yellow-50 text-yellow-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                                                                    {attendRate}%
+                                                                                                </span>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    )
+                                                                                })}
+                                                                            </tbody>
+                                                                        </table>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </>
+                                                )
+                                            })()}
                                         </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
 
                                 {teacherTab === 'attendance' && (
                                     <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative p-4 md:p-6 animate-fade-in w-full">
@@ -1960,15 +2063,12 @@
                                                     <option value="All">ทุกห้องเรียน</option>
                                                     {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
                                                 </select>
-                                                <button 
-                                                    onClick={() => window.print()} 
-                                                    className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 transition hidden sm:flex items-center gap-2 shadow-sm font-bold text-sm"
-                                                >
+                                                <button onClick={() => window.print()} className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-xl hover:bg-slate-50 transition hidden sm:flex items-center gap-2 shadow-sm font-bold text-sm">
                                                     <Icons.Print size={18}/> พิมพ์รายงาน
                                                 </button>
                                             </div>
                                         </div>
-                                
+
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left min-w-[700px]">
                                                 <thead className="bg-slate-50 text-slate-500 font-display text-sm">
@@ -1982,10 +2082,8 @@
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-50">
                                                     {filteredStudents.map((s, idx) => {
-                                                        // อ่านสถานะของวันนี้
                                                         const status = s.attendance?.[attendanceDate];
                                                         
-                                                        // ฟังก์ชันบันทึกสถานะ
                                                         const handleStatus = (val) => {
                                                             const newAtt = { ...(s.attendance || {}) };
                                                             if (val === null) delete newAtt[attendanceDate];
@@ -1995,7 +2093,7 @@
                                                             setStudents(prev => prev.map(p => p.id === s.id ? updated : p));
                                                             updateStudent(updated);
                                                         };
-                                
+
                                                         return (
                                                             <tr key={s.id} className={`hover:bg-slate-50 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
                                                                 <td className="p-3 text-center font-mono text-slate-500">{s.no}</td>
@@ -2009,13 +2107,7 @@
                                                                         <button onClick={() => handleStatus('leave')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition border ${status === 'leave' ? 'bg-blue-500 text-white border-blue-600 shadow-sm' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'}`}>ลา</button>
                                                                         <button onClick={() => handleStatus('absent')} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition border ${status === 'absent' ? 'bg-red-500 text-white border-red-600 shadow-sm' : 'bg-white text-red-600 border-red-200 hover:bg-red-50'}`}>ขาด</button>
                                                                         
-                                                                        {/* ปุ่มลบสถานะ (เคลียร์ค่า) */}
-                                                                        <button 
-                                                                            onClick={() => handleStatus(null)} 
-                                                                            disabled={!status}
-                                                                            className={`py-1.5 px-2 rounded-lg transition ${status ? 'text-slate-400 hover:bg-slate-200 hover:text-slate-600' : 'text-slate-200 cursor-not-allowed'}`}
-                                                                            title="ลบสถานะ"
-                                                                        >
+                                                                        <button onClick={() => handleStatus(null)} disabled={!status} className={`py-1.5 px-2 rounded-lg transition ${status ? 'text-slate-400 hover:bg-slate-200 hover:text-slate-600' : 'text-slate-200 cursor-not-allowed'}`} title="ลบสถานะ">
                                                                             <Icons.X size={14}/>
                                                                         </button>
                                                                     </div>
@@ -2035,76 +2127,28 @@
                                     </div>
                                 )}
 
-                                {teacherTab === 'random' && (
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto animate-scale">
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
-                                            <div className="w-full flex justify-between items-center mb-6">
-                                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Shuffle size={20} className="text-primary-600"/> วงล้อสุ่ม</h3>
-                                                <div className="flex gap-2">
-                                                    <select className="bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-sm font-bold text-slate-600 outline-none" value={spinDuration} onChange={e => setSpinDuration(Number(e.target.value))} disabled={isSpinning}>
-                                                        <option value={3}>3 วิ</option><option value={5}>5 วิ</option><option value={8}>8 วิ</option>
-                                                    </select>
-                                                    <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none" value={randomRoom} onChange={e => setRandomRoom(e.target.value)} disabled={isSpinning}>
-                                                        <option value="" disabled hidden>เลือกห้องเรียน</option>
-                                                        {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            <div className="w-full flex-1 flex flex-col items-center justify-center min-h-[400px]">
-                                                <div className={`relative w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] my-4 flex items-center justify-center p-2 rounded-full bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.2)] border-4 border-slate-700 transition-transform ease-in-out ${isZooming ? 'scale-[1.15] z-50 duration-[2000ms]' : 'scale-100 z-10 duration-500'}`}>
-                                                    {[...Array(12)].map((_, i) => (
-                                                        <div key={i} className="absolute w-3 h-3 bg-slate-400 rounded-full shadow-inner" style={{ top: `calc(50% - 6px - 47% * ${Math.cos(i * 30 * Math.PI / 180)})`, left: `calc(50% - 6px + 47% * ${Math.sin(i * 30 * Math.PI / 180)})` }}></div>
-                                                    ))}
-                                                    <div className="w-full h-full rounded-full relative overflow-hidden shadow-inner border-4 border-white" style={{ transitionProperty: 'transform', transitionDuration: `${spinDuration * 1000}ms`, transitionTimingFunction: 'cubic-bezier(0.1, 0.9, 0.2, 1)', background: wheelStudents.length > 1 ? `conic-gradient(from 0deg, ${wheelStudents.map((s, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${(i / wheelStudents.length) * 100}% ${((i + 1) / wheelStudents.length) * 100}%`).join(', ')})` : wheelStudents.length === 1 ? WHEEL_COLORS[0] : '#f1f5f9', transform: `rotate(${wheelRotation}deg)` }}>
-                                                        {wheelStudents.length > 1 && wheelStudents.map((s, i) => <div key={`line-${s.id}`} className="absolute top-1/2 left-1/2 w-[2px] h-1/2 bg-black/10 origin-top -translate-x-1/2" style={{ transform: `rotate(${(i * 360) / wheelStudents.length}deg)` }}></div>)}
-                                                        {wheelStudents.length > 1 && wheelStudents.map((s, i) => (
-                                                            <div key={s.id} className="absolute top-1/2 left-1/2 w-[48%] h-8 origin-left flex items-center pl-10 sm:pl-16" style={{ transform: `translate(0, -50%) rotate(${((i * 360) / wheelStudents.length + (360 / wheelStudents.length) / 2) - 90}deg)` }}>
-                                                                <span className="text-xs sm:text-base font-bold text-slate-800 truncate bg-white/80 px-2 py-0.5 rounded shadow-sm max-w-[120px] sm:max-w-[160px]">{s.name.split(' ')[0]}</span>
-                                                            </div>
-                                                        ))}
-                                                        {wheelStudents.length === 1 && <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-800 text-3xl">{wheelStudents[0].name.split(' ')[0]}</div>}
-                                                        {wheelStudents.length === 0 && <div className="absolute inset-0 flex flex-col items-center justify-center font-bold text-slate-400 bg-slate-100"><Icons.CheckCircle size={48} className="mb-4 text-green-400"/>{randomRoom ? 'สุ่มครบทุกคนแล้ว' : 'กรุณาเลือกห้อง'}</div>}
-                                                    </div>
-                                                    <div className="absolute top-1/2 left-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-slate-800 rounded-full shadow-2xl transform -translate-x-1/2 -translate-y-1/2 border-4 border-slate-200 z-10 flex items-center justify-center"><div className="w-5 h-5 bg-slate-300 rounded-full shadow-inner"></div></div>
-                                                    <div className="absolute top-[-15px] sm:top-[-20px] left-1/2 w-0 h-0 border-x-[15px] sm:border-x-[20px] border-x-transparent border-t-[30px] sm:border-t-[40px] border-t-red-500 transform -translate-x-1/2 z-20 drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]"></div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="h-16 flex items-center justify-center w-full mt-4 mb-2">
-                                                {!isSpinning && !randomWinner && <div className="text-slate-400 text-sm flex flex-col items-center"><span className="font-display font-bold text-lg text-slate-600 mb-1">พร้อมสุ่ม</span><span>มีนักเรียนในวงล้อ {wheelStudents.length} คน</span></div>}
-                                                {isSpinning && !isZooming && <div className="text-primary-500 font-bold animate-pulse text-lg">กำลังหมุน...</div>}
-                                                {isZooming && <div className="text-red-500 font-bold animate-bounce text-xl flex items-center gap-2"><Icons.Target size={24}/> ใกล้จะหยุดแล้ว!</div>}
-                                            </div>
-
-                                            <button onClick={spinWheel} disabled={isSpinning || wheelStudents.length === 0} className={`w-full py-4 rounded-2xl font-bold text-xl text-white shadow-lg transition transform active:scale-95 ${isSpinning || wheelStudents.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-primary-200'}`}>
-                                                {isSpinning ? 'กำลังสุ่ม...' : 'เริ่มสุ่มรายชื่อ'}
-                                            </button>
-                                        </div>
-
-                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[600px] lg:h-auto z-10">
-                                            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Users className="text-slate-500"/> ประวัติการสุ่ม ({randomHistory.length})</h3>
-                                                {randomHistory.length > 0 && <button onClick={restoreAllToWheel} className="text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 font-bold flex items-center gap-1 transition"><Icons.Refresh size={12}/> คืนค่าทั้งหมด</button>}
-                                            </div>
-                                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                                                {randomHistory.length === 0 && <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60"><Icons.Aperture size={48} className="mb-4 opacity-50"/><div>ยังไม่มีประวัติการสุ่มในห้องนี้</div></div>}
-                                                {randomHistory.map((s) => (
-                                                    <div key={s.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl animate-fade-in hover:border-primary-200 hover:shadow-sm transition group">
-                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                            <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm shadow-inner flex-shrink-0">{s.no}</div>
-                                                            <div className="truncate"><div className="font-bold text-sm text-slate-700 truncate group-hover:text-primary-700 transition-colors">{s.name}</div><div className="text-[10px] text-slate-400 font-mono">รหัส: {s.id}</div></div>
-                                                        </div>
-                                                        <button onClick={() => restoreToWheel(s)} className="text-xs text-slate-500 hover:text-green-600 bg-white border border-slate-200 hover:border-green-300 hover:bg-green-50 px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition shadow-sm flex-shrink-0"><Icons.Refresh size={14}/> คืนค่า</button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
                                 {teacherTab === 'scores' && (
-                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative">
+                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative w-full">
+                                        
+                                        <div className="bg-slate-50 border-b border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40">
+                                            <div className="flex items-center gap-3 font-bold text-xl text-slate-800 font-display">
+                                                <div className="bg-primary-100 text-primary-600 p-2 rounded-xl"><Icons.FileText size={20}/></div> ตารางคะแนนรวม
+                                            </div>
+                                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                                                <button onClick={() => setNumpadOpen(!numpadOpen)} className={`p-2.5 rounded-xl transition border shadow-sm ${numpadOpen ? 'bg-primary-100 border-primary-300 text-primary-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`} title="Virtual Keypad"><Icons.Calculator size={18}/></button>
+                                                <button onClick={() => setIsPopupMode(!isPopupMode)} className={`p-2.5 rounded-xl transition border shadow-sm ${isPopupMode ? 'bg-primary-100 border-primary-300 text-primary-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`} title="Popup Mode"><Icons.Popup size={18}/></button>
+                                                <select className="bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none hidden md:block" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+                                                    <option value="All">ทุกห้องเรียน</option>
+                                                    {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                                </select>
+                                                <div className="relative flex-1 sm:flex-none min-w-[200px]">
+                                                    <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/>
+                                                    <input className="w-full pl-9 pr-4 py-2.5 bg-white shadow-sm border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหาชื่อ/รหัส..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                                                </div>
+                                                <button onClick={() => window.print()} className="bg-slate-800 text-white px-4 py-2.5 font-bold text-sm shadow-md rounded-xl hover:bg-slate-900 transition hidden sm:flex items-center gap-2"><Icons.Print size={18}/> <span className="hidden xl:inline">พิมพ์</span></button>
+                                            </div>
+                                        </div>
+
                                         <VirtualNumpad isOpen={numpadOpen} onClose={() => setNumpadOpen(false)} onInput={(k) => {
                                             const activeInput = document.activeElement;
                                             if (activeInput && activeInput.tagName === 'INPUT' && !activeInput.readOnly) {
@@ -2122,11 +2166,11 @@
                                             onClose={() => setScannerModalData(null)} 
                                             updateStudent={(updatedData) => {
                                                 setStudents(prev => prev.map(p => p.id === updatedData.id ? updatedData : p));
-                                                updateStudent(updatedData); // บันทึกลง Firebase ทันที
-                                                setScannerModalData(updatedData); // อัปเดตข้อมูลใน Modal
+                                                updateStudent(updatedData);
+                                                setScannerModalData(updatedData);
                                             }} 
                                         />
-                                                                                
+                                                        
                                         <div className="overflow-x-auto max-h-[75vh]">
                                             <table className="min-w-full w-max text-sm text-left border-separate table-fixed" style={{borderSpacing: 0}}>
                                                 <thead className="bg-white text-slate-700 font-display z-50 sticky top-0 shadow-sm">
@@ -2278,185 +2322,77 @@
                                         </div>
                                     </div>
                                 )}
-                                {teacherTab === 'overview' && (
-                                    <div className="animate-fade-in space-y-6">
-                                        {/* แถบสรุปตัวเลขสถิติ (Stats Cards) */}
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                            <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div className="text-xs font-bold text-slate-500 uppercase">นักเรียนทั้งหมด</div>
-                                                    <div className="bg-blue-100 text-blue-600 p-1.5 rounded-lg"><Icons.Users size={18}/></div>
+
+                                {teacherTab === 'random' && (
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-scale">
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
+                                            <div className="w-full flex justify-between items-center mb-6">
+                                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Shuffle size={20} className="text-primary-600"/> วงล้อสุ่ม</h3>
+                                                <div className="flex gap-2">
+                                                    <select className="bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-sm font-bold text-slate-600 outline-none" value={spinDuration} onChange={e => setSpinDuration(Number(e.target.value))} disabled={isSpinning}>
+                                                        <option value={3}>3 วิ</option><option value={5}>5 วิ</option><option value={8}>8 วิ</option>
+                                                    </select>
+                                                    <select className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-600 outline-none" value={randomRoom} onChange={e => setRandomRoom(e.target.value)} disabled={isSpinning}>
+                                                        <option value="" disabled hidden>เลือกห้องเรียน</option>
+                                                        {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                                    </select>
                                                 </div>
-                                                <div className="text-3xl font-display font-bold text-slate-800">{filteredStudents.length} <span className="text-sm text-slate-400 font-normal">คน</span></div>
+                                            </div>
+
+                                            <div className="w-full flex-1 flex flex-col items-center justify-center min-h-[400px]">
+                                                <div className={`relative w-[320px] h-[320px] sm:w-[450px] sm:h-[450px] my-4 flex items-center justify-center p-2 rounded-full bg-slate-800 shadow-[0_10px_30px_rgba(0,0,0,0.2)] border-4 border-slate-700 transition-transform ease-in-out ${isZooming ? 'scale-[1.15] z-50 duration-[2000ms]' : 'scale-100 z-10 duration-500'}`}>
+                                                    {[...Array(12)].map((_, i) => (
+                                                        <div key={i} className="absolute w-3 h-3 bg-slate-400 rounded-full shadow-inner" style={{ top: `calc(50% - 6px - 47% * ${Math.cos(i * 30 * Math.PI / 180)})`, left: `calc(50% - 6px + 47% * ${Math.sin(i * 30 * Math.PI / 180)})` }}></div>
+                                                    ))}
+                                                    <div className="w-full h-full rounded-full relative overflow-hidden shadow-inner border-4 border-white" style={{ transitionProperty: 'transform', transitionDuration: `${spinDuration * 1000}ms`, transitionTimingFunction: 'cubic-bezier(0.1, 0.9, 0.2, 1)', background: wheelStudents.length > 1 ? `conic-gradient(from 0deg, ${wheelStudents.map((s, i) => `${WHEEL_COLORS[i % WHEEL_COLORS.length]} ${(i / wheelStudents.length) * 100}% ${((i + 1) / wheelStudents.length) * 100}%`).join(', ')})` : wheelStudents.length === 1 ? WHEEL_COLORS[0] : '#f1f5f9', transform: `rotate(${wheelRotation}deg)` }}>
+                                                        {wheelStudents.length > 1 && wheelStudents.map((s, i) => <div key={`line-${s.id}`} className="absolute top-1/2 left-1/2 w-[2px] h-1/2 bg-black/10 origin-top -translate-x-1/2" style={{ transform: `rotate(${(i * 360) / wheelStudents.length}deg)` }}></div>)}
+                                                        {wheelStudents.length > 1 && wheelStudents.map((s, i) => (
+                                                            <div key={s.id} className="absolute top-1/2 left-1/2 w-[48%] h-8 origin-left flex items-center pl-10 sm:pl-16" style={{ transform: `translate(0, -50%) rotate(${((i * 360) / wheelStudents.length + (360 / wheelStudents.length) / 2) - 90}deg)` }}>
+                                                                <span className="text-xs sm:text-base font-bold text-slate-800 truncate bg-white/80 px-2 py-0.5 rounded shadow-sm max-w-[120px] sm:max-w-[160px]">{s.name.split(' ')[0]}</span>
+                                                            </div>
+                                                        ))}
+                                                        {wheelStudents.length === 1 && <div className="absolute inset-0 flex items-center justify-center font-bold text-slate-800 text-3xl">{wheelStudents[0].name.split(' ')[0]}</div>}
+                                                        {wheelStudents.length === 0 && <div className="absolute inset-0 flex flex-col items-center justify-center font-bold text-slate-400 bg-slate-100"><Icons.CheckCircle size={48} className="mb-4 text-green-400"/>{randomRoom ? 'สุ่มครบทุกคนแล้ว' : 'กรุณาเลือกห้อง'}</div>}
+                                                    </div>
+                                                    <div className="absolute top-1/2 left-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-slate-800 rounded-full shadow-2xl transform -translate-x-1/2 -translate-y-1/2 border-4 border-slate-200 z-10 flex items-center justify-center"><div className="w-5 h-5 bg-slate-300 rounded-full shadow-inner"></div></div>
+                                                    <div className="absolute top-[-15px] sm:top-[-20px] left-1/2 w-0 h-0 border-x-[15px] sm:border-x-[20px] border-x-transparent border-t-[30px] sm:border-t-[40px] border-t-red-500 transform -translate-x-1/2 z-20 drop-shadow-[0_4px_4px_rgba(0,0,0,0.4)]"></div>
+                                                </div>
                                             </div>
                                             
-                                            {(() => {
-                                                // คำนวณงานทั้งหมด และคนที่ขาดงาน
-                                                let totalAssignments = 0;
-                                                let studentsWithMissing = 0;
-                                                let missingDetails = [];
-                                                
-                                                // คำนวณวันเช็คชื่อทั้งหมด
-                                                let allDates = new Set();
-                                                filteredStudents.forEach(s => {
-                                                    if(s.attendance) Object.keys(s.attendance).forEach(d => allDates.add(d));
-                                                });
-                                                const totalClasses = allDates.size;
-                                                
-                                                const gradableCols = [];
-                                                sections.forEach(sec => sec.published !== false && sec.groups?.forEach(g => g.published !== false && g.columns?.forEach(c => {
-                                                    if (c.published !== false && (c.type === 'manual' || c.type === 'check')) gradableCols.push({ sec: sec.title, col: c });
-                                                })));
-                                                totalAssignments = gradableCols.length;
+                                            <div className="h-16 flex items-center justify-center w-full mt-4 mb-2">
+                                                {!isSpinning && !randomWinner && <div className="text-slate-400 text-sm flex flex-col items-center"><span className="font-display font-bold text-lg text-slate-600 mb-1">พร้อมสุ่ม</span><span>มีนักเรียนในวงล้อ {wheelStudents.length} คน</span></div>}
+                                                {isSpinning && !isZooming && <div className="text-primary-500 font-bold animate-pulse text-lg">กำลังหมุน...</div>}
+                                                {isZooming && <div className="text-red-500 font-bold animate-bounce text-xl flex items-center gap-2"><Icons.Target size={24}/> ใกล้จะหยุดแล้ว!</div>}
+                                            </div>
 
-                                                filteredStudents.forEach(s => {
-                                                    let missingCount = 0;
-                                                    let missingTaskNames = [];
-                                                    gradableCols.forEach(({col}) => {
-                                                        if (s.scores?.[col.id] === undefined || s.scores?.[col.id] === '') {
-                                                            missingCount++;
-                                                            missingTaskNames.push(col.name);
-                                                        }
-                                                    });
-                                                    if (missingCount > 0) {
-                                                        studentsWithMissing++;
-                                                        missingDetails.push({ student: s, count: missingCount, tasks: missingTaskNames });
-                                                    }
-                                                });
-                                                
-                                                // เรียงตามคนที่ค้างงานเยอะสุด
-                                                missingDetails.sort((a,b) => b.count - a.count);
+                                            <button onClick={spinWheel} disabled={isSpinning || wheelStudents.length === 0} className={`w-full py-4 rounded-2xl font-bold text-xl text-white shadow-lg transition transform active:scale-95 ${isSpinning || wheelStudents.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-700 hover:to-primary-600 shadow-primary-200'}`}>
+                                                {isSpinning ? 'กำลังสุ่ม...' : 'เริ่มสุ่มรายชื่อ'}
+                                            </button>
+                                        </div>
 
-                                                return (
-                                                    <>
-                                                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <div className="text-xs font-bold text-slate-500 uppercase">งานที่สั่งทั้งหมด</div>
-                                                                <div className="bg-primary-100 text-primary-600 p-1.5 rounded-lg"><Icons.Folder size={18}/></div>
-                                                            </div>
-                                                            <div className="text-3xl font-display font-bold text-slate-800">{totalAssignments} <span className="text-sm text-slate-400 font-normal">ชิ้น</span></div>
+                                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col h-[600px] lg:h-auto z-10">
+                                            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2"><Icons.Users className="text-slate-500"/> ประวัติการสุ่ม ({randomHistory.length})</h3>
+                                                {randomHistory.length > 0 && <button onClick={restoreAllToWheel} className="text-xs text-orange-600 bg-orange-50 px-3 py-1.5 rounded-lg hover:bg-orange-100 font-bold flex items-center gap-1 transition"><Icons.Refresh size={12}/> คืนค่าทั้งหมด</button>}
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                                                {randomHistory.length === 0 && <div className="h-full flex flex-col items-center justify-center text-slate-400 opacity-60"><Icons.Aperture size={48} className="mb-4 opacity-50"/><div>ยังไม่มีประวัติการสุ่มในห้องนี้</div></div>}
+                                                {randomHistory.map((s) => (
+                                                    <div key={s.id} className="flex justify-between items-center bg-slate-50 border border-slate-100 p-3 rounded-xl animate-fade-in hover:border-primary-200 hover:shadow-sm transition group">
+                                                        <div className="flex items-center gap-3 overflow-hidden">
+                                                            <div className="w-10 h-10 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm shadow-inner flex-shrink-0">{s.no}</div>
+                                                            <div className="truncate"><div className="font-bold text-sm text-slate-700 truncate group-hover:text-primary-700 transition-colors">{s.name}</div><div className="text-[10px] text-slate-400 font-mono">รหัส: {s.id}</div></div>
                                                         </div>
-                                                        
-                                                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <div className="text-xs font-bold text-slate-500 uppercase">เปิดเรียนแล้ว</div>
-                                                                <div className="bg-emerald-100 text-emerald-600 p-1.5 rounded-lg"><Icons.CheckCircle size={18}/></div>
-                                                            </div>
-                                                            <div className="text-3xl font-display font-bold text-slate-800">{totalClasses} <span className="text-sm text-slate-400 font-normal">ครั้ง</span></div>
-                                                        </div>
-
-                                                        <div className="bg-white p-5 rounded-2xl shadow-sm border border-rose-200 flex flex-col justify-between relative overflow-hidden">
-                                                            <div className="absolute right-0 top-0 w-16 h-16 bg-rose-50 rounded-bl-full -z-0"></div>
-                                                            <div className="flex justify-between items-start mb-2 relative z-10">
-                                                                <div className="text-xs font-bold text-rose-600 uppercase">นร. ที่มีงานค้าง!</div>
-                                                                <div className="bg-rose-100 text-rose-600 p-1.5 rounded-lg"><Icons.Alert size={18}/></div>
-                                                            </div>
-                                                            <div className="text-3xl font-display font-bold text-rose-600 relative z-10">{studentsWithMissing} <span className="text-sm text-rose-400 font-normal">คน</span></div>
-                                                        </div>
-
-                                                        {/* รายงานละเอียด 2 คอลัมน์ */}
-                                                        <div className="col-span-2 md:col-span-4 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                                                            
-                                                            {/* การบ้านที่ค้าง */}
-                                                            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[500px]">
-                                                                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-center gap-2">
-                                                                    <Icons.Target size={20} className="text-rose-500"/>
-                                                                    <h3 className="font-bold text-slate-800 text-lg">รายงานค้างส่งงาน</h3>
-                                                                </div>
-                                                                <div className="p-0 overflow-y-auto flex-1 custom-scrollbar">
-                                                                    {missingDetails.length === 0 ? (
-                                                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                                                            <Icons.CheckCircle size={48} className="text-emerald-300 mb-2"/>
-                                                                            <p>ยอดเยี่ยม! ไม่มีนักเรียนค้างงานเลย</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <ul className="divide-y divide-slate-50">
-                                                                            {missingDetails.map((md, i) => (
-                                                                                <li key={i} className="p-4 hover:bg-slate-50 transition flex items-start gap-4">
-                                                                                    <div className="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center font-bold font-mono text-sm shrink-0">
-                                                                                        {md.student.no}
-                                                                                    </div>
-                                                                                    <div className="flex-1">
-                                                                                        <div className="flex justify-between items-start mb-1">
-                                                                                            <div className="font-bold text-slate-800 cursor-pointer hover:text-primary-600" onClick={() => setScannerModalData(md.student)} title="คลิกเพื่อดู/กรอกคะแนน">{md.student.name}</div>
-                                                                                            <span className="bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-1 rounded">ค้าง {md.count} งาน</span>
-                                                                                        </div>
-                                                                                        <div className="text-xs text-slate-500 font-medium">
-                                                                                            {md.tasks.join(', ')}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </li>
-                                                                            ))}
-                                                                        </ul>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            {/* รายงานการมาเรียน */}
-                                                            <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col h-[500px]">
-                                                                <div className="bg-slate-50 border-b border-slate-100 px-5 py-4 flex items-center gap-2">
-                                                                    <Icons.CheckCircle size={20} className="text-emerald-500"/>
-                                                                    <h3 className="font-bold text-slate-800 text-lg">รายงานการเข้าเรียน (รวม {totalClasses} ครั้ง)</h3>
-                                                                </div>
-                                                                <div className="p-0 overflow-y-auto flex-1 custom-scrollbar">
-                                                                    {totalClasses === 0 ? (
-                                                                        <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                                                                            <Icons.Info size={48} className="text-slate-300 mb-2"/>
-                                                                            <p>ยังไม่มีการเช็คชื่อในระบบ</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <table className="w-full text-sm text-left">
-                                                                            <thead className="bg-white border-b border-slate-100 text-slate-400 text-xs font-mono sticky top-0 z-10 shadow-sm">
-                                                                                <tr>
-                                                                                    <th className="p-3">ชื่อ-นามสกุล</th>
-                                                                                    <th className="p-3 text-center">มา</th>
-                                                                                    <th className="p-3 text-center">สาย</th>
-                                                                                    <th className="p-3 text-center">ลา</th>
-                                                                                    <th className="p-3 text-center">ขาด</th>
-                                                                                    <th className="p-3 text-right">เปอร์เซ็นต์</th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            <tbody className="divide-y divide-slate-50">
-                                                                                {filteredStudents.map((s, i) => {
-                                                                                    let p=0, l=0, lv=0, a=0;
-                                                                                    if (s.attendance) {
-                                                                                        Object.values(s.attendance).forEach(val => {
-                                                                                            if(val==='present') p++; else if(val==='late') l++; else if(val==='leave') lv++; else if(val==='absent') a++;
-                                                                                        });
-                                                                                    }
-                                                                                    // นับการมาสายเป็นมาเรียน 100% หรือหักออก สามารถปรับสูตรได้
-                                                                                    const attendRate = totalClasses > 0 ? Math.round(((p + l) / totalClasses) * 100) : 0;
-                                                                                    
-                                                                                    return (
-                                                                                        <tr key={s.id} className="hover:bg-slate-50 transition">
-                                                                                            <td className="p-3 font-medium text-slate-700 max-w-[150px] truncate" title={s.name}>{s.no}. {s.name}</td>
-                                                                                            <td className="p-3 text-center text-emerald-600 font-bold">{p || '-'}</td>
-                                                                                            <td className="p-3 text-center text-yellow-600 font-bold">{l || '-'}</td>
-                                                                                            <td className="p-3 text-center text-blue-600 font-bold">{lv || '-'}</td>
-                                                                                            <td className="p-3 text-center text-rose-600 font-bold">{a || '-'}</td>
-                                                                                            <td className="p-3 text-right">
-                                                                                                <span className={`px-2 py-1 rounded text-xs font-bold ${attendRate >= 80 ? 'bg-emerald-50 text-emerald-600' : attendRate >= 60 ? 'bg-yellow-50 text-yellow-600' : 'bg-rose-50 text-rose-600'}`}>
-                                                                                                    {attendRate}%
-                                                                                                </span>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    )
-                                                                                })}
-                                                                            </tbody>
-                                                                        </table>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                        </div>
-                                                    </>
-                                                )
-                                            })()}
+                                                        <button onClick={() => restoreToWheel(s)} className="text-xs text-slate-500 hover:text-green-600 bg-white border border-slate-200 hover:border-green-300 hover:bg-green-50 px-3 py-2 rounded-lg font-bold flex items-center gap-1 transition shadow-sm flex-shrink-0"><Icons.Refresh size={14}/> คืนค่า</button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
+
                                 {teacherTab === 'analysis' && (
-                                    <div className="space-y-6 animate-fade-in">
+                                    <div className="space-y-6 animate-fade-in w-full">
                                         <div className="bg-primary-50 border border-primary-200 text-primary-800 p-5 rounded-2xl text-sm mb-6 flex items-start gap-4 shadow-sm">
                                             <Icons.Note size={28} className="flex-shrink-0 text-primary-600 mt-0.5" />
                                             <div>
@@ -2504,14 +2440,14 @@
                                 )}
 
                                 {teacherTab === 'activity' && (
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
                                         <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200"><h3 className="font-bold mb-4 flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div> ใช้งานอยู่ขณะนี้ ({presence.length})</h3><div className="space-y-3">{presence.map((p, i) => (<div key={i} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl"><div className="flex items-center gap-3"><div className={`w-8 h-8 rounded-full flex items-center justify-center ${p.role==='teacher'?'bg-purple-100 text-purple-600':'bg-blue-100 text-blue-600'}`}><Icons.User size={16}/></div><div><div className="font-bold text-sm text-slate-700">{p.role === 'teacher' ? 'ครูผู้สอน' : 'นักเรียน/ผู้ปกครอง'}</div><div className="text-xs text-slate-400">{p.viewing ? `กำลังดู: ${p.viewing}` : 'หน้าหลัก'}</div></div></div><span className="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded">Online</span></div>))}</div></div>
                                         <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-200"><h3 className="font-bold mb-4 flex items-center gap-2"><Icons.LogOut size={18}/> ประวัติการเข้าดู (วิชานี้)</h3><div className="space-y-3">{accessLogs.map((l, i) => (<div key={i} className="flex justify-between items-center text-sm border-b border-slate-50 pb-2 last:border-0"><div><div className="font-bold text-slate-700">{l.student} ({l.room})</div><div className="text-xs text-slate-400 font-mono">ID: {l.id}</div></div><div className="text-xs text-slate-400">{new Date(l.time).toLocaleTimeString('th-TH')}</div></div>))}</div></div>
                                     </div>
                                 )}
 
                                 {teacherTab === 'students' && (
-                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 p-6">
+                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 p-6 w-full">
                                         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 mb-6">
                                             <h3 className="font-bold text-lg text-slate-800">รายชื่อนักเรียนวิชา {activeCourseObj.name} ({filteredStudents.length})</h3>
                                             <div className="flex gap-2 w-full sm:w-auto">
@@ -2529,8 +2465,8 @@
                                 )}
 
                                 {teacherTab === 'settings' && (
-                                    <div className="flex flex-col md:flex-row gap-8 max-w-7xl mx-auto pb-10 items-start">
-                                        <div className="w-full md:w-80 flex-shrink-0 bg-white rounded-3xl shadow-sm border border-slate-200 p-4 sticky top-40 z-20">
+                                    <div className="flex flex-col md:flex-row gap-8 w-full items-start">
+                                        <div className="w-full md:w-64 lg:w-80 flex-shrink-0 bg-white rounded-3xl shadow-sm border border-slate-200 p-4 sticky top-40 z-20">
                                             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 px-2">เมนูการตั้งค่าระบบ</div>
                                             <div className="space-y-2">
                                                 {[
@@ -2555,7 +2491,7 @@
                                             </div>
                                         </div>
 
-                                        <div className="flex-1 w-full space-y-6">
+                                        <div className="flex-1 w-full space-y-6 min-w-0">
                                             {settingSubTab === 'course' && (
                                                 <div className="space-y-6 animate-fade-in">
                                                     <div className="bg-primary-50 border border-primary-200 rounded-2xl p-5 mb-2 flex items-center justify-between shadow-sm">
@@ -2571,7 +2507,7 @@
                                                             <p className="text-sm text-slate-500 mt-1">ควบคุมการมองเห็นเกรดในระบบค้นหาของนักเรียน</p>
                                                         </div>
                                                         <div className="p-8">
-                                                            <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                                                            <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-200 gap-4">
                                                                 <div className="pr-4">
                                                                     <h4 className="font-bold text-lg text-slate-800 mb-1">เปิดประกาศผลการเรียน (ตัดเกรด)</h4>
                                                                     <p className="text-sm text-slate-500">หากเปิด: นักเรียนจะเห็นเกรดที่คำนวณได้ทันที | หากปิด: จะแสดงเป็น "รอประกาศ"</p>
@@ -2592,12 +2528,12 @@
                                                     </div>
 
                                                     <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                                                        <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex items-center justify-between">
+                                                        <div className="bg-slate-50/50 px-8 py-5 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                                             <div>
                                                                 <h3 className="font-bold text-xl text-slate-800 font-display">เกณฑ์การประเมินผล (Grading Criteria)</h3>
                                                                 <p className="text-sm text-slate-500 mt-1">กำหนดคะแนนขั้นต่ำของแต่ละช่วงเกรด (เกรด 0 คือคะแนนต่ำกว่าเกรด 1)</p>
                                                             </div>
-                                                            <button onClick={() => { setCourseConfig({...courseConfig, grading: DEFAULT_GRADING}); saveCourseConfigData(null, DEFAULT_GRADING, null, null); showToast('คืนค่าเกณฑ์มาตรฐานแล้ว'); }} className="text-sm text-orange-600 bg-white border border-orange-200 px-4 py-2 rounded-xl hover:bg-orange-50 font-bold flex items-center gap-2 transition shadow-sm"><Icons.Refresh size={16}/> คืนค่าเริ่มต้น</button>
+                                                            <button onClick={() => { setCourseConfig({...courseConfig, grading: DEFAULT_GRADING}); saveCourseConfigData(null, DEFAULT_GRADING, null, null); showToast('คืนค่าเกณฑ์มาตรฐานแล้ว'); }} className="text-sm text-orange-600 bg-white border border-orange-200 px-4 py-2 rounded-xl hover:bg-orange-50 font-bold flex items-center gap-2 transition shadow-sm whitespace-nowrap"><Icons.Refresh size={16}/> คืนค่าเริ่มต้น</button>
                                                         </div>
                                                         <div className="p-8 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
                                                             {['4', '3.5', '3', '2.5', '2', '1.5', '1'].map(g => (
@@ -2617,12 +2553,12 @@
 
                                             {settingSubTab === 'structure' && (
                                                 <div className="space-y-6 animate-fade-in">
-                                                    <div className="flex justify-between items-end mb-6">
+                                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-6">
                                                         <div>
                                                             <h3 className="text-2xl font-bold text-slate-800 font-display">โครงสร้างคะแนน</h3>
                                                             <p className="text-slate-500 mt-1">แบ่งเป็นหมวดหมู่หลัก (Section) &gt; กลุ่มย่อย (Group) &gt; ช่องเก็บคะแนน (Column)</p>
                                                         </div>
-                                                        <button onClick={() => { const newSecs = [...sections, { id: 's'+Date.now(), title: '', groups: [] }]; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="bg-slate-800 text-white px-5 py-3 rounded-2xl font-bold hover:bg-slate-900 shadow-lg flex items-center gap-2 transition active:scale-95"><Icons.Plus size={18}/> เพิ่มหมวดหมู่หลัก (Section)</button>
+                                                        <button onClick={() => { const newSecs = [...sections, { id: 's'+Date.now(), title: '', groups: [] }]; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="bg-slate-800 text-white px-5 py-3 rounded-2xl font-bold hover:bg-slate-900 shadow-lg flex items-center gap-2 transition active:scale-95 whitespace-nowrap"><Icons.Plus size={18}/> เพิ่มหมวดหมู่หลัก</button>
                                                     </div>
 
                                                     <div className="space-y-8">
@@ -2630,33 +2566,33 @@
                                                             const theme = SECTION_COLORS[sIdx % SECTION_COLORS.length];
                                                             return (
                                                             <div key={sec.id} className="bg-white border-2 border-slate-200 rounded-3xl overflow-hidden shadow-sm transition hover:shadow-md">
-                                                                <div className={`px-6 py-5 border-b border-slate-200 flex flex-wrap gap-4 justify-between items-center ${theme.bg} bg-opacity-20`}>
-                                                                    <div className="flex items-center gap-4 flex-1">
+                                                                <div className={`px-4 sm:px-6 py-5 border-b border-slate-200 flex flex-col md:flex-row gap-4 justify-between items-start md:items-center ${theme.bg} bg-opacity-20`}>
+                                                                    <div className="flex items-center gap-4 w-full md:w-auto">
                                                                         <div className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold text-lg text-white shadow-md ${theme.bg.replace('bg-','bg-opacity-100 bg-').replace('-300','-500')}`}>{sIdx + 1}</div>
                                                                         <div className="flex-1">
                                                                             <label className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block mb-1">หมวดหมู่หลัก (Section)</label>
                                                                             <input className="w-full bg-transparent font-bold text-xl text-slate-800 outline-none focus:border-b-2 focus:border-primary-500 transition-all placeholder-slate-400" placeholder="ระบุชื่อหมวดหมู่ เช่น กลางภาค, ปลายภาค..." value={sec.title} onChange={e => { const newSecs = [...sections]; newSecs[sIdx].title = e.target.value; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} />
                                                                         </div>
                                                                     </div>
-                                                                    <div className="flex items-center gap-2">
+                                                                    <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                                                                         <button onClick={() => { 
                                                                             const newSecs = [...sections]; newSecs[sIdx].published = (newSecs[sIdx].published === false ? true : false);
                                                                             setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); 
                                                                         }} className={`text-xs px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition shadow-sm border ${sec.published === false ? 'bg-slate-100 text-slate-500 border-slate-300' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}`} title={sec.published === false ? "คลิกเพื่อแสดง" : "คลิกเพื่อซ่อน"}>
-                                                                            {sec.published === false ? <Icons.EyeOff size={16}/> : <Icons.Eye size={16}/>} {sec.published === false ? "หมวดนี้ถูกซ่อน" : "แสดงผลปกติ"}
+                                                                            {sec.published === false ? <Icons.EyeOff size={16}/> : <Icons.Eye size={16}/>} <span className="hidden sm:inline">{sec.published === false ? "หมวดนี้ถูกซ่อน" : "แสดงผลปกติ"}</span>
                                                                         </button>
-                                                                        <div className="w-px h-8 bg-slate-300 mx-2"></div>
-                                                                        <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups = [...(newSecs[sIdx].groups || []), { id: Date.now(), title: '', columns: [] }]; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="text-sm bg-white text-primary-700 hover:bg-primary-50 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition shadow-sm border border-primary-200"><Icons.Plus size={16}/> เพิ่มกลุ่มย่อย</button>
+                                                                        <div className="w-px h-8 bg-slate-300 mx-2 hidden sm:block"></div>
+                                                                        <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups = [...(newSecs[sIdx].groups || []), { id: Date.now(), title: '', columns: [] }]; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="text-sm bg-white text-primary-700 hover:bg-primary-50 px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition shadow-sm border border-primary-200 whitespace-nowrap"><Icons.Plus size={16}/> เพิ่มกลุ่มย่อย</button>
                                                                         <button onClick={() => { setModal({ type: 'confirm', title: 'ลบหมวดหมู่นี้?', message: 'ลบหมวดหมู่นี้และช่องคะแนนทั้งหมดที่อยู่ภายใน ยืนยัน?', onConfirm: () => { const newSecs = sections.filter((_, i) => i !== sIdx); setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); setModal(null); }}); }} className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition border border-transparent hover:border-red-200"><Icons.Trash size={18}/></button>
                                                                     </div>
                                                                 </div>
                                                                 
-                                                                <div className="p-6 bg-slate-50 space-y-6">
+                                                                <div className="p-4 sm:p-6 bg-slate-50 space-y-6 overflow-x-auto">
                                                                     {(!sec.groups || sec.groups.length === 0) && <div className="text-center py-8 text-slate-400 font-medium text-sm border-2 border-dashed border-slate-200 rounded-2xl">ยังไม่มีกลุ่มย่อย คลิกปุ่ม "เพิ่มกลุ่มย่อย" เพื่อเริ่มสร้างช่องคะแนน</div>}
                                                                     {sec.groups?.map((grp, gIdx) => (
-                                                                        <div key={grp.id} className={`bg-white rounded-2xl border-l-4 shadow-sm p-5 transition-all ${grp.published === false ? 'border-slate-300 opacity-60' : 'border-primary-400 hover:shadow-md'}`}>
+                                                                        <div key={grp.id} className={`bg-white rounded-2xl border-l-4 shadow-sm p-4 sm:p-5 transition-all min-w-[500px] ${grp.published === false ? 'border-slate-300 opacity-60' : 'border-primary-400 hover:shadow-md'}`}>
                                                                             <div className="flex justify-between items-start mb-4 pb-4 border-b border-slate-100">
-                                                                                <div className="flex-1">
+                                                                                <div className="flex-1 pr-4">
                                                                                     <label className="text-[10px] text-primary-600 font-bold uppercase tracking-wider block mb-1">กลุ่มย่อย (Group)</label>
                                                                                     <input className="bg-transparent font-bold text-slate-700 text-base outline-none focus:text-primary-600 transition w-full placeholder-slate-300" placeholder="ชื่อกลุ่มย่อย (ไม่บังคับ)..." value={grp.title} onChange={e => { const newSecs = [...sections]; newSecs[sIdx].groups[gIdx].title = e.target.value; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} />
                                                                                 </div>
@@ -2667,12 +2603,12 @@
                                                                                     }} className={`p-2 rounded-lg transition ${grp.published === false ? 'bg-slate-100 text-slate-500' : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'}`} title={grp.published === false ? "คลิกเพื่อแสดงกลุ่ม" : "คลิกเพื่อซ่อนกลุ่ม"}>
                                                                                         {grp.published === false ? <Icons.EyeOff size={16}/> : <Icons.Eye size={16}/>}
                                                                                     </button>
-                                                                                    <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups[gIdx].columns.push({ id: 'c'+Date.now(), name: '', max: 10, type: 'manual' }); setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1"><Icons.Plus size={14}/> เพิ่มช่องคะแนน</button>
+                                                                                    <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups[gIdx].columns.push({ id: 'c'+Date.now(), name: '', max: 10, type: 'manual' }); setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="text-xs bg-primary-50 hover:bg-primary-100 text-primary-700 border border-primary-200 px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1 whitespace-nowrap"><Icons.Plus size={14}/> เพิ่มช่องคะแนน</button>
                                                                                     <button onClick={() => { const newSecs = [...sections]; newSecs[sIdx].groups.splice(gIdx, 1); setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><Icons.X size={16}/></button>
                                                                                 </div>
                                                                             </div>
                                                                             
-                                                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                                                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                                                                 {grp.columns?.map((col, cIdx) => (
                                                                                     <div key={col.id} className={`bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col gap-3 relative group hover:border-primary-400 hover:shadow-md transition-all ${col.published === false ? 'opacity-50 bg-slate-100' : ''}`}>
                                                                                         <input className="bg-transparent text-sm font-bold text-slate-800 outline-none w-full placeholder-slate-400 border-b border-transparent focus:border-slate-300 pb-1" value={col.name} placeholder="ชื่อช่องประเมิน" onChange={e => { const newSecs = [...sections]; newSecs[sIdx].groups[gIdx].columns[cIdx].name = e.target.value; setSections(newSecs); saveCourseConfigData(newSecs, null, null, null); }} />
@@ -2742,7 +2678,7 @@
                                                                         <h4 className="font-bold text-lg text-red-700 flex items-center gap-2"><Icons.Alert size={20}/> เขตอันตราย: ล้างข้อมูลนักเรียน</h4>
                                                                         <p className="text-sm text-red-600/80 mt-1">ลบรายชื่อนักเรียนและคะแนนในวิชา {activeCourseObj.code} ทั้งหมด (โครงสร้างคะแนนจะยังคงอยู่)</p>
                                                                     </div>
-                                                                    <button onClick={handleClearData} className="w-full md:w-auto px-6 py-3 bg-white border-2 border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition shadow-sm text-sm">เริ่มการล้างข้อมูล...</button>
+                                                                    <button onClick={handleClearData} className="w-full md:w-auto px-6 py-3 bg-white border-2 border-red-200 text-red-600 rounded-xl font-bold hover:bg-red-600 hover:text-white transition shadow-sm text-sm whitespace-nowrap">เริ่มการล้างข้อมูล...</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2752,6 +2688,7 @@
                                         </div>
                                     </div>
                                 )}
+                                </div> 
                             </div>
                         )}
                     </main>
@@ -2793,7 +2730,7 @@
                                             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center shadow-inner backdrop-blur-sm border border-white/20 flex-shrink-0 relative z-10"><Icons.Cloud size={32} className="text-primary-300"/></div>
                                             <div className="text-center sm:text-left relative z-10">
                                                 <h2 className="text-2xl font-bold font-display leading-tight">GradePro Cloud <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 to-purple-400">PRO</span></h2>
-                                                <p className="text-slate-300 text-xs font-mono mt-1 mb-2">Version 8.5.1 (Build 2605.17A)</p>
+                                                <p className="text-slate-300 text-xs font-mono mt-1 mb-2">Version 9.0 (Build 2606.01A)</p>
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold rounded uppercase tracking-widest"><Icons.CheckCircle size={12}/> Commercial License Active</span>
                                             </div>
                                         </div>
@@ -2847,7 +2784,7 @@
                                             </div>
                                             <button onClick={() => {
                                                 if(!ticketSubject || !ticketDetail) return showToast('กรุณากรอกหัวข้อและรายละเอียดให้ครบ', 'error');
-                                                const bodyText = `โรงเรียน: ${masterData.school}\nผู้ใช้งาน: ${masterData.teacher}\n\nประเภท: ${ticketType}\nหัวข้อ: ${ticketSubject}\nรายละเอียด:\n${ticketDetail}\n\n------------------\nSystem Info:\n${navigator.userAgent}\nGradePro v8.5.1`;
+                                                const bodyText = `โรงเรียน: ${masterData.school}\nผู้ใช้งาน: ${masterData.teacher}\n\nประเภท: ${ticketType}\nหัวข้อ: ${ticketSubject}\nรายละเอียด:\n${ticketDetail}\n\n------------------\nSystem Info:\n${navigator.userAgent}\nGradePro v9.0`;
                                                 window.location.href = `mailto:support@yourcompany.com?subject=${encodeURIComponent('['+ticketType+'] '+ticketSubject)}&body=${encodeURIComponent(bodyText)}`;
                                                 setTicketSubject(''); setTicketDetail('');
                                                 showToast('กำลังเปิดแอปพลิเคชันอีเมลของคุณ...', 'success');
@@ -2860,7 +2797,7 @@
                                         <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl">
                                             <h5 className="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2"><Icons.Browser size={18}/> ข้อมูลระบบและเบราว์เซอร์</h5>
                                             <div className="space-y-2 font-mono text-[10px] sm:text-xs text-slate-600 break-all bg-white p-3 rounded-lg border border-slate-100 shadow-inner max-h-[250px] overflow-y-auto">
-                                                <p><strong>App Version:</strong> 8.5.1 PRO (Build 2605.17A)</p>
+                                                <p><strong>App Version:</strong> 9.0 PRO (Build 2606.01A)</p>
                                                 <p><strong>Env:</strong> Web App / PWA</p>
                                                 <p><strong>Online Status:</strong> {isOnline ? 'TRUE (Connected)' : 'FALSE (Offline Mode)'}</p>
                                                 <p><strong>Screen Res:</strong> {window.innerWidth} x {window.innerHeight}</p>
@@ -2871,7 +2808,7 @@
                                             </div>
                                         </div>
                                         <button onClick={() => {
-                                            const info = `GradePro v8.5.1\nOnline: ${isOnline}\nScreen: ${window.innerWidth}x${window.innerHeight}\nUA: ${navigator.userAgent}\nPlatform: ${navigator.platform}`;
+                                            const info = `GradePro v9.0\nOnline: ${isOnline}\nScreen: ${window.innerWidth}x${window.innerHeight}\nUA: ${navigator.userAgent}\nPlatform: ${navigator.platform}`;
                                             navigator.clipboard.writeText(info);
                                             showToast('คัดลอกข้อมูลระบบเรียบร้อย นำไปวางให้ทีมงานได้เลย', 'success');
                                         }} className="w-full py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-2 shadow-sm"><Icons.Copy size={18}/> คัดลอกข้อมูลเพื่อส่งให้ทีมงาน</button>
@@ -2931,7 +2868,7 @@
                     {/* PRINT LAYOUT */}
                     <div className="print-only">
                         {teacherTab === 'attendance' && activeCourseObj && (
-                            <div className="p-4">
+                            <div className="p-4 landscape-mode:hidden">
                                 <div className="text-center mb-6">
                                     <h1 className="official-title">แบบบันทึกเวลาเรียน (เช็คชื่อเข้าเรียน)</h1>
                                     <h2 className="official-subtitle">
@@ -2953,7 +2890,6 @@
                                     </div>
                                 </div>
                                 
-                                {/* สรุปยอดการมาเรียน */}
                                 {(() => {
                                     let present = 0, late = 0, leave = 0, absent = 0;
                                     filteredStudents.forEach(s => {
