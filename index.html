@@ -3335,36 +3335,38 @@
                                     {studentsToPrint.map((s, i) => (
                                         <div key={i} className="break-inside-avoid relative overflow-hidden" style={{ width: '8.6cm', height: '5.4cm', borderRadius: '12px', border: '2px solid #cbd5e1', backgroundColor: '#ffffff', boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
                                             {/* ลวดลายและแถบสีด้านบน */}
-                                            <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '35%', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', zIndex: 0 }}></div>
-                                            <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', borderRadius: '50%', background: '#bae6fd', opacity: '0.4', zIndex: 0 }}></div>
+                                            <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: '40%', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', zIndex: 0 }}></div>
+                                            <div style={{ position: 'absolute', top: '-25px', right: '-25px', width: '90px', height: '90px', borderRadius: '50%', background: '#bae6fd', opacity: '0.4', zIndex: 0 }}></div>
                                             
                                             {/* ส่วนหัว: ชื่อโรงเรียน และ รายวิชา */}
-                                            <div style={{ zIndex: 1, padding: '12px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                            <div style={{ zIndex: 1, padding: '14px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                 <div>
-                                                    <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#0369a1', lineHeight: '1.2' }}>{masterData.school}</div>
-                                                    <div style={{ fontSize: '8pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
+                                                    <div style={{ fontSize: '11pt', fontWeight: 'bold', color: '#0369a1', lineHeight: '1.2' }}>{masterData.school}</div>
+                                                    <div style={{ fontSize: '9pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
                                                 </div>
-                                                <div style={{ background: '#0284c7', color: 'white', fontSize: '8pt', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', letterSpacing: '1px' }}>STUDENT</div>
+                                                <div style={{ background: '#0284c7', color: 'white', fontSize: '8pt', fontWeight: 'bold', padding: '3px 10px', borderRadius: '999px', letterSpacing: '1px', boxShadow: '0 2px 4px rgba(2,132,199,0.2)' }}>STUDENT</div>
                                             </div>
 
-                                            {/* ส่วนกลาง: ชื่อนักเรียน และ ข้อมูล */}
-                                            <div style={{ zIndex: 1, padding: '8px 16px', flex: 1, marginTop: '5px' }}>
-                                                <div style={{ fontSize: '14pt', fontWeight: 'bold', color: '#1e293b', lineHeight: '1.1', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
-                                                <div style={{ display: 'flex', gap: '15px', marginTop: '4px' }}>
-                                                    <div style={{ fontSize: '9pt', color: '#64748b' }}>รหัส: <span style={{ color: '#0f172a', fontWeight: 'bold', fontFamily: 'monospace' }}>{s.id}</span></div>
-                                                    <div style={{ fontSize: '9pt', color: '#64748b' }}>ชั้น: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.room}</span></div>
-                                                    <div style={{ fontSize: '9pt', color: '#64748b' }}>เลขที่: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.no}</span></div>
+                                            {/* ส่วนกลาง: ชื่อนักเรียน และ ข้อมูล (จัดให้อยู่ตรงกลาง เพื่อลดความแออัด) */}
+                                            <div style={{ zIndex: 1, padding: '0 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                <div style={{ fontSize: '16pt', fontWeight: 'bold', color: '#1e293b', lineHeight: '1.2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</div>
+                                                <div style={{ display: 'flex', gap: '15px', marginTop: '2px' }}>
+                                                    <div style={{ fontSize: '10pt', color: '#64748b' }}>รหัส: <span style={{ color: '#0f172a', fontWeight: 'bold', fontFamily: 'monospace' }}>{s.id}</span></div>
+                                                    <div style={{ fontSize: '10pt', color: '#64748b' }}>ชั้น: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.room}</span></div>
+                                                    <div style={{ fontSize: '10pt', color: '#64748b' }}>เลขที่: <span style={{ color: '#0f172a', fontWeight: 'bold' }}>{s.no}</span></div>
                                                 </div>
                                             </div>
 
-                                            {/* ส่วนท้าย: บาร์โค้ดและคิวอาร์โค้ด */}
-                                            <div style={{ zIndex: 1, padding: '8px 16px 12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px dashed #e2e8f0', backgroundColor: '#f8fafc' }}>
+                                            {/* ส่วนท้าย: บาร์โค้ดและคิวอาร์โค้ด (เพิ่มพื้นที่ให้ใหญ่ขึ้น) */}
+                                            <div style={{ zIndex: 1, padding: '10px 16px 14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px dashed #cbd5e1', backgroundColor: '#f8fafc' }}>
                                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                                    <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=10&includetext=false`} alt="barcode" style={{ height: '24px', objectFit: 'contain' }} />
-                                                    <div style={{ fontSize: '7pt', color: '#94a3b8', marginTop: '2px' }}>ID: {s.id}</div>
+                                                    {/* ขยายขนาดบาร์โค้ดให้สูงและสแกนง่ายขึ้น */}
+                                                    <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=14&includetext=false`} alt="barcode" style={{ height: '34px', objectFit: 'contain' }} />
+                                                    <div style={{ fontSize: '8pt', color: '#94a3b8', marginTop: '4px', fontFamily: 'monospace', letterSpacing: '1px' }}>ID: {s.id}</div>
                                                 </div>
                                                 <div>
-                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${s.id}`} alt="qrcode" style={{ width: '40px', height: '40px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
+                                                    {/* ขยายขนาด QR Code เล็กน้อยและเพิ่มเงา */}
+                                                    <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${s.id}`} alt="qrcode" style={{ width: '46px', height: '46px', borderRadius: '6px', border: '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }} />
                                                 </div>
                                             </div>
                                         </div>
@@ -3372,7 +3374,7 @@
                                 </div>
                             </div>
                         )}
-                    </div> {/* <-- ปิดกรอบ div.print-only */}
+                    </div> 
 
                     {/* Footer แถบสถานะด้านล่าง */}
                     <div className="fixed bottom-0 left-0 w-full h-9 sm:h-10 bg-[#1e293b] text-slate-400 text-[10px] sm:text-xs flex justify-between items-center px-1 sm:px-3 z-[400] font-mono shadow-[0_-10px_30px_rgba(0,0,0,0.3)] no-print border-t border-slate-700 select-none">
