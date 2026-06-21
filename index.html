@@ -555,20 +555,40 @@
             const [winnerModal, setWinnerModal] = useState(null);
             const [spinDuration, setSpinDuration] = useState(5);
             // State สำหรับระบบบัตรนักเรียน
-            const [printMode, setPrintMode] = useState(''); // ใช้แยกโหมดพิมพ์ปกติ กับพิมพ์บัตร
+            const [printMode, setPrintMode] = useState(''); 
             const [idCardModal, setIdCardModal] = useState(false);
             const [studentsToPrint, setStudentsToPrint] = useState([]);
+            const [idCardCourseId, setIdCardCourseId] = useState(''); // เพิ่ม state เลือกรายวิชา
+            const [idCardStudents, setIdCardStudents] = useState([]); // เก็บนักเรียนของวิชานั้นๆ
             const [idCardRoom, setIdCardRoom] = useState('All');
             const [idCardSearch, setIdCardSearch] = useState('');
 
+            // ดึงข้อมูลนักเรียนทันทีเมื่อเลือกวิชาในหน้า Modal
+            useEffect(() => {
+                if (!idCardCourseId) {
+                    setIdCardStudents([]);
+                    return;
+                }
+                const unsub = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', `students_${idCardCourseId}`), (snap) => {
+                    const list = [];
+                    snap.forEach(doc => list.push({ id: doc.id, ...doc.data() }));
+                    setIdCardStudents(list);
+                });
+                return () => unsub();
+            }, [idCardCourseId]);
+
+            // หาห้องทั้งหมดของวิชานั้น
+            const idCardUniqueRooms = useMemo(() => [...new Set(idCardStudents.map(s => s.room).filter(Boolean))].sort(), [idCardStudents]);
+
             // ฟังก์ชันกรองนักเรียนสำหรับหน้าบัตร
             const idCardFilteredStudents = useMemo(() => {
-                let res = students;
+                let res = idCardStudents;
                 if (idCardRoom !== 'All') res = res.filter(s => s.room === idCardRoom);
                 if (idCardSearch) { const q = idCardSearch.toLowerCase(); res = res.filter(s => s.id.includes(q) || s.name.toLowerCase().includes(q)); }
                 return res.sort((a,b) => (a.room === b.room ? (parseInt(a.no)||0)-(parseInt(b.no)||0) : a.room.localeCompare(b.room)));
-            }, [students, idCardRoom, idCardSearch]);
-
+            }, [idCardStudents, idCardRoom, idCardSearch]);
+            
+            const idCardSelectedCourseObj = masterData.courses?.find(c => c.id === idCardCourseId) || {};
             // ฟังก์ชันสั่งพิมพ์บัตร
             const handlePrintIDCard = (studentList) => {
                 setStudentsToPrint(studentList);
@@ -2851,14 +2871,21 @@
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
-                                    <select className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 outline-none w-1/3" value={idCardRoom} onChange={e => setIdCardRoom(e.target.value)}>
-                                        <option value="All">ทุกห้องเรียน</option>
-                                        {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                <<div className="flex flex-col gap-2">
+                                    <select className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-primary-700 outline-none w-full shadow-sm" value={idCardCourseId} onChange={e => setIdCardCourseId(e.target.value)}>
+                                        <option value="" disabled hidden>-- 1. เลือกรายวิชาที่ต้องการดึงรายชื่อ --</option>
+                                        {visibleCourses.map(c => <option key={c.id} value={c.id}>{c.code} {c.name}</option>)}
                                     </select>
-                                    <div className="relative flex-1">
-                                        <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/>
-                                        <input className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหาชื่อ หรือ รหัส..." value={idCardSearch} onChange={e => setIdCardSearch(e.target.value)} />
+                                    
+                                    <div className="flex gap-2">
+                                        <select className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-600 outline-none w-1/3 shadow-sm" value={idCardRoom} onChange={e => setIdCardRoom(e.target.value)} disabled={!idCardCourseId}>
+                                            <option value="All">ทุกห้องเรียน</option>
+                                            {idCardUniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                        </select>
+                                        <div className="relative flex-1">
+                                            <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/>
+                                            <input className="w-full pl-9 pr-4 py-2 bg-white shadow-sm border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหาชื่อ หรือ รหัส..." value={idCardSearch} onChange={e => setIdCardSearch(e.target.value)} disabled={!idCardCourseId} />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -3074,7 +3101,7 @@
                                     <div style={{ zIndex: 1, padding: '12px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                         <div>
                                             <div style={{ fontSize: '10pt', fontWeight: 'bold', color: '#0369a1', lineHeight: '1.2' }}>{masterData.school}</div>
-                                            <div style={{ fontSize: '8pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {activeCourseObj?.code}</div>
+                                            <div style={{ fontSize: '8pt', color: '#0ea5e9', fontWeight: 'bold' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
                                         </div>
                                         <div style={{ background: '#0284c7', color: 'white', fontSize: '8pt', fontWeight: 'bold', padding: '2px 8px', borderRadius: '999px', letterSpacing: '1px' }}>STUDENT</div>
                                     </div>
