@@ -3348,25 +3348,20 @@
                                     <h1 className="official-title">บัตรประจำตัวนักเรียน</h1>
                                     <h2 className="official-subtitle">วิชา {idCardSelectedCourseObj?.name} ({idCardSelectedCourseObj?.code}) โรงเรียน{masterData.school}</h2>
                                 </div>
-                                {/* ใช้ Flex Wrap แทน Grid เพื่อให้รองรับขนาดบัตรที่ต่างกันได้อย่างอิสระ */}
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10mm', padding: '5mm', justifyContent: 'center' }}>
                                     {studentsToPrint.map((s, i) => {
-                                        // --- ค่าเริ่มต้น (แนวนอน คลาสสิก) ---
-                                        let cardW = '8.6cm';
-                                        let cardH = '5.4cm';
-                                        let cardBg = '#ffffff';
-                                        let cardBorder = '2px solid #0c4a6e';
+                                        // --- ตัวแปรควบคุมสัดส่วน (สเกลใหม่ ไม่ทับซ้อน) ---
+                                        let cardW = '8.6cm'; let cardH = '5.4cm';
+                                        let headerH = '26%'; // ลดความสูงแถบสีลง เพื่อไม่ให้ทับชื่อ
+                                        let qrSize = '52px'; let bcHeight = '34px'; let bcScale = '2';
+                                        
+                                        // สีเริ่มต้น (แนวนอน รูปแบบที่ 1)
+                                        let cardBg = '#ffffff'; let cardBorder = '2px solid #0c4a6e';
                                         let headerBg = 'linear-gradient(135deg, #0c4a6e 0%, #0a3a5c 100%)';
-                                        let headerCircle = 'rgba(255,255,255,0.06)';
-                                        let schoolColor = '#ffffff';
-                                        let courseColor = '#bae6fd';
-                                        let badgeBg = '#f59e0b'; 
-                                        let badgeText = '#0f172a';
-                                        let nameColor = '#0c4a6e';
-                                        let infoLabel = '#64748b';
-                                        let infoValue = '#0f172a';
-                                        let footerBorder = '2px solid #0c4a6e';
-                                        let footerBg = '#ffffff';
+                                        let headerCircle = 'rgba(255,255,255,0.06)'; let schoolColor = '#ffffff'; let courseColor = '#bae6fd';
+                                        let badgeBg = '#f59e0b'; let badgeText = '#0f172a'; let nameColor = '#0c4a6e';
+                                        let infoLabel = '#64748b'; let infoValue = '#0f172a';
+                                        let footerBorder = '2px solid #0c4a6e'; let footerBg = '#ffffff';
                                         let borderRadius = '12px';
 
                                         // --- สลับสไตล์ สี และ ขนาด ---
@@ -3374,48 +3369,48 @@
                                             cardBorder = '2px solid #c4d2fc'; headerBg = 'linear-gradient(135deg, #f5f7ff 0%, #dce4fd 100%)'; headerCircle = '#c4d2fc';
                                             schoolColor = '#384585'; courseColor = '#6680e6'; badgeBg = '#86a4f6'; badgeText = 'white'; nameColor = '#1e293b'; footerBorder = '2px dashed #a3bbf9'; footerBg = '#f5f7ff';
                                         } else if (cardStyle === 'minimal') {
-                                            cardBorder = '1.5px solid #000000'; headerBg = 'transparent'; headerCircle = 'transparent';
-                                            schoolColor = '#000000'; courseColor = '#000000'; badgeBg = 'transparent'; badgeText = '#000000'; nameColor = '#000000'; infoLabel = '#000000'; infoValue = '#000000'; footerBorder = '1px solid #000000'; borderRadius = '0px';
+                                            cardBorder = '1.5px solid #000000'; headerBg = 'transparent'; headerCircle = 'transparent'; headerH = '0%';
+                                            schoolColor = '#000000'; courseColor = '#000000'; badgeBg = 'transparent'; badgeText = '#000000'; nameColor = '#000000'; infoLabel = '#000000'; infoValue = '#000000'; footerBorder = '1px solid #000000'; borderRadius = '0px'; 
                                         } else if (cardStyle === 'vertical_vip') {
-                                            cardW = '5.4cm'; cardH = '8.6cm'; // สลับเป็นแนวตั้ง
+                                            cardW = '5.4cm'; cardH = '8.6cm'; headerH = '20%'; qrSize = '65px'; bcHeight = '36px'; // ปรับสัดส่วนแนวตั้งให้บาร์โค้ดใหญ่ขึ้น
                                         } else if (cardStyle === 'vertical_cute') {
-                                            cardW = '5.4cm'; cardH = '8.6cm'; // แนวตั้งสีชมพู
+                                            cardW = '5.4cm'; cardH = '8.6cm'; headerH = '20%'; qrSize = '65px'; bcHeight = '36px';
                                             cardBorder = '2px solid #fecdd3'; headerBg = 'linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)'; headerCircle = '#fecdd3';
                                             schoolColor = '#be123c'; courseColor = '#f43f5e'; nameColor = '#9f1239'; footerBorder = '2px dashed #fecdd3'; footerBg = '#fff1f2'; badgeBg = '#fb7185'; badgeText = 'white';
                                         } else if (cardStyle === 'square_modern') {
-                                            cardW = '6.5cm'; cardH = '6.5cm'; // ทรงจัตุรัส
+                                            cardW = '6.5cm'; cardH = '6.5cm'; headerH = '24%'; qrSize = '55px'; bcHeight = '32px'; 
                                             cardBorder = '2px solid #dcfce7'; headerBg = 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)'; headerCircle = '#a7f3d0';
                                             schoolColor = '#047857'; courseColor = '#10b981'; nameColor = '#065f46'; footerBorder = '2px dashed #a7f3d0'; footerBg = '#ecfdf5'; badgeBg = '#10b981'; badgeText = 'white';
                                         }
 
-                                        // ตัวแปรเช็คทรงบัตรเพื่อปรับโครงสร้าง (Layout) ด้านใน
                                         const isVertical = cardStyle.startsWith('vertical');
                                         const isSquare = cardStyle.startsWith('square');
 
                                         return (
                                             <div key={i} className="break-inside-avoid relative overflow-hidden shadow-sm" style={{ width: cardW, height: cardH, borderRadius: borderRadius, border: cardBorder, backgroundColor: cardBg, boxSizing: 'border-box', display: 'flex', flexDirection: 'column' }}>
                                                 
-                                                {/* เลเยอร์ตกแต่ง */}
-                                                {cardStyle !== 'minimal' && <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: isVertical ? '32%' : '40%', background: headerBg, zIndex: 0 }}></div>}
+                                                {/* เลเยอร์ตกแต่ง (แถบสี) */}
+                                                {cardStyle !== 'minimal' && <div style={{ position: 'absolute', top: 0, right: 0, width: '100%', height: headerH, background: headerBg, zIndex: 0 }}></div>}
                                                 {cardStyle !== 'minimal' && <div style={{ position: 'absolute', top: '-25px', right: isVertical ? 'auto' : '-25px', left: isVertical ? '-25px' : 'auto', width: '90px', height: '90px', borderRadius: '50%', background: headerCircle, opacity: cardStyle.includes('vip') || cardStyle === 'classic' ? '1' : '0.4', zIndex: 0 }}></div>}
                                                 
                                                 {/* --- กรณีเป็นทรงแนวตั้ง (Vertical Layout) --- */}
                                                 {isVertical && (
                                                     <>
-                                                        <div style={{ zIndex: 1, padding: '16px 10px 0 10px', textAlign: 'center' }}>
+                                                        <div style={{ zIndex: 1, padding: '12px 10px 0 10px', textAlign: 'center' }}>
                                                             <div style={{ fontSize: '11pt', fontWeight: 'bold', color: schoolColor, lineHeight: '1.1' }}>{masterData.school}</div>
-                                                            <div style={{ fontSize: '8pt', color: courseColor, fontWeight: 'bold', marginTop: '3px' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
+                                                            <div style={{ fontSize: '8pt', color: courseColor, fontWeight: 'bold', marginTop: '2px' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
                                                         </div>
                                                         <div style={{ zIndex: 1, padding: '0 10px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-                                                            <div style={{ fontSize: '14pt', fontWeight: 'bold', color: nameColor, lineHeight: '1.2', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                                                            <div style={{ fontSize: '15pt', fontWeight: 'bold', color: nameColor, lineHeight: '1.2', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
                                                             <div style={{ marginTop: '8px', fontSize: '9pt', color: infoLabel, background: 'rgba(255,255,255,0.8)', padding: '4px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-                                                                ชั้น <b>{s.room}</b> เลชที่ <b>{s.no}</b>
+                                                                ชั้น <b>{s.room}</b> เลขที่ <b>{s.no}</b>
                                                             </div>
                                                         </div>
-                                                        <div style={{ zIndex: 1, padding: '10px 10px 12px 10px', borderTop: footerBorder, backgroundColor: footerBg, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${s.id}`} alt="qrcode" style={{ width: '48px', height: '48px', borderRadius: '4px', border: '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
-                                                            <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=10&includetext=false`} alt="barcode" style={{ height: '22px', objectFit: 'contain', width: '100%' }} />
-                                                            <div style={{ fontSize: '7pt', color: '#94a3b8', fontFamily: 'monospace' }}>{s.id}</div>
+                                                        <div style={{ zIndex: 1, padding: '12px 10px', borderTop: footerBorder, backgroundColor: footerBg, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                                            {/* บาร์โค้ดและ QR ขนาดใหญ่ขึ้น สแกนง่ายชัวร์ */}
+                                                            <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${s.id}`} alt="qrcode" style={{ width: qrSize, height: qrSize, borderRadius: '6px', border: '1.5px solid #cbd5e1', padding: '3px', backgroundColor: 'white' }} />
+                                                            <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=${bcScale}&height=16&includetext=false`} alt="barcode" style={{ height: bcHeight, objectFit: 'contain', width: '90%' }} />
+                                                            <div style={{ fontSize: '8pt', color: '#94a3b8', fontFamily: 'monospace', marginTop: '-4px' }}>ID: {s.id}</div>
                                                         </div>
                                                     </>
                                                 )}
@@ -3425,26 +3420,28 @@
                                                     <>
                                                         <div style={{ zIndex: 1, padding: isSquare ? '10px 12px 0' : '14px 16px 0 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                             <div style={{ width: isSquare ? '100%' : 'auto', textAlign: isSquare ? 'center' : 'left' }}>
-                                                                <div style={{ fontSize: isSquare ? '10pt' : '11pt', fontWeight: 'bold', color: schoolColor, lineHeight: '1.2' }}>{masterData.school}</div>
+                                                                <div style={{ fontSize: isSquare ? '11pt' : '11pt', fontWeight: 'bold', color: schoolColor, lineHeight: '1.2' }}>{masterData.school}</div>
                                                                 <div style={{ fontSize: '9pt', color: courseColor, fontWeight: 'bold' }}>รายวิชา {idCardSelectedCourseObj?.code}</div>
                                                             </div>
                                                             {!isSquare && <div style={{ background: badgeBg, color: badgeText, fontSize: '8pt', fontWeight: 'bold', padding: '3px 10px', borderRadius: cardStyle === 'minimal' ? '0px' : '999px', border: cardStyle === 'minimal' ? '1px solid #000000' : 'none', letterSpacing: '1px' }}>STUDENT</div>}
                                                         </div>
                                                         <div style={{ zIndex: 1, padding: isSquare ? '0 12px' : '0 16px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: isSquare ? 'center' : 'flex-start' }}>
-                                                            <div style={{ fontSize: isSquare ? '13pt' : '16pt', fontWeight: 'bold', color: nameColor, lineHeight: '1.2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', textAlign: isSquare ? 'center' : 'left' }}>{s.name}</div>
+                                                            <div style={{ fontSize: isSquare ? '14pt' : '16pt', fontWeight: 'bold', color: nameColor, lineHeight: '1.2', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '100%', textAlign: isSquare ? 'center' : 'left' }}>{s.name}</div>
                                                             <div style={{ display: 'flex', gap: isSquare ? '10px' : '15px', marginTop: '4px', flexWrap: isSquare ? 'wrap' : 'nowrap', justifyContent: isSquare ? 'center' : 'flex-start', width: '100%' }}>
                                                                 <div style={{ fontSize: '10pt', color: infoLabel }}>รหัส: <span style={{ color: infoValue, fontWeight: 'bold', fontFamily: 'monospace' }}>{s.id}</span></div>
                                                                 <div style={{ fontSize: '10pt', color: infoLabel }}>ชั้น: <span style={{ color: infoValue, fontWeight: 'bold' }}>{s.room}</span></div>
                                                                 {!isSquare && <div style={{ fontSize: '10pt', color: infoLabel }}>เลขที่: <span style={{ color: infoValue, fontWeight: 'bold' }}>{s.no}</span></div>}
                                                             </div>
                                                         </div>
-                                                        <div style={{ zIndex: 1, padding: isSquare ? '10px 12px 12px' : '10px 16px 14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: footerBorder, backgroundColor: footerBg }}>
+                                                        <div style={{ zIndex: 1, padding: isSquare ? '12px' : '10px 16px 14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: footerBorder, backgroundColor: footerBg }}>
                                                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                                                <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=2&height=14&includetext=false`} alt="barcode" style={{ height: isSquare ? '26px' : '34px', objectFit: 'contain', maxWidth: isSquare ? '3.5cm' : 'none' }} />
+                                                                {/* เพิ่มขนาดความสูงบาร์โค้ด */}
+                                                                <img src={`https://bwipjs-api.metafloor.com/?bcid=code128&text=${s.id}&scale=${bcScale}&height=14&includetext=false`} alt="barcode" style={{ height: bcHeight, objectFit: 'contain', maxWidth: '100%' }} />
                                                                 <div style={{ fontSize: '8pt', color: cardStyle === 'minimal' ? '#000000' : '#94a3b8', marginTop: '4px', fontFamily: 'monospace', letterSpacing: '1px' }}>ID: {s.id}</div>
                                                             </div>
                                                             <div>
-                                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${s.id}`} alt="qrcode" style={{ width: isSquare ? '40px' : '46px', height: isSquare ? '40px' : '46px', borderRadius: cardStyle === 'minimal' ? '0px' : '6px', border: cardStyle === 'minimal' ? '1.5px solid #000000' : '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
+                                                                {/* เพิ่มขนาดคิวอาร์โค้ด */}
+                                                                <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${s.id}`} alt="qrcode" style={{ width: qrSize, height: qrSize, borderRadius: cardStyle === 'minimal' ? '0px' : '6px', border: cardStyle === 'minimal' ? '1.5px solid #000000' : '1px solid #cbd5e1', padding: '2px', backgroundColor: 'white' }} />
                                                             </div>
                                                         </div>
                                                     </>
