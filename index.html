@@ -297,7 +297,7 @@
         function Modal({ isOpen, title, children, onClose, footer }) {
             if (!isOpen) return null;
             return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 no-print">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
                     <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all animate-scale overflow-hidden relative z-10 max-h-[90vh] flex flex-col">
                         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
@@ -593,10 +593,14 @@
             const handlePrintIDCard = (studentList) => {
                 setStudentsToPrint(studentList);
                 setPrintMode('idcards');
+                
+                // ให้เวลา React วาดรูปบาร์โค้ดแป๊บนึง แล้วค่อยสั่งพิมพ์
                 setTimeout(() => {
                     window.print();
-                    setPrintMode(''); // คืนค่ากลับหลังพิมพ์เสร็จ
-                }, 500); // รอให้ React Render รูปบาร์โค้ดให้เสร็จก่อนสั่งพิมพ์
+                }, 800); 
+
+                // เคลียร์โหมดกลับเป็นปกติเมื่อหน้าต่างพิมพ์ถูกปิด
+                window.onafterprint = () => setPrintMode('');
             };
 
             useEffect(() => {
