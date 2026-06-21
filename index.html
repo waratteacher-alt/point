@@ -2871,7 +2871,7 @@
                                     </div>
                                 </div>
 
-                                <<div className="flex flex-col gap-2">
+                                <div className="flex flex-col gap-2">
                                     <select className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-primary-700 outline-none w-full shadow-sm" value={idCardCourseId} onChange={e => setIdCardCourseId(e.target.value)}>
                                         <option value="" disabled hidden>-- 1. เลือกรายวิชาที่ต้องการดึงรายชื่อ --</option>
                                         {visibleCourses.map(c => <option key={c.id} value={c.id}>{c.code} {c.name}</option>)}
