@@ -228,10 +228,13 @@
 
         enableIndexedDbPersistence(db).catch((err) => { console.warn("Offline persistence info:", err.code); });
 
+        // เปลี่ยนเป็นโครงสร้างว่างเปล่า ไม่มีข้อมูลปลอม
         const DEFAULT_MASTER = {
-            school: 'โรงเรียนตัวอย่างวิทยา', adminPassword: 'admin', theme: 'violet',
-            teachers: [{ id: 't1', name: 'ครูสมศรี ใจดี', pin: '1234', homeroom: '' }],
-            courses: [{ id: 'course_1', code: 'ว30242', name: 'ชีววิทยา', semester: '1', year: '2568', teacherId: 't1' }]
+            school: 'ยังไม่ได้ตั้งค่าข้อมูลโรงเรียน', 
+            adminPassword: 'admin', // รหัสผ่านแอดมินตั้งต้นเผื่อใช้ล็อกอินครั้งแรก
+            theme: 'violet',
+            teachers: [], 
+            courses: []
         };
         const DEFAULT_GRADING = { '4': 80, '3.5': 75, '3': 70, '2.5': 65, '2': 60, '1.5': 55, '1': 50 };
 
@@ -733,17 +736,14 @@
                 if (!user) return;
                 const unsubMaster = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info'), (d) => {
                     if (d.exists()) {
-                        const data = d.data();
-                        if (!data.teachers) {
-                            data.teachers = [{ id: 't1', name: data.teacher || 'ครูผู้สอน', pin: data.password || '1234', homeroom: '' }];
-                            data.adminPassword = 'admin';
-                            data.courses = (data.courses || []).map(c => ({...c, teacherId: 't1'}));
-                            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info'), data, { merge: true });
-                        }
-                        setMasterData(data);
+                        // ถ้ามีข้อมูลใน Firebase ให้อ่านมาใช้เลยตรงๆ ไม่ต้องยัดข้อมูลสมมติเพิ่ม
+                        setMasterData(d.data());
                         setLoading(false);
                     } else {
-                        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info'), DEFAULT_MASTER);
+                        // ถ้าไม่มีข้อมูลใน Firebase ห้ามใช้คำสั่ง setDoc เขียนทับเด็ดขาด!
+                        // แค่กำหนดค่าบนหน้าเว็บให้เป็นค่าว่างก็พอ
+                        setMasterData(DEFAULT_MASTER);
+                        setLoading(false);
                     }
                 });
                 return unsubMaster;
