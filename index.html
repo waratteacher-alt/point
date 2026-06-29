@@ -1416,7 +1416,48 @@
                 return { ...studentViewData, scores: { ...(studentViewData.scores || {}), ...simulatedScores } };
             }, [studentViewData, isSimulateMode, simulatedScores]);
 
-            if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
+            if (loading) return (
+                <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-4">
+                    <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 text-center max-w-lg w-full">
+                        <h2 className="text-2xl font-bold text-red-600 mb-4">โหมดกู้คืนข้อมูลฉุกเฉิน</h2>
+                        <p className="text-slate-600 mb-6">ระบบตรวจพบว่าสารบัญรายวิชาหายไป กรุณากดปุ่มด้านล่างเพื่อเชื่อมต่อแฟ้มข้อมูลเดิมกลับมา</p>
+                        <button onClick={async () => {
+                            try {
+                                const masterRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info');
+                                const masterSnap = await getDoc(masterRef);
+                                let data = masterSnap.exists() ? masterSnap.data() : { courses: [] };
+                                
+                                const recoveredCourses = [
+                                    { id: 'course_1779117662965', code: 'วิชาที่ 1', name: 'รอเปลี่ยนชื่อวิชา', semester: '1', year: '2568', teacherId: 't1' },
+                                    { id: 'course_1779117698252', code: 'วิชาที่ 2', name: 'รอเปลี่ยนชื่อวิชา', semester: '1', year: '2568', teacherId: 't1' },
+                                    { id: 'course_1782024611424', code: 'วิชาที่ 3', name: 'รอเปลี่ยนชื่อวิชา', semester: '1', year: '2568', teacherId: 't1' },
+                                    { id: 'course_1782024634244', code: 'วิชาที่ 4', name: 'รอเปลี่ยนชื่อวิชา', semester: '1', year: '2568', teacherId: 't1' },
+                                    { id: 'course_1782024648996', code: 'วิชาที่ 5', name: 'รอเปลี่ยนชื่อวิชา', semester: '1', year: '2568', teacherId: 't1' },
+                                    { id: 'course_1782024662445', code: 'วิชาที่ 6', name: 'รอเปลี่ยนชื่อวิชา', semester: '1', year: '2568', teacherId: 't1' }
+                                ];
+                                
+                                const existingIds = (data.courses || []).map(c => c.id);
+                                const toAdd = recoveredCourses.filter(c => !existingIds.includes(c.id));
+                                
+                                if(toAdd.length > 0) {
+                                    data.courses = [...(data.courses || []), ...toAdd];
+                                    await setDoc(masterRef, data, { merge: true });
+                                    alert(`กู้คืนรายวิชาสำเร็จ ${toAdd.length} วิชา! กำลังพากลับเข้าสู่ระบบ...`);
+                                    window.location.reload();
+                                } else {
+                                    alert('วิชาเหล่านี้ถูกกู้คืนมาอยู่ในระบบเรียบร้อยแล้วครับ');
+                                    window.location.reload();
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                alert('เกิดข้อผิดพลาด: ' + err.message + '\n\n(ตรวจสอบว่าคุณกด Publish แท็บ Rules ใน Firebase แล้วหรือยังครับ?)');
+                            }
+                        }} className="bg-red-500 text-white px-6 py-4 rounded-xl font-bold shadow-lg hover:bg-red-600 transition animate-pulse w-full">
+                            คลิกเพื่อกู้คืนวิชาทั้ง 6 กลับมา
+                        </button>
+                    </div>
+                </div>
+            );
 
             return (
                 <div className="min-h-screen pb-20 font-sans overflow-x-hidden">
