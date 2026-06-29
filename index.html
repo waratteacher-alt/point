@@ -224,7 +224,7 @@
         const app = initializeApp(firebaseConfigObj);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gradepro-v8-school'; 
+        const appId ='gradepro-v8-school'; 
 
         enableIndexedDbPersistence(db).catch((err) => { console.warn("Offline persistence info:", err.code); });
 
