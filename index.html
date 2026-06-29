@@ -1993,7 +1993,27 @@
                                         </button>
                                     </div>
                                 )}
-
+                                
+                                {/* ปุ่มทางลัดจัดการข้อมูล */}
+                                <div className="flex gap-3 mb-6 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm items-center">
+                                    <div className="font-bold text-slate-700 flex items-center gap-2 text-sm">
+                                        <Icons.Database size={18} className="text-primary-600"/> จัดการฐานข้อมูล:
+                                    </div>
+                                    <button 
+                                        onClick={handleFullBackup}
+                                        className="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition"
+                                    >
+                                        Backup ข้อมูลทั้งหมด
+                                    </button>
+                                    <button 
+                                        onClick={() => document.getElementById('full-restore-input').click()}
+                                        className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
+                                    >
+                                        Restore ข้อมูล
+                                    </button>
+                                    <input type="file" id="full-restore-input" className="hidden" accept=".json" onChange={handleFullRestore} />
+                                </div>
+                                
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {visibleCourses.map(c => (
                                         <div key={c.id} className="bg-white rounded-3xl shadow-soft border border-slate-200 hover:border-primary-400 hover:shadow-lg transition-all transform hover:-translate-y-1 group relative overflow-hidden min-h-[180px] flex flex-col">
