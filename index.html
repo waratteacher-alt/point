@@ -1503,7 +1503,45 @@
                     </nav>
 
                     <main className={`w-full p-3 md:p-6 no-print mx-auto transition-all duration-300 ${view === 'teacher_view' || view === 'homeroom_view' ? 'max-w-full 2xl:max-w-[96%]' : 'max-w-7xl'}`}>
-                        
+                        {/* --- ปุ่มกู้คืนฉุกเฉิน (ลบออกได้เมื่อทำเสร็จ) --- */}
+                    <div className="w-full flex justify-center p-4">
+                        <button onClick={async () => {
+                            try {
+                                const masterRef = doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info');
+                                const masterSnap = await getDoc(masterRef);
+                                let data = masterSnap.exists() ? masterSnap.data() : { courses: [] };
+                                
+                                // รหัสโฟลเดอร์วิชาที่หล่นหายไป (อ้างอิงจากฐานข้อมูลของคุณ)
+                                const recoveredCourses = [
+                                    { id: 'course_1779117662965', code: 'วิชาที่ 1', name: 'กู้คืนข้อมูล', semester: '1', year: '2569', teacherId: 't1' },
+                                    { id: 'course_1779117698252', code: 'วิชาที่ 2', name: 'กู้คืนข้อมูล', semester: '1', year: '2569', teacherId: 't1' },
+                                    { id: 'course_1782024611424', code: 'วิชาที่ 3', name: 'กู้คืนข้อมูล', semester: '1', year: '2569', teacherId: 't1' },
+                                    { id: 'course_1782024634244', code: 'วิชาที่ 4', name: 'กู้คืนข้อมูล', semester: '1', year: '2569', teacherId: 't1' },
+                                    { id: 'course_1782024648996', code: 'วิชาที่ 5', name: 'กู้คืนข้อมูล', semester: '1', year: '2569', teacherId: 't1' },
+                                    { id: 'course_1782024662445', code: 'วิชาที่ 6', name: 'กู้คืนข้อมูล', semester: '1', year: '2569', teacherId: 't1' }
+                                ];
+                                
+                                // ป้องกันการกู้ซ้ำซ้อน
+                                const existingIds = (data.courses || []).map(c => c.id);
+                                const toAdd = recoveredCourses.filter(c => !existingIds.includes(c.id));
+                                
+                                if(toAdd.length > 0) {
+                                    data.courses = [...(data.courses || []), ...toAdd];
+                                    await setDoc(masterRef, data, { merge: true });
+                                    alert(`กู้คืนรายวิชาสำเร็จ ${toAdd.length} วิชา! กรุณารีเฟรชหน้าเว็บ`);
+                                    window.location.reload();
+                                } else {
+                                    alert('วิชาเหล่านี้ถูกกู้คืนมาอยู่ในสารบัญแล้วครับ');
+                                }
+                            } catch (err) {
+                                console.error(err);
+                                alert('เกิดข้อผิดพลาดในการกู้คืน');
+                            }
+                        }} className="bg-red-500 hover:bg-red-600 text-white px-6 py-4 rounded-2xl font-bold shadow-lg flex items-center gap-2 border-4 border-red-200 animate-pulse">
+                            <Icons.Database size={24}/> กู้คืนโฟลเดอร์รายวิชาที่หายไป (ฉุกเฉิน)
+                        </button>
+                    </div>
+
                         {view === 'student' && (
                             <div className="max-w-md mx-auto mt-10 animate-slide-up">
                                 <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
