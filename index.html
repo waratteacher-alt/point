@@ -224,17 +224,14 @@
         const app = initializeApp(firebaseConfigObj);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId ='gradepro-v8-school'; 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gradepro-v8-school'; 
 
         enableIndexedDbPersistence(db).catch((err) => { console.warn("Offline persistence info:", err.code); });
 
-        // เปลี่ยนเป็นโครงสร้างว่างเปล่า ไม่มีข้อมูลปลอม
         const DEFAULT_MASTER = {
-            school: 'ยังไม่ได้ตั้งค่าข้อมูลโรงเรียน', 
-            adminPassword: 'admin', // รหัสผ่านแอดมินตั้งต้นเผื่อใช้ล็อกอินครั้งแรก
-            theme: 'violet',
-            teachers: [], 
-            courses: []
+            school: 'โรงเรียนตัวอย่างวิทยา', adminPassword: 'admin', theme: 'violet',
+            teachers: [{ id: 't1', name: 'ครูสมศรี ใจดี', pin: '1234', homeroom: '' }],
+            courses: [{ id: 'course_1', code: 'ว30242', name: 'ชีววิทยา', semester: '1', year: '2568', teacherId: 't1' }]
         };
         const DEFAULT_GRADING = { '4': 80, '3.5': 75, '3': 70, '2.5': 65, '2': 60, '1.5': 55, '1': 50 };
 
@@ -736,14 +733,17 @@
                 if (!user) return;
                 const unsubMaster = onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info'), (d) => {
                     if (d.exists()) {
-                        // ถ้ามีข้อมูลใน Firebase ให้อ่านมาใช้เลยตรงๆ ไม่ต้องยัดข้อมูลสมมติเพิ่ม
-                        setMasterData(d.data());
+                        const data = d.data();
+                        if (!data.teachers) {
+                            data.teachers = [{ id: 't1', name: data.teacher || 'ครูผู้สอน', pin: data.password || '1234', homeroom: '' }];
+                            data.adminPassword = 'admin';
+                            data.courses = (data.courses || []).map(c => ({...c, teacherId: 't1'}));
+                            setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info'), data, { merge: true });
+                        }
+                        setMasterData(data);
                         setLoading(false);
                     } else {
-                        // ถ้าไม่มีข้อมูลใน Firebase ห้ามใช้คำสั่ง setDoc เขียนทับเด็ดขาด!
-                        // แค่กำหนดค่าบนหน้าเว็บให้เป็นค่าว่างก็พอ
-                        setMasterData(DEFAULT_MASTER);
-                        setLoading(false);
+                        setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'master', 'info'), DEFAULT_MASTER);
                     }
                 });
                 return unsubMaster;
@@ -1993,27 +1993,7 @@
                                         </button>
                                     </div>
                                 )}
-                                
-                                {/* ปุ่มทางลัดจัดการข้อมูล */}
-                                <div className="flex gap-3 mb-6 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm items-center">
-                                    <div className="font-bold text-slate-700 flex items-center gap-2 text-sm">
-                                        <Icons.Database size={18} className="text-primary-600"/> จัดการฐานข้อมูล:
-                                    </div>
-                                    <button 
-                                        onClick={handleFullBackup}
-                                        className="bg-green-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-green-700 transition"
-                                    >
-                                        Backup ข้อมูลทั้งหมด
-                                    </button>
-                                    <button 
-                                        onClick={() => document.getElementById('full-restore-input').click()}
-                                        className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
-                                    >
-                                        Restore ข้อมูล
-                                    </button>
-                                    <input type="file" id="full-restore-input" className="hidden" accept=".json" onChange={handleFullRestore} />
-                                </div>
-                                
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {visibleCourses.map(c => (
                                         <div key={c.id} className="bg-white rounded-3xl shadow-soft border border-slate-200 hover:border-primary-400 hover:shadow-lg transition-all transform hover:-translate-y-1 group relative overflow-hidden min-h-[180px] flex flex-col">
