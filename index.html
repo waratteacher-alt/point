@@ -475,6 +475,15 @@
                                                         />
                                                     </div>
                                                 ) : (
+                                                    <input 
+                                                        data-row={idx}
+                                                        data-col={thisColIdx}
+                                                        onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
+                                                        onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
+                                                        className="..."
+                                                        value={val || ''}
+                                                        onChange={e => { ... }}
+                                                    />
                                                     <button 
                                                         onClick={() => handleScoreChange(col, !val)}
                                                         className={`w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition border ${val ? 'bg-green-50 border-green-200 text-green-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'}`}
@@ -1416,6 +1425,91 @@
                 return { ...studentViewData, scores: { ...(studentViewData.scores || {}), ...simulatedScores } };
             }, [studentViewData, isSimulateMode, simulatedScores]);
 
+
+            // ==========================================
+            // ฟังก์ชันสำหรับรองรับ Copy/Paste และเลื่อนลูกศรแบบ Excel
+            // ==========================================
+            const editableColumns = useMemo(() => {
+                const cols = [];
+                sections.forEach(sec => {
+                    sec.groups?.forEach(g => {
+                        g.columns?.forEach(col => {
+                            if (col.type === 'manual' || col.type === 'check') cols.push(col);
+                        });
+                    });
+                });
+                return cols;
+            }, [sections]);
+            
+            const handleGridKeyDown = (e, rowIdx, colIdx) => {
+                let nextRow = rowIdx, nextCol = colIdx, moved = false;
+                if (e.key === 'ArrowUp') { nextRow = Math.max(0, rowIdx - 1); moved = true; }
+                else if (e.key === 'ArrowDown' || e.key === 'Enter') { nextRow = Math.min(filteredStudents.length - 1, rowIdx + 1); moved = true; }
+                else if (e.key === 'ArrowLeft') { nextCol = Math.max(0, colIdx - 1); moved = true; }
+                else if (e.key === 'ArrowRight') { nextCol = Math.min(editableColumns.length - 1, colIdx + 1); moved = true; }
+            
+                if (moved) {
+                    e.preventDefault();
+                    const nextEl = document.querySelector(`[data-row="${nextRow}"][data-col="${nextCol}"]`);
+                    if (nextEl) {
+                        nextEl.focus();
+                        if (nextEl.tagName === 'INPUT') nextEl.select();
+                    }
+                }
+            };
+            
+            const handleGridPaste = (e, startRowIdx, startColIdx) => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('Text');
+                const rows = pasteData.split(/\r\n|\n|\r/); 
+            
+                const newStudentsList = [...filteredStudents];
+                let anyUpdated = false;
+            
+                rows.forEach((rowStr, rOffset) => {
+                    if (!rowStr.trim()) return;
+                    const targetRowIdx = startRowIdx + rOffset;
+                    if (targetRowIdx >= newStudentsList.length) return;
+            
+                    const targetStudent = newStudentsList[targetRowIdx];
+                    const cols = rowStr.split(/\t|,/); // รองรับ Tab จาก Excel
+                    let studentScoresUpdated = false;
+                    const newScores = { ...targetStudent.scores };
+            
+                    cols.forEach((colValStr, cOffset) => {
+                        const v = colValStr.trim();
+                        const targetColIdx = startColIdx + cOffset;
+                        if (targetColIdx >= editableColumns.length) return;
+            
+                        const colInfo = editableColumns[targetColIdx];
+                        if (colInfo.type === 'check') {
+                             newScores[colInfo.id] = ['1', 'true', 'yes', 'มา', 'ส่ง'].includes(v.toLowerCase());
+                             studentScoresUpdated = true;
+                             anyUpdated = true;
+                        } else if (v === '' || (!isNaN(v) && parseFloat(v) <= parseFloat(colInfo.max))) {
+                            newScores[colInfo.id] = v;
+                            studentScoresUpdated = true;
+                            anyUpdated = true;
+                        }
+                    });
+            
+                    if (studentScoresUpdated) {
+                        newStudentsList[targetRowIdx] = { ...targetStudent, scores: newScores };
+                        updateStudent(newStudentsList[targetRowIdx]); 
+                    }
+                });
+            
+                if (anyUpdated) {
+                    setStudents(prev => {
+                        const updatedMap = {};
+                        newStudentsList.forEach(s => updatedMap[s.id] = s);
+                        return prev.map(p => updatedMap[p.id] ? updatedMap[p.id] : p);
+                    });
+                    showToast('วางข้อมูลแบบตารางสำเร็จ', 'success');
+                }
+            };
+            // ==========================================
+            
             if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
 
             return (
@@ -2576,6 +2670,7 @@
                                                 <tbody className="divide-y divide-slate-100 bg-white">
                                                     {filteredStudents.map((s, idx) => {
                                                         const totalScore = calculateTotalScore(s, true);
+                                                        let currentColIdx = 0;
                                                         return (
                                                             <tr key={s.id} className={`hover:bg-blue-50/20 transition group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}> 
                                                                 <td className={`p-1 text-center sticky-col sticky-left-0 transition font-mono text-slate-400 border-r border-slate-100 text-xs ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.no}</td>
@@ -2599,11 +2694,23 @@
                                                                             const isAuto = col.type !== 'manual' && col.type !== 'check';
                                                                             const isHidden = sec.published === false || g.published === false || col.published === false;
                                                                             const val = isAuto ? calculateAutoScore(s, g, col, true) : s.scores?.[col.id];
+                                                                            let thisColIdx = -1;
+                                                                            if (!isAuto) {
+                                                                                thisColIdx = currentColIdx++;
+                                                                            }
                                                                             return (
                                                                                 <td key={col.id} className={`p-0 border-r border-slate-100 text-center relative h-8 min-w-[32px] max-w-[32px] w-[32px] ${isAuto ? 'bg-slate-50' : ''} ${isHidden ? 'bg-gray-50 unpublished-col' : ''}`}>
                                                                                     {isAuto ? 
                                                                                         <div className={`flex items-center justify-center h-full text-slate-800 font-bold text-xs ${isHidden ? 'opacity-40' : ''}`}>{val}</div> : 
                                                                                         col.type === 'check' ? (
+                                                                                            <button 
+                                                                                                data-row={idx}
+                                                                                                data-col={thisColIdx}
+                                                                                                onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
+                                                                                                onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
+                                                                                                className="..."
+                                                                                                onClick={() => { ... }}
+                                                                                            >
                                                                                             <button 
                                                                                                 className={`w-full h-full flex items-center justify-center transition-colors ${val ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-slate-100'} ${isHidden ? 'opacity-50' : ''}`}
                                                                                                 onClick={() => {
