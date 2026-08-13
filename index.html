@@ -2720,27 +2720,28 @@
                                                                                             >
                                                                                                 {val ? <Icons.CheckCircle size={16} className="text-green-600"/> : <span className="text-slate-300 font-bold">-</span>}
                                                                                             </button>
-                                                                                        ) :
-                                                                                        <div onClick={() => isPopupMode && openScoreModal(s, col)} className="w-full h-full">
-                                                                                            <input 
-                                                                                                data-row={idx}
-                                                                                                data-col={thisColIdx}
-                                                                                                onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
-                                                                                                onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
-                                                                                                className={`w-full h-full text-center bg-transparent outline-none focus:bg-blue-100 focus:text-blue-700 transition font-mono text-slate-600 hover:bg-slate-50 text-sm ${isPopupMode ? 'cursor-pointer pointer-events-none' : ''} ${isHidden ? 'text-gray-400' : ''}`}
-                                                                                                value={val || ''} placeholder="" readOnly={isPopupMode}
-                                                                                                onFocus={(e) => { if(numpadOpen) e.target.readOnly = true; }}
-                                                                                                onClick={(e) => { if(numpadOpen && !isPopupMode) { e.target.readOnly = false; e.target.focus(); e.target.readOnly = true; } }}
-                                                                                                onChange={e => {
-                                                                                                    const v = e.target.value;
-                                                                                                    if (v === '' || (!isNaN(v) && parseFloat(v) <= parseFloat(col.max))) {
-                                                                                                        const newScores = { ...s.scores, [col.id]: v };
-                                                                                                        setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
-                                                                                                        updateStudent({ ...s, scores: newScores });
-                                                                                                    }
-                                                                                                }}
-                                                                                            />
-                                                                                        </div>
+                                                                                        ) : (
+                                                                                            <div onClick={() => isPopupMode && openScoreModal(s, col)} className="w-full h-full">
+                                                                                                <input 
+                                                                                                    data-row={idx}
+                                                                                                    data-col={thisColIdx}
+                                                                                                    onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
+                                                                                                    onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
+                                                                                                    className={`w-full h-full text-center bg-transparent outline-none focus:bg-blue-100 focus:text-blue-700 transition font-mono text-slate-600 hover:bg-slate-50 text-sm ${isPopupMode ? 'cursor-pointer pointer-events-none' : ''} ${isHidden ? 'text-gray-400' : ''}`}
+                                                                                                    value={val || ''} placeholder="" readOnly={isPopupMode}
+                                                                                                    onFocus={(e) => { if(numpadOpen) e.target.readOnly = true; }}
+                                                                                                    onClick={(e) => { if(numpadOpen && !isPopupMode) { e.target.readOnly = false; e.target.focus(); e.target.readOnly = true; } }}
+                                                                                                    onChange={e => {
+                                                                                                        const v = e.target.value;
+                                                                                                        if (v === '' || (!isNaN(v) && parseFloat(v) <= parseFloat(col.max))) {
+                                                                                                            const newScores = { ...s.scores, [col.id]: v };
+                                                                                                            setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
+                                                                                                            updateStudent({ ...s, scores: newScores });
+                                                                                                        }
+                                                                                                    }}
+                                                                                                />
+                                                                                            </div>
+                                                                                        )
                                                                                     }
                                                                                 </td>
                                                                             );
