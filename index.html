@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradePro</title>
+    <title>GradePro - ระบบจัดการผลการเรียน</title>
     <link rel="icon" href="data:,">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
     
-    <!-- นำเข้าไลบรารี AI OCR (Tesseract.js) สำหรับสแกนคะแนนจากรูปภาพ -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <script type="importmap">
@@ -33,11 +32,10 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    // ขนาดฟอนต์สำหรับหน้าจอ (อิงจากฐาน 10pt)
                     fontSize: {
                         'xs': ['12px', '1.4'],
                         'sm': ['13px', '1.5'],
-                        'base': ['14px', '1.5'],  // ขนาดบนจอเทียบเท่า 10pt 
+                        'base': ['14px', '1.5'], 
                         'lg': ['16px', '1.5'],
                         'xl': ['18px', '1.5'],
                         '2xl': ['22px', '1.4'],
@@ -47,22 +45,18 @@
                         '6xl': ['44px', '1.1'],
                     },
                     fontFamily: { 
-                        // ใช้ฟอนต์ Sarabun เป็นหลักทั้งระบบเพื่อความคงเส้นคงวา
                         sans: ['"TH Sarabun New"', '"TH Sarabun PSK"', 'Sarabun', 'sans-serif'], 
                         display: ['"TH Sarabun New"', '"TH Sarabun PSK"', 'Sarabun', 'sans-serif'] 
                     },
                     colors: { 
-                        // โทนสี Pastel Periwinkle (ฟ้าอมม่วงพาสเทล สบายตา น่ารักแต่ยังดูสุภาพ)
                         primary: { 50:'#f5f7ff', 100:'#ebf0fe', 200:'#dce4fd', 300:'#c4d2fc', 400:'#a3bbf9', 500:'#86a4f6', 600:'#6680e6', 700:'#4d61cc', 800:'#4251a6', 900:'#384585' },
                         slate: { 850: '#1e293b' }
                     },
                     boxShadow: { 
-                        // เงาแบบฟุ้งๆ นุ่มนวล
                         'soft': '0 10px 25px -5px rgba(134, 164, 246, 0.15)', 
                         'glow': '0 0 15px rgba(134, 164, 246, 0.4)' 
                     },
                     borderRadius: {
-                        // ปรับมุมให้โค้งมนเป็นมิตรขึ้น
                         'none': '0', 'sm': '4px', DEFAULT: '8px', 'md': '10px', 'lg': '12px', 'xl': '16px', '2xl': '20px', '3xl': '24px', 'full': '9999px',
                     },
                     animation: {
@@ -91,7 +85,6 @@
         
         body { 
             background-color: #f8fafc; 
-            /* เพิ่มลวดลายจุดบางๆ (Dot Pattern) บนพื้นหลังให้ดูทันสมัย */
             background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
             background-size: 20px 20px;
             color: #1e293b; 
@@ -100,13 +93,11 @@
             line-height: 1.5;
         }
         
-        /* สไตล์ Scrollbar ให้เข้ากับธีมพาสเทล */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #dce4fd; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #a3bbf9; }
         
-        /* Animations พื้นฐาน */
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
         .animate-scale { animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
@@ -114,19 +105,16 @@
         @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         
-        /* สไตล์ตาราง - ซอฟต์ลงแต่มองง่าย */
         .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; text-align: left; height: 130px; padding: 4px 0px; margin: 0 auto; width: 100%; display: flex; align-items: center; justify-content: flex-start; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 600; color: #4251a6; }
         .sticky-col { position: sticky; background-color: #ffffff; z-index: 40; border-right: 1px solid #e2e8f0; } 
         .sticky-left-0 { left: 0; width: 35px; min-width: 35px; max-width: 35px; }
         .sticky-left-1 { left: 35px; width: 55px; min-width: 55px; max-width: 55px; }
         .sticky-left-2 { left: 90px; width: 160px; min-width: 160px; max-width: 160px; box-shadow: 4px 0 6px -4px rgba(134, 164, 246, 0.15); }
         
-        /* ตกแต่งหัวตารางเป็นสีพาสเทลอ่อนๆ */
         thead { z-index: 50; position: sticky; top: 0; }
         thead th { background-color: #f5f7ff; color: #4251a6; border: 1px solid #ebf0fe; }
         thead .sticky-col { z-index: 60; background-color: #f5f7ff; border-bottom: 2px solid #a3bbf9; } 
         
-        /* เอฟเฟกต์ตอนชี้เมาส์ที่ตาราง ให้มีสีฟ้าระเรื่อ */
         tr { transition: background-color 0.3s ease; }
         tr:nth-child(even) .sticky-col { background-color: #ffffff; }
         tr:nth-child(odd) .sticky-col { background-color: #f8fafc; } 
@@ -135,10 +123,6 @@
         
         .unpublished-col { background-image: repeating-linear-gradient(45deg, transparent, transparent 5px, rgba(134, 164, 246, 0.05) 5px, rgba(134, 164, 246, 0.05) 10px); background-color: #f8fafc; }
         
-        /* ========================================= */
-        /* PRINT STYLES - สำหรับเอกสารทางการ 100%    */
-        /* (ปิดความพาสเทลทั้งหมด คืนความน่าเกรงขาม)  */
-        /* ========================================= */
         @media print {
             body { 
                 background: white; 
@@ -163,7 +147,7 @@
             .print-only thead { display: table-header-group; }
             .print-only tfoot { display: table-footer-group; }
             .print-only th, .print-only td { 
-                border: 1px solid #000 !important; /* บังคับเส้นตารางสีดำ 1px */
+                border: 1px solid #000 !important; 
                 padding: 4px 6px; 
                 text-align: center; 
                 vertical-align: middle; 
@@ -183,14 +167,14 @@
             .vertical-text-print { 
                 writing-mode: vertical-rl; 
                 transform: rotate(180deg); 
-                height: 130px; /* ปรับความสูงกำลังดี ไม่ให้ตารางยืดเกินไป */
+                height: 130px; 
                 max-height: 130px;
                 white-space: nowrap; 
-                overflow: hidden; /* คำสั่งสำคัญ: ซ่อนข้อความที่ทะลุเส้นตาราง */
-                text-overflow: ellipsis; /* คำสั่งสำคัญ: แสดงจุดไข่ปลา ... เมื่อข้อความถูกตัด */
+                overflow: hidden; 
+                text-overflow: ellipsis; 
                 text-align: left; 
                 margin: 0 auto; 
-                font-size: 9pt !important; /* ปรับขนาดฟอนต์ให้พอดีกรอบ */
+                font-size: 9pt !important; 
                 padding: 4px; 
                 color: black !important; 
             }
@@ -356,7 +340,6 @@
             if (!isOpen || !student) return null;
             const [localScores, setLocalScores] = React.useState(student.scores || {});
             
-            // AI State
             const [aiFeedback, setAiFeedback] = React.useState(student.note || '');
             const [aiLoading, setAiLoading] = React.useState(false);
 
@@ -372,7 +355,6 @@
                 updateStudent({ ...student, scores: newScores });
             };
 
-            // ระบบประมวลผลคำแนะนำพัฒนาการเรียนอัตโนมัติ (AI Auto-Feedback Simulation)
             const handleGenerateAIFeedback = () => {
                 setAiLoading(true);
                 setTimeout(() => {
@@ -405,7 +387,6 @@
                 });
             });
 
-            // คำนวณงานที่ขาด (ไม่นับช่องที่ไม่บังคับส่ง เช่น จิตพิสัย)
             const missingCount = gradableCols.filter(({ col }) => col.required !== false && (localScores[col.id] === undefined || localScores[col.id] === '')).length;
 
             return (
@@ -424,7 +405,6 @@
                         
                         <div className="p-6 overflow-y-auto flex-1 bg-slate-50 space-y-6">
                             
-                            {/* ส่วน AI Auto-Feedback */}
                             <div className="bg-white p-4 rounded-2xl border border-primary-200 shadow-sm space-y-3">
                                 <div className="flex justify-between items-center">
                                     <h4 className="font-bold text-primary-800 flex items-center gap-1.5"><Icons.Sparkle className="text-amber-500"/> รายงานพัฒนาการผู้เรียน (AI Auto-Feedback)</h4>
@@ -449,7 +429,7 @@
                                 {gradableCols.map(({ secTitle, col }) => {
                                     const isValEmpty = localScores[col.id] === undefined || localScores[col.id] === '';
                                     const isOptional = col.required === false;
-                                    const isMissing = isValEmpty && !isOptional; // จะแดงก็ต่อเมื่อว่าง และ เป็นงานบังคับ
+                                    const isMissing = isValEmpty && !isOptional;
                                     const val = localScores[col.id];
 
                                     return (
@@ -475,15 +455,6 @@
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <input 
-                                                        data-row={idx}
-                                                        data-col={thisColIdx}
-                                                        onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
-                                                        onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
-                                                        className="..."
-                                                        value={val || ''}
-                                                        onChange={e => { ... }}
-                                                    />
                                                     <button 
                                                         onClick={() => handleScoreChange(col, !val)}
                                                         className={`w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition border ${val ? 'bg-green-50 border-green-200 text-green-600' : 'bg-slate-50 border-slate-200 text-slate-400 hover:bg-slate-100'}`}
@@ -608,24 +579,21 @@
             const [winnerModal, setWinnerModal] = useState(null);
             const [spinDuration, setSpinDuration] = useState(5);
             
-            // State สำหรับระบบบัตรนักเรียน
             const [printMode, setPrintMode] = useState(''); 
             const [idCardModal, setIdCardModal] = useState(false);
             const [studentsToPrint, setStudentsToPrint] = useState([]);
-            const [idCardCourseId, setIdCardCourseId] = useState(''); // เพิ่ม state เลือกรายวิชา
-            const [idCardStudents, setIdCardStudents] = useState([]); // เก็บนักเรียนของวิชานั้นๆ
+            const [idCardCourseId, setIdCardCourseId] = useState('');
+            const [idCardStudents, setIdCardStudents] = useState([]);
             const [idCardRoom, setIdCardRoom] = useState('All');
             const [idCardSearch, setIdCardSearch] = useState('');
-            const [cardStyle, setCardStyle] = useState('classic'); // รูปแบบเริ่มต้นเป็นแบบทางการ
+            const [cardStyle, setCardStyle] = useState('classic');
 
-            // State สำหรับระบบ AI (OCR และ Smart Grouping)
             const [ocrModal, setOcrModal] = useState(false);
             const [ocrLoading, setOcrLoading] = useState(false);
             const [ocrProgress, setOcrProgress] = useState('');
             const [groupSize, setGroupSize] = useState(4);
             const [smartGroups, setGeneratedGroups] = useState([]);
 
-            // ดึงข้อมูลนักเรียนทันทีเมื่อเลือกวิชาในหน้า Modal
             useEffect(() => {
                 if (!idCardCourseId) {
                     setIdCardStudents([]);
@@ -639,10 +607,8 @@
                 return () => unsub();
             }, [idCardCourseId]);
 
-            // หาห้องทั้งหมดของวิชานั้น
             const idCardUniqueRooms = useMemo(() => [...new Set(idCardStudents.map(s => s.room).filter(Boolean))].sort(), [idCardStudents]);
 
-            // ฟังก์ชันกรองนักเรียนสำหรับหน้าบัตร
             const idCardFilteredStudents = useMemo(() => {
                 let res = idCardStudents;
                 if (idCardRoom !== 'All') res = res.filter(s => s.room === idCardRoom);
@@ -652,17 +618,10 @@
             
             const idCardSelectedCourseObj = masterData.courses?.find(c => c.id === idCardCourseId) || {};
             
-            // ฟังก์ชันสั่งพิมพ์บัตร
             const handlePrintIDCard = (studentList) => {
                 setStudentsToPrint(studentList);
                 setPrintMode('idcards');
-                
-                // ให้เวลา React วาดรูปบาร์โค้ดแป๊บนึง แล้วค่อยสั่งพิมพ์
-                setTimeout(() => {
-                    window.print();
-                }, 800); 
-
-                // เคลียร์โหมดกลับเป็นปกติเมื่อหน้าต่างพิมพ์ถูกปิด
+                setTimeout(() => { window.print(); }, 800); 
                 window.onafterprint = () => setPrintMode('');
             };
 
@@ -677,7 +636,6 @@
                 };
             }, []);
 
-            // โหลดข้อมูลการล็อกอิน
             useEffect(() => {
                 const savedUserData = localStorage.getItem('gradeProUser');
                 if (savedUserData) {
@@ -698,7 +656,6 @@
                 return onAuthStateChanged(auth, (u) => { setUser(u); if (!u) setLoading(false); });
             }, []);
 
-            // จับการยิงบาร์โค้ด
             useEffect(() => {
                 if (view !== 'teacher_view') return; 
 
@@ -963,7 +920,7 @@
 
             const updateStudent = async (data) => {
                 if (!user || !activeCourseId) return;
-                try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', `students_${activeCourseId}`, data.id), data, { merge: true }); showToast('บันทึกแล้ว', 'success'); }
+                try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', `students_${activeCourseId}`, data.id), data, { merge: true }); }
                 catch (e) { showToast('Error', 'error'); }
             };
             
@@ -1277,14 +1234,12 @@
                 });
             };
 
-            // --- โมดูล AI OCR SCORE ENTRY (อ่านลายมือ/คะแนนจากกล้อง) ---
             const handleSmartOcrImage = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 setOcrLoading(true); setOcrProgress('AI กำลังวิเคราะห์รูปภาพและถอดข้อความ...');
                 
                 try {
-                    // เรียกใช้ Tesseract Engine ดึงข้อความดิบจากรูปภาพใบลงคะแนน
                     const worker = await Tesseract.createWorker('eng');
                     const ret = await worker.recognize(file);
                     const text = ret.data.text;
@@ -1294,7 +1249,6 @@
                     let matchCount = 0;
                     const newStudents = [...students];
                     
-                    // ค้นหาคอลัมน์แรกที่เป็นประเภทคะแนนดิบ (Manual)
                     let targetColId = null;
                     sections.forEach(s => s.groups?.forEach(g => g.columns?.forEach(c => {
                         if (!targetColId && c.type === 'manual') targetColId = c.id;
@@ -1306,7 +1260,6 @@
                     }
 
                     lines.forEach(line => {
-                        // ดักจับรูปแบบ รหัสนักเรียน 5 หลัก ตามด้วยคะแนนดิบ เช่น "12063 9"
                         const matches = line.match(/(\d{5})\s+(\d+)/);
                         if (matches) {
                             const [_, sId, score] = matches;
@@ -1318,7 +1271,6 @@
                         }
                     });
 
-                    // หากรูปภาพไม่ชัดเจน ระบบจะจำลองตัวเลขขึ้นมาเป็นเดโมให้คุณครูตรวจสอบ
                     if (matchCount === 0) {
                         setOcrProgress('ระบบดึงข้อมูลอัจฉริยะแบบช่วยเหลือ (Simulation Mapping)...');
                         newStudents.slice(0, 8).forEach((s, idx) => {
@@ -1381,7 +1333,6 @@
                 return data;
             }, [filteredStudents, sections]);
 
-            // --- โมดูล SMART GROUPING (จัดกลุ่มคละความสามารถ) ---
             const handleSmartGroupingGeneration = () => {
                 const excellent = [...analysisData.high];
                 const average = [...analysisData.mid];
@@ -1393,7 +1344,6 @@
                 const groupCount = Math.ceil(totalCount / groupSize);
                 const groups = Array.from({ length: groupCount }, () => []);
 
-                // กระจายสัดส่วนแบบกระจายวนลูป (Round-Robin Mix Ability)
                 let pointer = 0;
                 while (excellent.length > 0) { groups[pointer % groupCount].push({ student: excellent.shift(), tier: 'Excellent' }); pointer++; }
                 while (improve.length > 0) { groups[pointer % groupCount].push({ student: improve.shift(), tier: 'Improve' }); pointer++; }
@@ -1425,29 +1375,33 @@
                 return { ...studentViewData, scores: { ...(studentViewData.scores || {}), ...simulatedScores } };
             }, [studentViewData, isSimulateMode, simulatedScores]);
 
-
             // ==========================================
-            // ฟังก์ชันสำหรับรองรับ Copy/Paste และเลื่อนลูกศรแบบ Excel
+            // Editable Columns List & Paste/Key Handlers
             // ==========================================
             const editableColumns = useMemo(() => {
                 const cols = [];
                 sections.forEach(sec => {
                     sec.groups?.forEach(g => {
                         g.columns?.forEach(col => {
-                            if (col.type === 'manual' || col.type === 'check') cols.push(col);
+                            if (col.type === 'manual' || col.type === 'check') {
+                                cols.push(col);
+                            }
                         });
                     });
                 });
                 return cols;
             }, [sections]);
-            
+
             const handleGridKeyDown = (e, rowIdx, colIdx) => {
-                let nextRow = rowIdx, nextCol = colIdx, moved = false;
+                let nextRow = rowIdx;
+                let nextCol = colIdx;
+                let moved = false;
+
                 if (e.key === 'ArrowUp') { nextRow = Math.max(0, rowIdx - 1); moved = true; }
                 else if (e.key === 'ArrowDown' || e.key === 'Enter') { nextRow = Math.min(filteredStudents.length - 1, rowIdx + 1); moved = true; }
                 else if (e.key === 'ArrowLeft') { nextCol = Math.max(0, colIdx - 1); moved = true; }
                 else if (e.key === 'ArrowRight') { nextCol = Math.min(editableColumns.length - 1, colIdx + 1); moved = true; }
-            
+
                 if (moved) {
                     e.preventDefault();
                     const nextEl = document.querySelector(`[data-row="${nextRow}"][data-col="${nextCol}"]`);
@@ -1457,30 +1411,56 @@
                     }
                 }
             };
-            
+
             const handleGridPaste = (e, startRowIdx, startColIdx) => {
                 e.preventDefault();
                 const pasteData = e.clipboardData.getData('Text');
                 const rows = pasteData.split(/\r\n|\n|\r/); 
-            
+
+                if (isSimulateMode) {
+                    let newSim = { ...simulatedScores };
+                    rows.forEach((rowStr, rOffset) => {
+                        if (!rowStr.trim()) return;
+                        const targetRowIdx = startRowIdx + rOffset;
+                        if (targetRowIdx >= filteredStudents.length) return;
+                        
+                        const cols = rowStr.split(/\t|,/); 
+                        cols.forEach((colValStr, cOffset) => {
+                            const v = colValStr.trim();
+                            const targetColIdx = startColIdx + cOffset;
+                            if (targetColIdx >= editableColumns.length) return;
+                            const colInfo = editableColumns[targetColIdx];
+
+                            if (colInfo.type === 'check') {
+                                newSim[colInfo.id] = ['1', 'true', 'yes', 'มา', 'ส่ง'].includes(v.toLowerCase());
+                            } else if (v === '' || (!isNaN(v) && parseFloat(v) <= parseFloat(colInfo.max))) {
+                                newSim[colInfo.id] = v;
+                            }
+                        });
+                    });
+                    setSimulatedScores(newSim);
+                    showToast('วางคะแนนจำลองสำเร็จ', 'success');
+                    return;
+                }
+
                 const newStudentsList = [...filteredStudents];
                 let anyUpdated = false;
-            
+
                 rows.forEach((rowStr, rOffset) => {
                     if (!rowStr.trim()) return;
                     const targetRowIdx = startRowIdx + rOffset;
                     if (targetRowIdx >= newStudentsList.length) return;
-            
+
                     const targetStudent = newStudentsList[targetRowIdx];
-                    const cols = rowStr.split(/\t|,/); // รองรับ Tab จาก Excel
+                    const cols = rowStr.split(/\t|,/);
                     let studentScoresUpdated = false;
                     const newScores = { ...targetStudent.scores };
-            
+
                     cols.forEach((colValStr, cOffset) => {
                         const v = colValStr.trim();
                         const targetColIdx = startColIdx + cOffset;
                         if (targetColIdx >= editableColumns.length) return;
-            
+
                         const colInfo = editableColumns[targetColIdx];
                         if (colInfo.type === 'check') {
                              newScores[colInfo.id] = ['1', 'true', 'yes', 'มา', 'ส่ง'].includes(v.toLowerCase());
@@ -1492,13 +1472,13 @@
                             anyUpdated = true;
                         }
                     });
-            
+
                     if (studentScoresUpdated) {
                         newStudentsList[targetRowIdx] = { ...targetStudent, scores: newScores };
                         updateStudent(newStudentsList[targetRowIdx]); 
                     }
                 });
-            
+
                 if (anyUpdated) {
                     setStudents(prev => {
                         const updatedMap = {};
@@ -1509,7 +1489,8 @@
                 }
             };
             // ==========================================
-            
+
+
             if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div></div>;
 
             return (
@@ -1931,7 +1912,6 @@
                                             </div>
                                         </div>
                                 
-                                        {/* --- เพิ่มระบบกู้คืนโฟลเดอร์รายวิชา (ซ่อนอยู่ในฝั่ง Admin) --- */}
                                         <div className="bg-rose-50 rounded-3xl shadow-sm border border-rose-200 p-6">
                                             <h3 className="font-bold text-lg text-rose-800 font-display border-b border-rose-200 pb-4 mb-4 flex items-center gap-2">
                                                 <Icons.Database size={20} className="text-rose-600"/> กู้คืนรายวิชา (Recovery)
@@ -2643,13 +2623,8 @@
                                                         {sections.map((sec, idx) => {
                                                             return sec.groups?.map(g => {
                                                                 return g.columns?.map(col => {
-                                                                    const isSum = col.type === 'sum' || col.type === 'percent';
                                                                     const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                    return (
-                                                                        <th key={col.id} className={`border-r border-b border-slate-200 relative group min-w-[32px] max-w-[32px] w-[32px] hover:bg-slate-50 transition ${isSum ? 'bg-slate-50' : ''} ${isHidden ? 'bg-gray-100 opacity-60 unpublished-col' : ''}`}>
-                                                                            <div className="vertical-text text-xs font-medium text-slate-600 flex items-center gap-1">{col.name} {isHidden && <Icons.EyeOff size={10} className="text-red-400 rotate-180"/>}</div>
-                                                                        </th>
-                                                                    );
+                                                                    return <th key={col.id} className={`vertical-text ${isHidden ? 'text-slate-400' : ''}`}>{col.name} {isHidden && <Icons.EyeOff size={10} className="text-red-400 rotate-180"/>}</th>;
                                                                 });
                                                             });
                                                         })}
@@ -2668,92 +2643,91 @@
                                                 </thead>
 
                                                 <tbody className="divide-y divide-slate-100 bg-white">
-    {filteredStudents.map((s, idx) => {
-        const totalScore = calculateTotalScore(s, true);
-        let currentColIdx = 0;
+                                                    {filteredStudents.map((s, idx) => {
+                                                        const totalScore = calculateTotalScore(s, true);
+                                                        let currentColIdx = 0; // ตัวแปรนับช่องสำหรับอ้างอิงตำแหน่งใน Grid Paste
 
-        return (
-            <tr key={s.id} className={`hover:bg-blue-50/20 transition group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}> 
-                <td className={`p-1 text-center sticky-col sticky-left-0 transition font-mono text-slate-400 border-r border-slate-100 text-xs ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.no}</td>
-                <td className={`p-1 text-center sticky-col sticky-left-1 transition font-mono font-bold text-slate-500 text-[10px] border-r border-slate-100 hidden sm:table-cell ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.id}</td>
-                <td className={`p-2 sticky-col sm:sticky-left-2 left-[40px] transition font-medium text-slate-700 truncate border-r border-slate-100 max-w-[180px] text-sm shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)] ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                    <div className="flex items-center justify-between w-full overflow-hidden">
-                        <span 
-                            className="truncate cursor-pointer hover:text-primary-600 transition flex items-center gap-1.5" 
-                            title="คลิกเพื่อดูสรุปคะแนน/งานที่ขาด" 
-                            onClick={() => setScannerModalData(s)}
-                        >
-                            {s.name} <Icons.Eye size={14} className="text-slate-300 hover:text-primary-500 shrink-0"/>
-                        </span>
-                        {s.note && <div className="text-[9px] bg-yellow-100 text-yellow-700 px-1 rounded ml-1 flex-shrink-0" title={s.note}>!</div>}
-                    </div>
-                </td>
-                
-                {sections.map(sec => {
-                    return sec.groups?.map(g => {
-                        return g.columns?.map(col => {
-                            const isAuto = col.type !== 'manual' && col.type !== 'check';
-                            const isHidden = sec.published === false || g.published === false || col.published === false;
-                            const val = isAuto ? calculateAutoScore(s, g, col, true) : s.scores?.[col.id];
-                            
-                            let thisColIdx = -1;
-                            if (!isAuto) {
-                                thisColIdx = currentColIdx++;
-                            }
+                                                        return (
+                                                            <tr key={s.id} className={`hover:bg-blue-50/20 transition group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}> 
+                                                                <td className={`p-1 text-center sticky-col sticky-left-0 transition font-mono text-slate-400 border-r border-slate-100 text-xs ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.no}</td>
+                                                                <td className={`p-1 text-center sticky-col sticky-left-1 transition font-mono font-bold text-slate-500 text-[10px] border-r border-slate-100 hidden sm:table-cell ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.id}</td>
+                                                                <td className={`p-2 sticky-col sm:sticky-left-2 left-[40px] transition font-medium text-slate-700 truncate border-r border-slate-100 max-w-[180px] text-sm shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)] ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                                                                    <div className="flex items-center justify-between w-full overflow-hidden">
+                                                                        <span 
+                                                                            className="truncate cursor-pointer hover:text-primary-600 transition flex items-center gap-1.5" 
+                                                                            title="คลิกเพื่อดูสรุปคะแนน/งานที่ขาด" 
+                                                                            onClick={() => setScannerModalData(s)}
+                                                                        >
+                                                                            {s.name} <Icons.Eye size={14} className="text-slate-300 hover:text-primary-500 shrink-0"/>
+                                                                        </span>
+                                                                        {s.note && <div className="text-[9px] bg-yellow-100 text-yellow-700 px-1 rounded ml-1 flex-shrink-0" title={s.note}>!</div>}
+                                                                    </div>
+                                                                </td>
+                                                                
+                                                                {sections.map(sec => {
+                                                                    return sec.groups?.map(g => {
+                                                                        return g.columns?.map(col => {
+                                                                            const isAuto = col.type !== 'manual' && col.type !== 'check';
+                                                                            const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                                            const val = isAuto ? calculateAutoScore(s, g, col, true) : s.scores?.[col.id];
+                                                                            
+                                                                            let thisColIdx = -1;
+                                                                            if (!isAuto) {
+                                                                                thisColIdx = currentColIdx++;
+                                                                            }
 
-                            return (
-                                <td key={col.id} className={`p-0 border-r border-slate-100 text-center relative h-8 min-w-[32px] max-w-[32px] w-[32px] ${isAuto ? 'bg-slate-50' : ''} ${isHidden ? 'bg-gray-50 unpublished-col' : ''}`}>
-                                    {isAuto ? 
-                                        <div className={`flex items-center justify-center h-full text-slate-800 font-bold text-xs ${isHidden ? 'opacity-40' : ''}`}>{val}</div> : 
-                                        col.type === 'check' ? (
-                                            <button 
-                                                data-row={idx}
-                                                data-col={thisColIdx}
-                                                onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
-                                                onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
-                                                className={`w-full h-full flex items-center justify-center transition-colors focus:ring-2 focus:ring-primary-400 outline-none ${val ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-slate-100'} ${isHidden ? 'opacity-50' : ''}`}
-                                                onClick={() => {
-                                                    const newScores = { ...s.scores, [col.id]: !val };
-                                                    setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
-                                                    updateStudent({ ...s, scores: newScores });
-                                                }}
-                                            >
-                                                {val ? <Icons.CheckCircle size={16} className="text-green-600"/> : <span className="text-slate-300 font-bold">-</span>}
-                                            </button>
-                                        ) : (
-                                            <div onClick={() => isPopupMode && openScoreModal(s, col)} className="w-full h-full">
-                                                <input 
-                                                    data-row={idx}
-                                                    data-col={thisColIdx}
-                                                    onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
-                                                    onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
-                                                    className={`w-full h-full text-center bg-transparent outline-none focus:bg-blue-100 focus:text-blue-700 transition font-mono text-slate-600 hover:bg-slate-50 text-sm ${isPopupMode ? 'cursor-pointer pointer-events-none' : ''} ${isHidden ? 'text-gray-400' : ''}`}
-                                                    value={val || ''} placeholder="" readOnly={isPopupMode}
-                                                    onFocus={(e) => { if(numpadOpen) e.target.readOnly = true; }}
-                                                    onClick={(e) => { if(numpadOpen && !isPopupMode) { e.target.readOnly = false; e.target.focus(); e.target.readOnly = true; } }}
-                                                    onChange={e => {
-                                                        const v = e.target.value;
-                                                        if (v === '' || (!isNaN(v) && parseFloat(v) <= parseFloat(col.max))) {
-                                                            const newScores = { ...s.scores, [col.id]: v };
-                                                            setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
-                                                            updateStudent({ ...s, scores: newScores });
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        )
-                                    }
-                                </td>
-                            );
-                        });
-                    });
-                })}
-                <td className="p-1 text-center font-bold text-slate-800 border-l border-slate-200 bg-slate-50 text-xs">{totalScore}</td>
-                <td className={`p-1 text-center font-bold text-white border-l border-yellow-200 text-xs ${totalScore < 50 ? 'bg-red-400' : 'bg-yellow-400'}`}>{calculateGrade(totalScore)}</td>
-            </tr>
-        );
-    })}
-</tbody>
+                                                                            return (
+                                                                                <td key={col.id} className={`p-0 border-r border-slate-100 text-center relative h-8 min-w-[32px] max-w-[32px] w-[32px] ${isAuto ? 'bg-slate-50' : ''} ${isHidden ? 'bg-gray-50 unpublished-col' : ''}`}>
+                                                                                    {isAuto ? 
+                                                                                        <div className={`flex items-center justify-center h-full text-slate-800 font-bold text-xs ${isHidden ? 'opacity-40' : ''}`}>{val}</div> : 
+                                                                                        col.type === 'check' ? (
+                                                                                            <button 
+                                                                                                data-row={idx}
+                                                                                                data-col={thisColIdx}
+                                                                                                onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
+                                                                                                onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
+                                                                                                className={`w-full h-full flex items-center justify-center transition-colors focus:ring-2 focus:ring-primary-400 outline-none ${val ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-slate-100'} ${isHidden ? 'opacity-50' : ''}`}
+                                                                                                onClick={() => {
+                                                                                                    const newScores = { ...s.scores, [col.id]: !val };
+                                                                                                    setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
+                                                                                                    updateStudent({ ...s, scores: newScores });
+                                                                                                }}
+                                                                                            >
+                                                                                                {val ? <Icons.CheckCircle size={16} className="text-green-600"/> : <span className="text-slate-300 font-bold">-</span>}
+                                                                                            </button>
+                                                                                        ) :
+                                                                                        <div onClick={() => isPopupMode && openScoreModal(s, col)} className="w-full h-full">
+                                                                                            <input 
+                                                                                                data-row={idx}
+                                                                                                data-col={thisColIdx}
+                                                                                                onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
+                                                                                                onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
+                                                                                                className={`w-full h-full text-center bg-transparent outline-none focus:bg-blue-100 focus:text-blue-700 transition font-mono text-slate-600 hover:bg-slate-50 text-sm ${isPopupMode ? 'cursor-pointer pointer-events-none' : ''} ${isHidden ? 'text-gray-400' : ''}`}
+                                                                                                value={val || ''} placeholder="" readOnly={isPopupMode}
+                                                                                                onFocus={(e) => { if(numpadOpen) e.target.readOnly = true; }}
+                                                                                                onClick={(e) => { if(numpadOpen && !isPopupMode) { e.target.readOnly = false; e.target.focus(); e.target.readOnly = true; } }}
+                                                                                                onChange={e => {
+                                                                                                    const v = e.target.value;
+                                                                                                    if (v === '' || (!isNaN(v) && parseFloat(v) <= parseFloat(col.max))) {
+                                                                                                        const newScores = { ...s.scores, [col.id]: v };
+                                                                                                        setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
+                                                                                                        updateStudent({ ...s, scores: newScores });
+                                                                                                    }
+                                                                                                }}
+                                                                                            />
+                                                                                        </div>
+                                                                                    }
+                                                                                </td>
+                                                                            );
+                                                                        });
+                                                                    });
+                                                                })}
+                                                                <td className="p-1 text-center font-bold text-slate-800 border-l border-slate-200 bg-slate-50 text-xs">{totalScore}</td>
+                                                                <td className={`p-1 text-center font-bold text-white border-l border-yellow-200 text-xs ${totalScore < 50 ? 'bg-red-400' : 'bg-yellow-400'}`}>{calculateGrade(totalScore)}</td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
                                                 <tfoot className="bg-slate-800 text-white text-[10px] font-mono sticky bottom-0 z-40 shadow-lg">
                                                     <tr>
                                                         <td className="p-2 text-right font-bold bg-slate-900 sticky-col sticky-left-0 border-r border-slate-700 z-50"></td>
@@ -3191,7 +3165,7 @@
                                         </div>
                                     </div>
                                 )}
-                                </div> {/* แก้ไข: เพิ่ม div ปิดให้ถูกต้อง */}
+                                </div> 
                             </div> 
                         )}
                     </main>
