@@ -2591,56 +2591,62 @@
                                     <div className="overflow-x-auto max-h-[75vh]">
                                         <table className="min-w-full w-max text-sm text-left border-separate table-fixed" style={{borderSpacing: 0}}>
                                             <thead className="bg-white text-slate-700 font-display z-50 sticky top-0 shadow-sm">
-                                                <tr>
-                                                    <th rowSpan="3" className="p-3 sticky-col sticky-left-0 min-w-[40px] max-w-[40px] text-center border-b border-r border-slate-200 z-[60]">ที่</th>
-                                                    <th rowSpan="3" className="p-3 sticky-col sticky-left-1 min-w-[60px] max-w-[60px] border-b border-r border-slate-200 z-[60] hidden sm:table-cell">รหัส</th>
-                                                    <th rowSpan="3" className="p-3 sticky-col sm:sticky-left-2 left-[40px] min-w-[120px] sm:min-w-[180px] max-w-[180px] border-b border-r border-slate-200 z-[60] shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)]">ชื่อ-นามสกุล</th>
-                                                    
-                                                    {sections.map((sec, idx) => {
-                                                        let cols = 0;
-                                                        sec.groups?.forEach(g => { cols += (g.columns?.length || 0); });
-                                                        if (cols === 0) return null;
-                                                        const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
-                                                        const isHidden = sec.published === false;
-                                                        return <th key={sec.id} colSpan={cols} className={`p-2 text-center border-b border-r border-white text-sm font-bold ${theme.bg} ${theme.text} overflow-hidden text-ellipsis whitespace-nowrap ${isHidden ? 'opacity-60' : ''}`}>{sec.title} {isHidden && <Icons.EyeOff size={12} className="inline ml-1"/>}</th>;
-                                                    })}
-                                                    <th rowSpan="3" className="p-2 border-b border-l border-slate-200 bg-slate-100 min-w-[40px] text-center font-bold">รวม</th>
-                                                    <th rowSpan="3" className="p-2 border-b border-l border-yellow-200 bg-yellow-50 min-w-[40px] text-center font-bold">
-                                                        <div className="flex flex-col items-center justify-center gap-1">
-                                                            <span>เกรด</span>
-                                                            <button onClick={() => {
-                                                                const newVal = !courseConfig.showGrade;
-                                                                setCourseConfig({...courseConfig, showGrade: newVal});
-                                                                saveCourseConfigData(null, null, null, newVal);
-                                                                showToast(newVal ? 'เปิดการประกาศเกรดให้นักเรียนเห็นแล้ว' : 'ซ่อนเกรดจากนักเรียนแล้ว', 'success');
-                                                            }} title={courseConfig.showGrade ? "นักเรียนมองเห็นเกรด (คลิกเพื่อซ่อน)" : "ซ่อนเกรดจากนักเรียน (คลิกเพื่อประกาศ)"} className={`p-1 rounded-md hover:bg-yellow-100 transition ${courseConfig.showGrade ? 'text-green-600' : 'text-slate-400'}`}>
-                                                                {courseConfig.showGrade ? <Icons.Eye size={14}/> : <Icons.EyeOff size={14}/>}
-                                                            </button>
-                                                        </div>
-                                                    </th>
-                                                </tr>
-                                                <tr>
-                                                    {sections.map((sec, idx) => {
-                                                        return sec.groups?.map(g => {
-                                                            return g.columns?.map(col => {
-                                                                const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                return <th key={col.id} className={`vertical-text ${isHidden ? 'text-slate-400' : ''}`}>{col.name} {isHidden && <Icons.EyeOff size={10} className="text-red-400 rotate-180"/>}</th>;
-                                                            });
+                                            <tr>
+                                                <th rowSpan="3" className="p-3 sticky-col sticky-left-0 min-w-[40px] max-w-[40px] text-center border-b border-r border-slate-200 z-[60]">ที่</th>
+                                                <th rowSpan="3" className="p-3 sticky-col sticky-left-1 min-w-[60px] max-w-[60px] border-b border-r border-slate-200 z-[60] hidden sm:table-cell">รหัส</th>
+                                                <th rowSpan="3" className="p-3 sticky-col sm:sticky-left-2 left-[40px] min-w-[120px] sm:min-w-[180px] max-w-[180px] border-b border-r border-slate-200 z-[60] shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)]">ชื่อ-นามสกุล</th>
+                                                
+                                                {sections.map((sec, idx) => {
+                                                    let cols = 0;
+                                                    sec.groups?.forEach(g => { cols += (g.columns?.length || 0); });
+                                                    if (cols === 0) return null;
+                                                    const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
+                                                    const isHidden = sec.published === false;
+                                                    return <th key={sec.id} colSpan={cols} className={`p-2 text-center border-b border-r border-white text-sm font-bold ${theme.bg} ${theme.text} overflow-hidden text-ellipsis whitespace-nowrap ${isHidden ? 'opacity-60' : ''}`}>{sec.title} {isHidden && <Icons.EyeOff size={12} className="inline ml-1"/>}</th>;
+                                                })}
+                                                <th rowSpan="3" className="p-2 border-b border-l border-slate-200 bg-slate-100 min-w-[40px] text-center font-bold">รวม</th>
+                                                <th rowSpan="3" className="p-2 border-b border-l border-yellow-200 bg-yellow-50 min-w-[40px] text-center font-bold">
+                                                    <div className="flex flex-col items-center justify-center gap-1">
+                                                        <span>เกรด</span>
+                                                        <button onClick={() => {
+                                                            const newVal = !courseConfig.showGrade;
+                                                            setCourseConfig({...courseConfig, showGrade: newVal});
+                                                            saveCourseConfigData(null, null, null, newVal);
+                                                            showToast(newVal ? 'เปิดการประกาศเกรดให้นักเรียนเห็นแล้ว' : 'ซ่อนเกรดจากนักเรียนแล้ว', 'success');
+                                                        }} title={courseConfig.showGrade ? "นักเรียนมองเห็นเกรด (คลิกเพื่อซ่อน)" : "ซ่อนเกรดจากนักเรียน (คลิกเพื่อประกาศ)"} className={`p-1 rounded-md hover:bg-yellow-100 transition ${courseConfig.showGrade ? 'text-green-600' : 'text-slate-400'}`}>
+                                                            {courseConfig.showGrade ? <Icons.Eye size={14}/> : <Icons.EyeOff size={14}/>}
+                                                        </button>
+                                                    </div>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                {sections.map((sec, idx) => {
+                                                    return sec.groups?.map(g => {
+                                                        return g.columns?.map(col => {
+                                                            const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                            return (
+                                                                <th key={col.id} className={`p-0 border-r border-b border-slate-200 align-bottom ${isHidden ? 'opacity-50' : ''}`}>
+                                                                    <div className="vertical-text">
+                                                                        {col.name} {isHidden && <Icons.EyeOff size={10} className="text-red-400 rotate-180 ml-1"/>}
+                                                                    </div>
+                                                                </th>
+                                                            );
                                                         });
-                                                    })}
-                                                </tr>
-                                                <tr className="bg-slate-50 text-xs font-mono text-slate-500">
-                                                    {sections.map((sec, idx) => {
-                                                        return sec.groups?.map(g => {
-                                                            return g.columns?.map(col => {
-                                                                const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
-                                                                const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                return <th key={col.id} className={`p-1 text-center border-r border-b border-slate-200 font-bold ${theme.bg} ${theme.text} bg-opacity-30 ${isHidden ? 'opacity-40' : ''}`}>{col.max}</th>;
-                                                            });
+                                                    });
+                                                })}
+                                            </tr>
+                                            <tr className="bg-slate-50 text-xs font-mono text-slate-500">
+                                                {sections.map((sec, idx) => {
+                                                    return sec.groups?.map(g => {
+                                                        return g.columns?.map(col => {
+                                                            const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
+                                                            const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                            return <th key={col.id} className={`p-1 text-center border-r border-b border-slate-200 font-bold ${theme.bg} ${theme.text} bg-opacity-30 ${isHidden ? 'opacity-40' : ''}`}>{col.max}</th>;
                                                         });
-                                                    })}
-                                                </tr>
-                                            </thead>
+                                                    });
+                                                })}
+                                            </tr>
+                                        </thead>
                             
                                             <tbody className="divide-y divide-slate-100 bg-white">
                                                 {filteredStudents.map((s, idx) => {
