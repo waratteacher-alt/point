@@ -2540,162 +2540,162 @@
                                 )}
 
                                 {teacherTab === 'scores' && (
-                                    <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative w-full">
-                                        
-                                        <div className="bg-slate-50 border-b border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40">
-                                            <div className="flex items-center gap-3 font-bold text-xl text-slate-800 font-display">
-                                                <div className="bg-primary-100 text-primary-600 p-2 rounded-xl"><Icons.FileText size={20}/></div> ตารางคะแนนรวม
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                                                <button onClick={() => setOcrModal(true)} className="bg-gradient-to-r from-primary-600 to-indigo-600 text-white px-3 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:from-primary-700 hover:to-indigo-700 flex items-center gap-1.5 transition">
-                                                    <Icons.Camera size={16}/> สแกนใบคะแนน (AI OCR)
-                                                </button>
-                                                <button onClick={() => setNumpadOpen(!numpadOpen)} className={`p-2.5 rounded-xl transition border shadow-sm ${numpadOpen ? 'bg-primary-100 border-primary-300 text-primary-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`} title="Virtual Keypad"><Icons.Calculator size={18}/></button>
-                                                <button onClick={() => setIsPopupMode(!isPopupMode)} className={`p-2.5 rounded-xl transition border shadow-sm ${isPopupMode ? 'bg-primary-100 border-primary-300 text-primary-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`} title="Popup Mode"><Icons.Popup size={18}/></button>
-                                                <select className="bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none hidden md:block" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
-                                                    <option value="All">ทุกห้องเรียน</option>
-                                                    {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
-                                                </select>
-                                                <div className="relative flex-1 sm:flex-none min-w-[200px]">
-                                                    <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/>
-                                                    <input className="w-full pl-9 pr-4 py-2.5 bg-white shadow-sm border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหาชื่อ/รหัส..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                                                </div>
-                                                <button onClick={() => window.print()} className="bg-slate-800 text-white px-4 py-2.5 font-bold text-sm shadow-md rounded-xl hover:bg-slate-900 transition hidden sm:flex items-center gap-2"><Icons.Print size={18}/> <span className="hidden xl:inline">พิมพ์</span></button>
-                                            </div>
+                                <div className="bg-white rounded-2xl shadow-soft border border-slate-200 overflow-hidden relative w-full">
+                                    
+                                    <div className="bg-slate-50 border-b border-slate-200 p-4 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-40">
+                                        <div className="flex items-center gap-3 font-bold text-xl text-slate-800 font-display">
+                                            <div className="bg-primary-100 text-primary-600 p-2 rounded-xl"><Icons.FileText size={20}/></div> ตารางคะแนนรวม
                                         </div>
-
-                                        <VirtualNumpad isOpen={numpadOpen} onClose={() => setNumpadOpen(false)} onInput={(k) => {
-                                            const activeInput = document.activeElement;
-                                            if (activeInput && activeInput.tagName === 'INPUT' && !activeInput.readOnly) {
-                                                if (k === 'Del') activeInput.value = activeInput.value.slice(0, -1);
-                                                else activeInput.value = activeInput.value + k;
-                                                activeInput.dispatchEvent(new Event('input', { bubbles: true }));
-                                            }
-                                        }} />
-                                        <ScoreEntryModal isOpen={!!activeScoreEntry} data={activeScoreEntry} onClose={() => setActiveScoreEntry(null)} onSave={handleScoreSave} onNavigate={navigateScoreEntry} />
-
-                                        <ScannerScoreModal 
-                                            isOpen={!!scannerModalData} 
-                                            student={scannerModalData} 
-                                            sections={sections} 
-                                            onClose={() => setScannerModalData(null)} 
-                                            calculateTotalScore={calculateTotalScore}
-                                            calculateGrade={calculateGrade}
-                                            updateStudent={(updatedData) => {
-                                                setStudents(prev => prev.map(p => p.id === updatedData.id ? updatedData : p));
-                                                updateStudent(updatedData);
-                                                setScannerModalData(updatedData);
-                                            }} 
-                                        />
-                                                
-                                        <div className="overflow-x-auto max-h-[75vh]">
-                                            <table className="min-w-full w-max text-sm text-left border-separate table-fixed" style={{borderSpacing: 0}}>
-                                                <thead className="bg-white text-slate-700 font-display z-50 sticky top-0 shadow-sm">
-                                                    <tr>
-                                                        <th rowSpan="3" className="p-3 sticky-col sticky-left-0 min-w-[40px] max-w-[40px] text-center border-b border-r border-slate-200 z-[60]">ที่</th>
-                                                        <th rowSpan="3" className="p-3 sticky-col sticky-left-1 min-w-[60px] max-w-[60px] border-b border-r border-slate-200 z-[60] hidden sm:table-cell">รหัส</th>
-                                                        <th rowSpan="3" className="p-3 sticky-col sm:sticky-left-2 left-[40px] min-w-[120px] sm:min-w-[180px] max-w-[180px] border-b border-r border-slate-200 z-[60] shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)]">ชื่อ-นามสกุล</th>
-                                                        
-                                                        {sections.map((sec, idx) => {
-                                                            let cols = 0;
-                                                            sec.groups?.forEach(g => { cols += (g.columns?.length || 0); });
-                                                            if (cols === 0) return null;
-                                                            const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
-                                                            const isHidden = sec.published === false;
-                                                            return <th key={sec.id} colSpan={cols} className={`p-2 text-center border-b border-r border-white text-sm font-bold ${theme.bg} ${theme.text} overflow-hidden text-ellipsis whitespace-nowrap ${isHidden ? 'opacity-60' : ''}`}>{sec.title} {isHidden && <Icons.EyeOff size={12} className="inline ml-1"/>}</th>;
-                                                        })}
-                                                        <th rowSpan="3" className="p-2 border-b border-l border-slate-200 bg-slate-100 min-w-[40px] text-center font-bold">รวม</th>
-                                                        <th rowSpan="3" className="p-2 border-b border-l border-yellow-200 bg-yellow-50 min-w-[40px] text-center font-bold">
-                                                            <div className="flex flex-col items-center justify-center gap-1">
-                                                                <span>เกรด</span>
-                                                                <button onClick={() => {
-                                                                    const newVal = !courseConfig.showGrade;
-                                                                    setCourseConfig({...courseConfig, showGrade: newVal});
-                                                                    saveCourseConfigData(null, null, null, newVal);
-                                                                    showToast(newVal ? 'เปิดการประกาศเกรดให้นักเรียนเห็นแล้ว' : 'ซ่อนเกรดจากนักเรียนแล้ว', 'success');
-                                                                }} title={courseConfig.showGrade ? "นักเรียนมองเห็นเกรด (คลิกเพื่อซ่อน)" : "ซ่อนเกรดจากนักเรียน (คลิกเพื่อประกาศ)"} className={`p-1 rounded-md hover:bg-yellow-100 transition ${courseConfig.showGrade ? 'text-green-600' : 'text-slate-400'}`}>
-                                                                    {courseConfig.showGrade ? <Icons.Eye size={14}/> : <Icons.EyeOff size={14}/>}
-                                                                </button>
-                                                            </div>
-                                                        </th>
-                                                    </tr>
-                                                    <tr>
-                                                        {sections.map((sec, idx) => {
-                                                            return sec.groups?.map(g => {
-                                                                return g.columns?.map(col => {
-                                                                    const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                    return <th key={col.id} className={`vertical-text ${isHidden ? 'text-slate-400' : ''}`}>{col.name} {isHidden && <Icons.EyeOff size={10} className="text-red-400 rotate-180"/>}</th>;
-                                                                });
+                                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                                            <button onClick={() => setOcrModal(true)} className="bg-gradient-to-r from-primary-600 to-indigo-600 text-white px-3 py-2.5 rounded-xl text-xs font-bold shadow-sm hover:from-primary-700 hover:to-indigo-700 flex items-center gap-1.5 transition">
+                                                <Icons.Camera size={16}/> สแกนใบคะแนน (AI OCR)
+                                            </button>
+                                            <button onClick={() => setNumpadOpen(!numpadOpen)} className={`p-2.5 rounded-xl transition border shadow-sm ${numpadOpen ? 'bg-primary-100 border-primary-300 text-primary-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`} title="Virtual Keypad"><Icons.Calculator size={18}/></button>
+                                            <button onClick={() => setIsPopupMode(!isPopupMode)} className={`p-2.5 rounded-xl transition border shadow-sm ${isPopupMode ? 'bg-primary-100 border-primary-300 text-primary-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`} title="Popup Mode"><Icons.Popup size={18}/></button>
+                                            <select className="bg-white border border-slate-200 shadow-sm rounded-xl px-4 py-2.5 text-sm font-bold text-slate-600 outline-none hidden md:block" value={selectedRoom} onChange={e => setSelectedRoom(e.target.value)}>
+                                                <option value="All">ทุกห้องเรียน</option>
+                                                {uniqueRooms.map(r => <option key={r} value={r}>ห้อง {r}</option>)}
+                                            </select>
+                                            <div className="relative flex-1 sm:flex-none min-w-[200px]">
+                                                <Icons.Search className="absolute left-3 top-2.5 text-slate-400 w-4 h-4"/>
+                                                <input className="w-full pl-9 pr-4 py-2.5 bg-white shadow-sm border border-slate-200 rounded-xl text-sm outline-none focus:border-primary-500 transition" placeholder="ค้นหาชื่อ/รหัส..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+                                            </div>
+                                            <button onClick={() => window.print()} className="bg-slate-800 text-white px-4 py-2.5 font-bold text-sm shadow-md rounded-xl hover:bg-slate-900 transition hidden sm:flex items-center gap-2"><Icons.Print size={18}/> <span className="hidden xl:inline">พิมพ์</span></button>
+                                        </div>
+                                    </div>
+                            
+                                    <VirtualNumpad isOpen={numpadOpen} onClose={() => setNumpadOpen(false)} onInput={(k) => {
+                                        const activeInput = document.activeElement;
+                                        if (activeInput && activeInput.tagName === 'INPUT' && !activeInput.readOnly) {
+                                            if (k === 'Del') activeInput.value = activeInput.value.slice(0, -1);
+                                            else activeInput.value = activeInput.value + k;
+                                            activeInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                        }
+                                    }} />
+                                    <ScoreEntryModal isOpen={!!activeScoreEntry} data={activeScoreEntry} onClose={() => setActiveScoreEntry(null)} onSave={handleScoreSave} onNavigate={navigateScoreEntry} />
+                            
+                                    <ScannerScoreModal 
+                                        isOpen={!!scannerModalData} 
+                                        student={scannerModalData} 
+                                        sections={sections} 
+                                        onClose={() => setScannerModalData(null)} 
+                                        calculateTotalScore={calculateTotalScore}
+                                        calculateGrade={calculateGrade}
+                                        updateStudent={(updatedData) => {
+                                            setStudents(prev => prev.map(p => p.id === updatedData.id ? updatedData : p));
+                                            updateStudent(updatedData);
+                                            setScannerModalData(updatedData);
+                                        }} 
+                                    />
+                                            
+                                    <div className="overflow-x-auto max-h-[75vh]">
+                                        <table className="min-w-full w-max text-sm text-left border-separate table-fixed" style={{borderSpacing: 0}}>
+                                            <thead className="bg-white text-slate-700 font-display z-50 sticky top-0 shadow-sm">
+                                                <tr>
+                                                    <th rowSpan="3" className="p-3 sticky-col sticky-left-0 min-w-[40px] max-w-[40px] text-center border-b border-r border-slate-200 z-[60]">ที่</th>
+                                                    <th rowSpan="3" className="p-3 sticky-col sticky-left-1 min-w-[60px] max-w-[60px] border-b border-r border-slate-200 z-[60] hidden sm:table-cell">รหัส</th>
+                                                    <th rowSpan="3" className="p-3 sticky-col sm:sticky-left-2 left-[40px] min-w-[120px] sm:min-w-[180px] max-w-[180px] border-b border-r border-slate-200 z-[60] shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)]">ชื่อ-นามสกุล</th>
+                                                    
+                                                    {sections.map((sec, idx) => {
+                                                        let cols = 0;
+                                                        sec.groups?.forEach(g => { cols += (g.columns?.length || 0); });
+                                                        if (cols === 0) return null;
+                                                        const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
+                                                        const isHidden = sec.published === false;
+                                                        return <th key={sec.id} colSpan={cols} className={`p-2 text-center border-b border-r border-white text-sm font-bold ${theme.bg} ${theme.text} overflow-hidden text-ellipsis whitespace-nowrap ${isHidden ? 'opacity-60' : ''}`}>{sec.title} {isHidden && <Icons.EyeOff size={12} className="inline ml-1"/>}</th>;
+                                                    })}
+                                                    <th rowSpan="3" className="p-2 border-b border-l border-slate-200 bg-slate-100 min-w-[40px] text-center font-bold">รวม</th>
+                                                    <th rowSpan="3" className="p-2 border-b border-l border-yellow-200 bg-yellow-50 min-w-[40px] text-center font-bold">
+                                                        <div className="flex flex-col items-center justify-center gap-1">
+                                                            <span>เกรด</span>
+                                                            <button onClick={() => {
+                                                                const newVal = !courseConfig.showGrade;
+                                                                setCourseConfig({...courseConfig, showGrade: newVal});
+                                                                saveCourseConfigData(null, null, null, newVal);
+                                                                showToast(newVal ? 'เปิดการประกาศเกรดให้นักเรียนเห็นแล้ว' : 'ซ่อนเกรดจากนักเรียนแล้ว', 'success');
+                                                            }} title={courseConfig.showGrade ? "นักเรียนมองเห็นเกรด (คลิกเพื่อซ่อน)" : "ซ่อนเกรดจากนักเรียน (คลิกเพื่อประกาศ)"} className={`p-1 rounded-md hover:bg-yellow-100 transition ${courseConfig.showGrade ? 'text-green-600' : 'text-slate-400'}`}>
+                                                                {courseConfig.showGrade ? <Icons.Eye size={14}/> : <Icons.EyeOff size={14}/>}
+                                                            </button>
+                                                        </div>
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    {sections.map((sec, idx) => {
+                                                        return sec.groups?.map(g => {
+                                                            return g.columns?.map(col => {
+                                                                const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                                return <th key={col.id} className={`vertical-text ${isHidden ? 'text-slate-400' : ''}`}>{col.name} {isHidden && <Icons.EyeOff size={10} className="text-red-400 rotate-180"/>}</th>;
                                                             });
-                                                        })}
-                                                    </tr>
-                                                    <tr className="bg-slate-50 text-xs font-mono text-slate-500">
-                                                        {sections.map((sec, idx) => {
-                                                            return sec.groups?.map(g => {
-                                                                return g.columns?.map(col => {
-                                                                    const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
-                                                                    const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                    return <th key={col.id} className={`p-1 text-center border-r border-b border-slate-200 font-bold ${theme.bg} ${theme.text} bg-opacity-30 ${isHidden ? 'opacity-40' : ''}`}>{col.max}</th>;
-                                                                });
+                                                        });
+                                                    })}
+                                                </tr>
+                                                <tr className="bg-slate-50 text-xs font-mono text-slate-500">
+                                                    {sections.map((sec, idx) => {
+                                                        return sec.groups?.map(g => {
+                                                            return g.columns?.map(col => {
+                                                                const theme = SECTION_COLORS[idx % SECTION_COLORS.length];
+                                                                const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                                return <th key={col.id} className={`p-1 text-center border-r border-b border-slate-200 font-bold ${theme.bg} ${theme.text} bg-opacity-30 ${isHidden ? 'opacity-40' : ''}`}>{col.max}</th>;
                                                             });
-                                                        })}
-                                                    </tr>
-                                                </thead>
-
-                                                <tbody className="divide-y divide-slate-100 bg-white">
-                                                    {filteredStudents.map((s, idx) => {
-                                                        const totalScore = calculateTotalScore(s, true);
-                                                        let currentColIdx = 0; // ตัวแปรนับช่องสำหรับอ้างอิงตำแหน่งใน Grid Paste
-
-                                                        return (
-                                                            <tr key={s.id} className={`hover:bg-blue-50/20 transition group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}> 
-                                                                <td className={`p-1 text-center sticky-col sticky-left-0 transition font-mono text-slate-400 border-r border-slate-100 text-xs ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.no}</td>
-                                                                <td className={`p-1 text-center sticky-col sticky-left-1 transition font-mono font-bold text-slate-500 text-[10px] border-r border-slate-100 hidden sm:table-cell ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.id}</td>
-                                                                <td className={`p-2 sticky-col sm:sticky-left-2 left-[40px] transition font-medium text-slate-700 truncate border-r border-slate-100 max-w-[180px] text-sm shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)] ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                                                                    <div className="flex items-center justify-between w-full overflow-hidden">
-                                                                        <span 
-                                                                            className="truncate cursor-pointer hover:text-primary-600 transition flex items-center gap-1.5" 
-                                                                            title="คลิกเพื่อดูสรุปคะแนน/งานที่ขาด" 
-                                                                            onClick={() => setScannerModalData(s)}
-                                                                        >
-                                                                            {s.name} <Icons.Eye size={14} className="text-slate-300 hover:text-primary-500 shrink-0"/>
-                                                                        </span>
-                                                                        {s.note && <div className="text-[9px] bg-yellow-100 text-yellow-700 px-1 rounded ml-1 flex-shrink-0" title={s.note}>!</div>}
-                                                                    </div>
-                                                                </td>
-                                                                
-                                                                {sections.map(sec => {
-                                                                    return sec.groups?.map(g => {
-                                                                        return g.columns?.map(col => {
-                                                                            const isAuto = col.type !== 'manual' && col.type !== 'check';
-                                                                            const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                            const val = isAuto ? calculateAutoScore(s, g, col, true) : s.scores?.[col.id];
-                                                                            
-                                                                            let thisColIdx = -1;
-                                                                            if (!isAuto) {
-                                                                                thisColIdx = currentColIdx++;
-                                                                            }
-
-                                                                            return (
-                                                                                <td key={col.id} className={`p-0 border-r border-slate-100 text-center relative h-8 min-w-[32px] max-w-[32px] w-[32px] ${isAuto ? 'bg-slate-50' : ''} ${isHidden ? 'bg-gray-50 unpublished-col' : ''}`}>
-                                                                                    {isAuto ? 
-                                                                                        <div className={`flex items-center justify-center h-full text-slate-800 font-bold text-xs ${isHidden ? 'opacity-40' : ''}`}>{val}</div> : 
-                                                                                        col.type === 'check' ? (
-                                                                                            <button 
-                                                                                                data-row={idx}
-                                                                                                data-col={thisColIdx}
-                                                                                                onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
-                                                                                                onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
-                                                                                                className={`w-full h-full flex items-center justify-center transition-colors focus:ring-2 focus:ring-primary-400 outline-none ${val ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-slate-100'} ${isHidden ? 'opacity-50' : ''}`}
-                                                                                                onClick={() => {
-                                                                                                    const newScores = { ...s.scores, [col.id]: !val };
-                                                                                                    setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
-                                                                                                    updateStudent({ ...s, scores: newScores });
-                                                                                                }}
-                                                                                            >
-                                                                                                {val ? <Icons.CheckCircle size={16} className="text-green-600"/> : <span className="text-slate-300 font-bold">-</span>}
-                                                                                            </button>
-                                                                                        ) :
+                                                        });
+                                                    })}
+                                                </tr>
+                                            </thead>
+                            
+                                            <tbody className="divide-y divide-slate-100 bg-white">
+                                                {filteredStudents.map((s, idx) => {
+                                                    const totalScore = calculateTotalScore(s, true);
+                                                    let currentColIdx = 0; // ตัวแปรนับช่องสำหรับอ้างอิงตำแหน่งใน Grid Paste
+                            
+                                                    return (
+                                                        <tr key={s.id} className={`hover:bg-blue-50/20 transition group ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}> 
+                                                            <td className={`p-1 text-center sticky-col sticky-left-0 transition font-mono text-slate-400 border-r border-slate-100 text-xs ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.no}</td>
+                                                            <td className={`p-1 text-center sticky-col sticky-left-1 transition font-mono font-bold text-slate-500 text-[10px] border-r border-slate-100 hidden sm:table-cell ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>{s.id}</td>
+                                                            <td className={`p-2 sticky-col sm:sticky-left-2 left-[40px] transition font-medium text-slate-700 truncate border-r border-slate-100 max-w-[180px] text-sm shadow-[4px_0_6px_-4px_rgba(0,0,0,0.1)] ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
+                                                                <div className="flex items-center justify-between w-full overflow-hidden">
+                                                                    <span 
+                                                                        className="truncate cursor-pointer hover:text-primary-600 transition flex items-center gap-1.5" 
+                                                                        title="คลิกเพื่อดูสรุปคะแนน/งานที่ขาด" 
+                                                                        onClick={() => setScannerModalData(s)}
+                                                                    >
+                                                                        {s.name} <Icons.Eye size={14} className="text-slate-300 hover:text-primary-500 shrink-0"/>
+                                                                    </span>
+                                                                    {s.note && <div className="text-[9px] bg-yellow-100 text-yellow-700 px-1 rounded ml-1 flex-shrink-0" title={s.note}>!</div>}
+                                                                </div>
+                                                            </td>
+                                                            
+                                                            {sections.map(sec => {
+                                                                return sec.groups?.map(g => {
+                                                                    return g.columns?.map(col => {
+                                                                        const isAuto = col.type !== 'manual' && col.type !== 'check';
+                                                                        const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                                        const val = isAuto ? calculateAutoScore(s, g, col, true) : s.scores?.[col.id];
+                                                                        
+                                                                        let thisColIdx = -1;
+                                                                        if (!isAuto) {
+                                                                            thisColIdx = currentColIdx++;
+                                                                        }
+                            
+                                                                        return (
+                                                                            <td key={col.id} className={`p-0 border-r border-slate-100 text-center relative h-8 min-w-[32px] max-w-[32px] w-[32px] ${isAuto ? 'bg-slate-50' : ''} ${isHidden ? 'bg-gray-50 unpublished-col' : ''}`}>
+                                                                                {isAuto ? 
+                                                                                    <div className={`flex items-center justify-center h-full text-slate-800 font-bold text-xs ${isHidden ? 'opacity-40' : ''}`}>{val}</div> : 
+                                                                                    col.type === 'check' ? (
+                                                                                        <button 
+                                                                                            data-row={idx}
+                                                                                            data-col={thisColIdx}
+                                                                                            onPaste={(e) => handleGridPaste(e, idx, thisColIdx)}
+                                                                                            onKeyDown={(e) => handleGridKeyDown(e, idx, thisColIdx)}
+                                                                                            className={`w-full h-full flex items-center justify-center transition-colors focus:ring-2 focus:ring-primary-400 outline-none ${val ? 'bg-green-50 hover:bg-green-100' : 'hover:bg-slate-100'} ${isHidden ? 'opacity-50' : ''}`}
+                                                                                            onClick={() => {
+                                                                                                const newScores = { ...s.scores, [col.id]: !val };
+                                                                                                setStudents(prev => prev.map(p => p.id === s.id ? { ...s, scores: newScores } : p)); 
+                                                                                                updateStudent({ ...s, scores: newScores });
+                                                                                            }}
+                                                                                        >
+                                                                                            {val ? <Icons.CheckCircle size={16} className="text-green-600"/> : <span className="text-slate-300 font-bold">-</span>}
+                                                                                        </button>
+                                                                                    ) : (
                                                                                         <div onClick={() => isPopupMode && openScoreModal(s, col)} className="w-full h-full">
                                                                                             <input 
                                                                                                 data-row={idx}
@@ -2716,40 +2716,41 @@
                                                                                                 }}
                                                                                             />
                                                                                         </div>
-                                                                                    }
-                                                                                </td>
-                                                                            );
-                                                                        });
+                                                                                    )
+                                                                                }
+                                                                            </td>
+                                                                        );
                                                                     });
-                                                                })}
-                                                                <td className="p-1 text-center font-bold text-slate-800 border-l border-slate-200 bg-slate-50 text-xs">{totalScore}</td>
-                                                                <td className={`p-1 text-center font-bold text-white border-l border-yellow-200 text-xs ${totalScore < 50 ? 'bg-red-400' : 'bg-yellow-400'}`}>{calculateGrade(totalScore)}</td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                                <tfoot className="bg-slate-800 text-white text-[10px] font-mono sticky bottom-0 z-40 shadow-lg">
-                                                    <tr>
-                                                        <td className="p-2 text-right font-bold bg-slate-900 sticky-col sticky-left-0 border-r border-slate-700 z-50"></td>
-                                                        <td className="p-2 text-right font-bold bg-slate-900 sticky-col sticky-left-1 border-r border-slate-700 z-50 hidden sm:table-cell"></td>
-                                                        <td className="p-2 text-right font-bold bg-slate-900 sticky-col sm:sticky-left-2 left-[40px] border-r border-slate-700 z-50">AVG</td>
-                                                        {sections.map(sec => {
-                                                            return sec.groups?.map(g => {
-                                                                return g.columns?.map(col => {
-                                                                    const stats = (col.type === 'manual' || col.type === 'check') ? calculateColumnStats(col) : { avg: '-' };
-                                                                    const isHidden = sec.published === false || g.published === false || col.published === false;
-                                                                    return <td key={col.id} className={`p-1 text-center border-r border-slate-700 min-w-[32px] max-w-[32px] ${isHidden ? 'text-slate-500 opacity-60' : 'text-slate-300'}`} title={`Min: ${stats.min}, Max: ${stats.max}`}>{stats.avg}</td>
                                                                 });
+                                                            })}
+                                                            <td className="p-1 text-center font-bold text-slate-800 border-l border-slate-200 bg-slate-50 text-xs">{totalScore}</td>
+                                                            <td className={`p-1 text-center font-bold text-white border-l border-yellow-200 text-xs ${totalScore < 50 ? 'bg-red-400' : 'bg-yellow-400'}`}>{calculateGrade(totalScore)}</td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                            <tfoot className="bg-slate-800 text-white text-[10px] font-mono sticky bottom-0 z-40 shadow-lg">
+                                                <tr>
+                                                    <td className="p-2 text-right font-bold bg-slate-900 sticky-col sticky-left-0 border-r border-slate-700 z-50"></td>
+                                                    <td className="p-2 text-right font-bold bg-slate-900 sticky-col sticky-left-1 border-r border-slate-700 z-50 hidden sm:table-cell"></td>
+                                                    <td className="p-2 text-right font-bold bg-slate-900 sticky-col sm:sticky-left-2 left-[40px] border-r border-slate-700 z-50">AVG</td>
+                                                    {sections.map(sec => {
+                                                        return sec.groups?.map(g => {
+                                                            return g.columns?.map(col => {
+                                                                const stats = (col.type === 'manual' || col.type === 'check') ? calculateColumnStats(col) : { avg: '-' };
+                                                                const isHidden = sec.published === false || g.published === false || col.published === false;
+                                                                return <td key={col.id} className={`p-1 text-center border-r border-slate-700 min-w-[32px] max-w-[32px] ${isHidden ? 'text-slate-500 opacity-60' : 'text-slate-300'}`} title={`Min: ${stats.min}, Max: ${stats.max}`}>{stats.avg}</td>
                                                             });
-                                                        })}
-                                                        <td className="p-1 text-center font-bold text-yellow-400 bg-slate-900 border-l border-slate-700 text-xs" title="ค่าเฉลี่ยคะแนนรวม">{analysisData.avgScore}</td>
-                                                        <td className="bg-slate-900"></td>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
-                                        </div>
+                                                        });
+                                                    })}
+                                                    <td className="p-1 text-center font-bold text-yellow-400 bg-slate-900 border-l border-slate-700 text-xs" title="ค่าเฉลี่ยคะแนนรวม">{analysisData.avgScore}</td>
+                                                    <td className="bg-slate-900"></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
                                     </div>
-                                )}
+                                </div>
+                            )}
 
                                 {teacherTab === 'random' && (
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-scale">
